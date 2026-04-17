@@ -9,3 +9,4 @@ Este directorio documenta las decisiones de diseno tomadas durante el desarrollo
 | 001 | [001-design-system.md](001-design-system.md) | Seleccion del Design System | 2026-04-16 |
 | 002 | [002-layout-pattern.md](002-layout-pattern.md) | Patron de layout (sidebar vs top nav) | 2026-04-16 |
 | 003 | [003-brand-color-usage.md](003-brand-color-usage.md) | Uso del color primario para identidad | 2026-04-16 |
+| 004 | [004-documentation-layout.md](004-documentation-layout.md) | Pagina de documentacion | 2026-04-16 |

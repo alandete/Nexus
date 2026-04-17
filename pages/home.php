@@ -98,7 +98,7 @@ if (!$todayFormatted) {
     <!-- Stats Cards -->
     <div class="dashboard-stats">
         <a href="<?= url('tasks') ?>" class="stat-card">
-            <div class="stat-card-icon" style="background: rgba(var(--app-brand-rgb), 0.08); color: var(--app-brand);">
+            <div class="stat-card-icon stat-icon-brand">
                 <i class="bi bi-clock" aria-hidden="true"></i>
             </div>
             <div class="stat-card-body">
@@ -108,7 +108,7 @@ if (!$todayFormatted) {
         </a>
 
         <a href="<?= url('tasks') ?>" class="stat-card">
-            <div class="stat-card-icon" style="background: var(--ds-background-information); color: var(--ds-icon-information);">
+            <div class="stat-card-icon stat-icon-info">
                 <i class="bi bi-play-circle" aria-hidden="true"></i>
             </div>
             <div class="stat-card-body">
@@ -118,7 +118,7 @@ if (!$todayFormatted) {
         </a>
 
         <div class="stat-card">
-            <div class="stat-card-icon" style="background: var(--ds-background-success); color: var(--ds-icon-success);">
+            <div class="stat-card-icon stat-icon-success">
                 <i class="bi bi-stopwatch" aria-hidden="true"></i>
             </div>
             <div class="stat-card-body">
@@ -128,7 +128,7 @@ if (!$todayFormatted) {
         </div>
 
         <a href="<?= url('tasks') ?>" class="stat-card <?= $taskStats['overdue'] > 0 ? 'stat-card-alert' : '' ?>">
-            <div class="stat-card-icon" style="background: var(--ds-background-danger); color: var(--ds-icon-danger);">
+            <div class="stat-card-icon stat-icon-danger">
                 <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
             </div>
             <div class="stat-card-body">
@@ -169,7 +169,7 @@ if (!$todayFormatted) {
             <div class="card-body">
                 <?php if (empty($upcomingTasks)): ?>
                 <div class="empty-state p-200">
-                    <div class="empty-state-icon"><i class="bi bi-calendar-check"></i></div>
+                    <div class="empty-state-icon"><i class="bi bi-calendar-check" aria-hidden="true"></i></div>
                     <p class="empty-state-description"><?= __('dashboard.no_upcoming') ?></p>
                 </div>
                 <?php else: ?>
@@ -229,7 +229,7 @@ if (!$todayFormatted) {
             <div class="card-body">
                 <?php if (empty($recentActivity)): ?>
                 <div class="empty-state p-200">
-                    <div class="empty-state-icon"><i class="bi bi-clock-history"></i></div>
+                    <div class="empty-state-icon"><i class="bi bi-clock-history" aria-hidden="true"></i></div>
                     <p class="empty-state-description"><?= __('dashboard.no_activity') ?></p>
                 </div>
                 <?php else: ?>
@@ -282,8 +282,8 @@ if (!$todayFormatted) {
             </span>
         </div>
         <div class="card-body">
-            <div class="progress mb-200" role="progressbar" aria-valuenow="<?= $progressPct ?>" aria-valuemin="0" aria-valuemax="100">
-                <div class="progress-bar" style="width: <?= $progressPct ?>%; background: var(--app-brand);"></div>
+            <div class="progress progress-brand mb-200" role="progressbar" aria-valuenow="<?= $progressPct ?>" aria-valuemin="0" aria-valuemax="100">
+                <div class="progress-bar" style="width: <?= $progressPct ?>%;"></div>
             </div>
             <?php if (!empty($inProgressStages)): ?>
             <div class="progress-stages">

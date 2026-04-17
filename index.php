@@ -40,7 +40,7 @@ $projectInfo = getProjectInfo();
 
 // Routing
 $page = isset($_GET['page']) ? sanitize($_GET['page']) : 'home';
-$validPages = ['home', 'tasks', 'alliances', 'utilities', 'settings', 'users', 'login', 'logout'];
+$validPages = ['home', 'tasks', 'alliances', 'utilities', 'settings', 'documentation', 'users', 'login', 'logout'];
 
 if (!in_array($page, $validPages)) {
     $page = 'home';
@@ -125,6 +125,11 @@ if ($page === 'login') {
     <!-- Top Bar -->
     <?php include 'includes/header.php'; ?>
 
+    <!-- Page Loader -->
+    <div class="page-loader" id="pageLoader" aria-live="polite" aria-label="<?= __('a11y.loading') ?>">
+        <div class="page-loader-spinner"></div>
+    </div>
+
     <!-- App Shell: Sidebar + Content -->
     <div class="app-shell">
         <!-- Sidebar Navigation -->
@@ -152,6 +157,10 @@ if ($page === 'login') {
 
     <?php if ($page === 'home'): ?>
     <script src="assets/js/dashboard.js?v=<?= filemtime('assets/js/dashboard.js') ?>"></script>
+    <?php endif; ?>
+
+    <?php if ($page === 'documentation'): ?>
+    <script src="assets/js/docs.js?v=<?= filemtime('assets/js/docs.js') ?>"></script>
     <?php endif; ?>
 
     <?php if ($page === 'tasks'): ?>

@@ -28,6 +28,7 @@ return [
         'backups' => 'Backups',
         'system' => 'System',
         'activity' => 'Activity',
+        'docs' => 'Documentation',
     ],
 
     // Header
@@ -45,6 +46,7 @@ return [
         'close_panel'     => 'Close panel',
         'scroll_to_top'   => 'Scroll to top',
         'help'            => 'Help',
+        'loading'         => 'Loading content',
     ],
 
     // Login

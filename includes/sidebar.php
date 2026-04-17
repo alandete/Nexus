@@ -47,13 +47,13 @@ $isSettingsActive = in_array($currentPage, $settingsPages);
             <li class="sidebar-item sidebar-group" role="none">
                 <button class="sidebar-link sidebar-group-toggle <?= $currentPage === 'alliances' ? 'active' : '' ?>"
                         type="button" aria-expanded="<?= $currentPage === 'alliances' ? 'true' : 'false' ?>"
-                        data-tooltip="<?= __('menu.alliances') ?>"
-                        role="menuitem">
+                        aria-controls="sidebar-sub-alliances"
+                        data-tooltip="<?= __('menu.alliances') ?>">
                     <i class="bi bi-building sidebar-link-icon" aria-hidden="true"></i>
                     <span class="sidebar-link-text"><?= __('menu.alliances') ?></span>
                     <i class="bi bi-chevron-down sidebar-chevron" aria-hidden="true"></i>
                 </button>
-                <ul class="sidebar-submenu <?= $currentPage === 'alliances' ? 'show' : '' ?>" role="menu">
+                <ul class="sidebar-submenu <?= $currentPage === 'alliances' ? 'show' : '' ?>" id="sidebar-sub-alliances" role="menu">
                     <li role="none">
                         <a class="sidebar-sublink" href="<?= url('alliances') ?>#unis" role="menuitem">
                             <span class="sidebar-link-text">UNIS</span>
@@ -71,13 +71,13 @@ $isSettingsActive = in_array($currentPage, $settingsPages);
             <li class="sidebar-item sidebar-group" role="none">
                 <button class="sidebar-link sidebar-group-toggle <?= $currentPage === 'utilities' ? 'active' : '' ?>"
                         type="button" aria-expanded="<?= $currentPage === 'utilities' ? 'true' : 'false' ?>"
-                        data-tooltip="<?= __('menu.utilities') ?>"
-                        role="menuitem">
+                        aria-controls="sidebar-sub-utilities"
+                        data-tooltip="<?= __('menu.utilities') ?>">
                     <i class="bi bi-tools sidebar-link-icon" aria-hidden="true"></i>
                     <span class="sidebar-link-text"><?= __('menu.utilities') ?></span>
                     <i class="bi bi-chevron-down sidebar-chevron" aria-hidden="true"></i>
                 </button>
-                <ul class="sidebar-submenu <?= $currentPage === 'utilities' ? 'show' : '' ?>" role="menu">
+                <ul class="sidebar-submenu <?= $currentPage === 'utilities' ? 'show' : '' ?>" id="sidebar-sub-utilities" role="menu">
                     <li role="none">
                         <a class="sidebar-sublink" href="<?= url('utilities') ?>#preguntas" role="menuitem">
                             <i class="bi bi-file-earmark-text sidebar-link-icon" aria-hidden="true"></i>
@@ -107,13 +107,13 @@ $isSettingsActive = in_array($currentPage, $settingsPages);
             <li class="sidebar-item sidebar-group" role="none">
                 <button class="sidebar-link sidebar-group-toggle <?= $isSettingsActive ? 'active' : '' ?>"
                         type="button" aria-expanded="<?= $isSettingsActive ? 'true' : 'false' ?>"
-                        data-tooltip="<?= __('menu.settings') ?>"
-                        role="menuitem">
+                        aria-controls="sidebar-sub-settings"
+                        data-tooltip="<?= __('menu.settings') ?>">
                     <i class="bi bi-gear sidebar-link-icon" aria-hidden="true"></i>
                     <span class="sidebar-link-text"><?= __('menu.settings') ?></span>
                     <i class="bi bi-chevron-down sidebar-chevron" aria-hidden="true"></i>
                 </button>
-                <ul class="sidebar-submenu <?= $isSettingsActive ? 'show' : '' ?>" role="menu">
+                <ul class="sidebar-submenu <?= $isSettingsActive ? 'show' : '' ?>" id="sidebar-sub-settings" role="menu">
                     <?php if (canAccessModule($currentUser, 'users')): ?>
                     <li role="none">
                         <a class="sidebar-sublink" href="<?= url('settings') ?>#usuarios" role="menuitem">
@@ -163,6 +163,20 @@ $isSettingsActive = in_array($currentPage, $settingsPages);
                 </ul>
             </li>
             <?php endif; ?>
+
+            <!-- Separator -->
+            <li class="sidebar-separator" role="separator"></li>
+
+            <!-- Documentacion -->
+            <li class="sidebar-item" role="none">
+                <a class="sidebar-link <?= $currentPage === 'documentation' ? 'active' : '' ?>"
+                   href="<?= url('documentation') ?>" role="menuitem"
+                   data-tooltip="<?= __('menu.docs') ?>"
+                   <?= $currentPage === 'documentation' ? 'aria-current="page"' : '' ?>>
+                    <i class="bi bi-book sidebar-link-icon" aria-hidden="true"></i>
+                    <span class="sidebar-link-text"><?= __('menu.docs') ?></span>
+                </a>
+            </li>
         </ul>
     </nav>
 

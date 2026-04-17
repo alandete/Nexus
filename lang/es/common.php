@@ -29,6 +29,7 @@ return [
         'backups' => 'Copias de seguridad',
         'system' => 'Sistema',
         'activity' => 'Actividad',
+        'docs' => 'Documentacion',
     ],
 
     // Header
@@ -46,6 +47,7 @@ return [
         'close_panel'     => 'Cerrar panel',
         'scroll_to_top'   => 'Volver arriba',
         'help'            => 'Ayuda',
+        'loading'         => 'Cargando contenido',
     ],
 
     // Login

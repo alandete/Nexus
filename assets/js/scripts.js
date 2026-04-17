@@ -6,6 +6,18 @@
 (function() {
     'use strict';
 
+    // --- Page loader: hide when DOM is ready ---
+    var pageLoader = document.getElementById('pageLoader');
+    if (pageLoader) {
+        window.addEventListener('load', function() {
+            pageLoader.classList.add('hidden');
+        });
+        // Fallback: hide after 3s max
+        setTimeout(function() {
+            if (pageLoader) pageLoader.classList.add('hidden');
+        }, 3000);
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
 
         const sidebar = document.getElementById('sidebar');
@@ -32,26 +44,15 @@
 
         initSidebar();
 
-        // --- Sidebar toggle ---
-        if (sidebarToggle && sidebar) {
-            sidebarToggle.addEventListener('click', function() {
-                sidebar.classList.toggle('open');
-                var isOpen = sidebar.classList.contains('open');
-                sidebarToggle.setAttribute('aria-expanded', isOpen);
+        // --- Sidebar toggle (handled in hover section below) ---
 
-                // Overlay only on mobile
-                if (getViewport() === 'mobile' && sidebarOverlay) {
-                    sidebarOverlay.classList.toggle('active', isOpen);
-                }
-            });
-        }
-
-        // --- Sidebar overlay click (close on mobile/tablet) ---
+        // --- Sidebar overlay click (mobile) ---
         if (sidebarOverlay) {
             sidebarOverlay.addEventListener('click', function() {
                 if (sidebar) sidebar.classList.remove('open');
                 sidebarOverlay.classList.remove('active');
                 if (sidebarToggle) sidebarToggle.setAttribute('aria-expanded', 'false');
+                isPinned = false;
             });
         }
 
@@ -152,14 +153,57 @@
             if (target) hideTooltip();
         });
 
-        // --- Handle resize: close sidebar on viewport change ---
+        // --- Sidebar expand on hover (desktop/tablet only) ---
+        var hoverTimeout;
+        var isPinned = false;
+
+        if (sidebar) {
+            sidebar.addEventListener('mouseenter', function() {
+                if (getViewport() === 'mobile' || isPinned) return;
+                clearTimeout(hoverTimeout);
+                sidebar.classList.add('open');
+            });
+
+            sidebar.addEventListener('mouseleave', function() {
+                if (getViewport() === 'mobile' || isPinned) return;
+                hoverTimeout = setTimeout(function() {
+                    sidebar.classList.remove('open');
+                }, 200);
+            });
+        }
+
+        // Update toggle to pin/unpin instead of open/close on desktop
+        if (sidebarToggle && sidebar) {
+            sidebarToggle.removeEventListener('click', sidebarToggle._handler);
+            sidebarToggle._handler = function() {
+                var viewport = getViewport();
+                if (viewport === 'mobile') {
+                    sidebar.classList.toggle('open');
+                    var isOpen = sidebar.classList.contains('open');
+                    sidebarToggle.setAttribute('aria-expanded', isOpen);
+                    if (sidebarOverlay) sidebarOverlay.classList.toggle('active', isOpen);
+                } else {
+                    isPinned = !isPinned;
+                    sidebar.classList.toggle('open', isPinned);
+                    sidebarToggle.setAttribute('aria-expanded', isPinned);
+                    sidebarToggle.querySelector('i').className = isPinned ? 'bi bi-layout-sidebar-inset' : 'bi bi-list';
+                }
+            };
+            sidebarToggle.addEventListener('click', sidebarToggle._handler);
+        }
+
+        // --- Handle resize ---
         var resizeTimer;
         window.addEventListener('resize', function() {
             clearTimeout(resizeTimer);
             resizeTimer = setTimeout(function() {
+                isPinned = false;
                 if (sidebar) sidebar.classList.remove('open');
                 if (sidebarOverlay) sidebarOverlay.classList.remove('active');
-                if (sidebarToggle) sidebarToggle.setAttribute('aria-expanded', 'false');
+                if (sidebarToggle) {
+                    sidebarToggle.setAttribute('aria-expanded', 'false');
+                    sidebarToggle.querySelector('i').className = 'bi bi-list';
+                }
             }, 100);
         });
 

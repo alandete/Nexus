@@ -117,7 +117,7 @@ $canonicalBase = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'http
                             <i class="bi bi-hexagon-fill logo-icon" aria-hidden="true"></i>
                         <?php endif; ?>
                     </div>
-                    <h1 class="login-mobile-brand"><?= htmlspecialchars($projectInfo['app_name']) ?></h1>
+                    <h2 class="login-mobile-brand"><?= htmlspecialchars($projectInfo['app_name']) ?></h2>
                     <p class="login-mobile-tagline"><?= !empty($projectInfo['tagline']) ? htmlspecialchars($projectInfo['tagline']) : __('login.tagline') ?></p>
                 </div>
 

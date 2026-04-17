@@ -1356,6 +1356,42 @@ select.form-control {
 }
 
 /* ============================================
+   ERROR PAGES
+   ============================================ */
+.error-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: calc(100vh - var(--ds-topbar-height) - var(--ds-space-800));
+    padding: var(--ds-space-400) var(--ds-space-200);
+}
+
+.error-code {
+    font-size: 5rem;
+    font-weight: var(--ds-font-weight-bold);
+    color: var(--app-brand);
+    line-height: 1;
+    margin-bottom: var(--ds-space-100);
+    opacity: 0.3;
+}
+
+.error-title {
+    font-size: var(--ds-font-size-heading-lg);
+    font-weight: var(--ds-font-weight-semibold);
+    color: var(--ds-text);
+    margin-bottom: var(--ds-space-100);
+}
+
+.error-description {
+    font-size: var(--ds-font-size-body);
+    color: var(--ds-text-subtle);
+    max-width: 400px;
+    margin-bottom: var(--ds-space-300);
+}
+
+/* ============================================
    PAGE LOADER
    ============================================ */
 .page-loader {

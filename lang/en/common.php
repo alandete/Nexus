@@ -212,4 +212,14 @@ return [
         'apis_guide_ilp_step6'  => 'Click "Save keys" and then "Test connection" to confirm everything works.',
         'apis_guide_ilp_free_plan' => 'Free plan: 200 operations/month (PDFs and images) · Files up to 100 MB · No watermark on results.',
     ],
+
+    'errors' => [
+        '404_title'       => 'Page not found',
+        '404_description' => 'The page you are looking for does not exist or has been moved.',
+        '403_title'       => 'Access denied',
+        '403_description' => 'You do not have permission to access this section.',
+        '500_title'       => 'Server error',
+        '500_description' => 'An unexpected error occurred. Please try again later.',
+        'go_home'         => 'Go to home',
+    ],
 ];

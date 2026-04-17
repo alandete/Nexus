@@ -219,4 +219,15 @@ return [
         'apis_guide_ilp_step6'  => 'Haz clic en "Guardar claves" y luego en "Probar conexion" para confirmar que todo funciona.',
         'apis_guide_ilp_free_plan' => 'Plan gratuito: 200 operaciones/mes (PDFs e imágenes) · Archivos de hasta 100 MB · Sin marca de agua en el resultado.',
     ],
+
+    // Errores
+    'errors' => [
+        '404_title'       => 'Pagina no encontrada',
+        '404_description' => 'La pagina que buscas no existe o fue movida.',
+        '403_title'       => 'Acceso denegado',
+        '403_description' => 'No tienes permisos para acceder a esta seccion.',
+        '500_title'       => 'Error del servidor',
+        '500_description' => 'Ocurrio un error inesperado. Intenta de nuevo mas tarde.',
+        'go_home'         => 'Volver al inicio',
+    ],
 ];

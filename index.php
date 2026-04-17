@@ -43,7 +43,8 @@ $page = isset($_GET['page']) ? sanitize($_GET['page']) : 'home';
 $validPages = ['home', 'tasks', 'alliances', 'utilities', 'settings', 'documentation', 'users', 'login', 'logout'];
 
 if (!in_array($page, $validPages)) {
-    $page = 'home';
+    http_response_code(404);
+    $page = '404';
 }
 
 // Logout

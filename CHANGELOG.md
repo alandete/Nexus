@@ -3,6 +3,16 @@
 Todos los cambios relevantes del proyecto se documentan en este archivo.
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+## [2.0.0-alpha.1] — 2026-04-17
+
+### Agregado
+- Paginas de error: 404, 403, 500 con codigo de color primario y traducciones ES/EN
+
+### Eliminado
+- `includes/footer.php` — ya no se usa, la version esta en el sidebar
+
+---
+
 ## [2.0.0-alpha.1] — 2026-04-16
 
 ### Agregado

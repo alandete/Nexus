@@ -1,0 +1,47 @@
+# Configuracion local y secretos
+config/database.php
+config/secret.php
+
+# Uploads de usuarios
+assets/uploads/avatars/*
+assets/uploads/logos/*
+assets/uploads/alliances/*
+!assets/uploads/avatars/.gitkeep
+!assets/uploads/logos/.gitkeep
+!assets/uploads/alliances/.gitkeep
+
+# Backups
+backups/*
+!backups/.gitkeep
+
+# Temporales
+temp/*
+!temp/.gitkeep
+
+# Datos con info sensible (usar *.example.json como plantilla)
+data/users.json
+data/api_settings.json
+data/activity_log.json
+data/alliances.json
+data/projectinfo.json
+data/roles.json
+data/stages.json
+
+# Cache y diagnostico
+data/deps_check.json
+data/diagnostics_cache.json
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Claude
+.claude/

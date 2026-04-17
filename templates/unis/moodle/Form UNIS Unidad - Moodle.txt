@@ -1,0 +1,50 @@
+Alianza: UNIS - Moodle
+Pestaña: Unidad
+
+Sección: Título
+Unidad: campo numérico tipo lista de 1 al 5
+Nombre: campo de texto corto
+
+Descripción de la sección: Indique la unidad y su nombre completo tal y como está en la matriz de montaje.
+Diseño de la sección: mostrar ambos campos en una sola fila
+
+Sección: Audio
+Audio: campo de texto tipo Url
+Descripción del campo: Indique la url del recurso
+
+Transcripción: campo textarea de 7 líneas
+Descripción del campo: Agregue el texto de la transcripción, puede ser uno o varios párrafos.
+Diseño de la sección: mostrar en dos filas y una sola columna
+
+Sección: Temario
+Imagen: campo de texto tipo url
+Descripción del campo: Indique la url del recurso
+
+Sección: Resultado de aprendizaje
+Aprendizaje: campo textarea de 7 líneas
+Descripción del campo: Utilice saltos de línea en caso de ser varios.
+
+Sección: Glosario
+Destacados: campo textarea de 3 líneas
+Descripción del campo: Enmarque entre #...# las palabras o frases en cursiva y entre *...* las negrillas
+
+Glosario: campo textarea de 7 líneas 
+Descripción de la sección: Utilice el formato Termino&Definición y un salto de línea para cada ítem
+Diseño de la sección: mostrar dos filas y una sola columna
+
+Sección: Recursos
+Destacados: campo textarea de 3 líneas
+Descripción del campo: Enmarque entre #...# las palabras o frases en cursiva y entre *...* las negrillas
+
+Recursos: campo textarea de 7 líneas
+Descripción del campo: Agregue cada recurso y utilice saltos de línea para separar, cada recurso debe contar con su url
+
+Sección: Multimedia y Takeaway
+
+Multimedia: campo de texto
+Descripción del campo: Indique el nombre del recurso multimedia
+
+Takeaway: campo de texto tipo url
+Descripción del campo: Indique la url del recurso
+
+

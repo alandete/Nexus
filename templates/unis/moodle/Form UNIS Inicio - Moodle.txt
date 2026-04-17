@@ -1,0 +1,23 @@
+Alianza: UNIS
+
+Página: Inicio
+
+Sección: Generalidades
+
+Campos:
+- Docente: campo de texto, guarda url
+- Sílabo: campo de texto, guarda url
+- Ruta: campo de texto, guarda url
+- Evaluación: conjunto de campos de texto presentados en una tabla
+
+Descripción o leyenda: indique las url del repositorio para campo
+
+- Evaluación: tabla de 3 columnas (Unidad, Actividad y Ponderación) y 7 filas
+
+Las filas se organizan de la siguiente forma:
+Unidad 1: Actividad (fila 1 y 2), Ponderación (fila 1 y 2)
+Unidad 2: Actividad (fila 3 y 4), Ponderación (fila 3 y 4)
+Unidad 3: Actividad (fila 5 y 6), Ponderación (fila 5 y 6)
+Unidad 4: Actividad (fila 7), Ponderación (fila 7)
+
+Utilizar en los campos la característica Floating label de Bootstrap

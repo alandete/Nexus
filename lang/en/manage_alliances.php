@@ -1,0 +1,53 @@
+<?php
+/**
+ * S4Learning - English Translations (Alliance Management)
+ */
+defined('APP_ACCESS') or die('Direct access not allowed');
+
+return [
+    'manage_alliances' => [
+        'page_title'          => 'Manage Alliances',
+        'btn_create'          => 'New alliance',
+        'btn_edit'            => 'Edit',
+        'btn_delete'          => 'Delete',
+        'status_active'       => 'Active',
+        'status_inactive'     => 'Inactive',
+        'empty_state'         => 'No alliances registered',
+        'field_name'          => 'Name (abbreviated)',
+        'field_name_help'     => 'Short name that identifies the alliance',
+        'field_fullname'      => 'Full name',
+        'field_country'       => 'Country',
+        'field_color'         => 'Alliance color',
+        'field_color_help'    => 'Used as visual identifier across the application',
+        'field_website'       => 'Website',
+        'field_lms_url'       => 'LMS URL',
+        'field_manager'       => 'Manager',
+        'field_coordinator'   => 'DI Coordinator',
+        'field_migrator'      => 'Migration lead',
+        'field_type_user'     => 'Select user',
+        'field_type_external' => 'Add external',
+        'field_resp_name'     => 'Name',
+        'field_resp_email'    => 'Email',
+        'field_active'        => 'Active alliance',
+        'field_billable'      => 'Billable',
+        'field_files'         => 'Support files',
+        'field_files_help'    => 'PDF, Excel, Word or TXT. Max 5 files, 5 MB each.',
+        'btn_upload'          => 'Upload file',
+        'btn_save'            => 'Save',
+        'btn_saving'          => 'Saving...',
+        'panel_create'        => 'New Alliance',
+        'panel_edit'          => 'Edit Alliance',
+        'confirm_delete'      => 'Delete the alliance? Its support files will also be removed.',
+        'confirm_delete_file' => 'Delete this file?',
+        'success_create'      => 'Alliance created successfully',
+        'success_update'      => 'Alliance updated successfully',
+        'success_delete'      => 'Alliance deleted successfully',
+        'success_upload'      => 'File uploaded successfully',
+        'success_delete_file' => 'File deleted',
+        'error_save'          => 'Error saving alliance',
+        'error_delete'        => 'Error deleting alliance',
+        'error_upload'        => 'Error uploading file',
+        'error_max_files'     => 'Maximum 5 files per alliance',
+        'error_request'       => 'Error processing request',
+    ],
+];

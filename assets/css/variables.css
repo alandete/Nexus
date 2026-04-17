@@ -1,0 +1,387 @@
+/**
+ * Nexus 2.0 — Design Tokens
+ * Basado en Atlassian Design System
+ * Mobile-first
+ */
+
+:root {
+    /* ============================================
+       ATLASSIAN COLOR PALETTE
+       ============================================ */
+
+    /* --- Blue --- */
+    --ds-blue-100: #CCE0FF;
+    --ds-blue-200: #85B8FF;
+    --ds-blue-300: #579DFF;
+    --ds-blue-400: #388BFF;
+    --ds-blue-500: #1D7AFC;
+    --ds-blue-600: #0C66E4;
+    --ds-blue-700: #0055CC;
+    --ds-blue-800: #09326C;
+    --ds-blue-900: #092957;
+
+    /* --- Teal --- */
+    --ds-teal-100: #C1F0F5;
+    --ds-teal-200: #8BDBE5;
+    --ds-teal-300: #60C6D2;
+    --ds-teal-400: #37B4C3;
+    --ds-teal-500: #1D9AAA;
+    --ds-teal-600: #1D7F8C;
+    --ds-teal-700: #206B74;
+    --ds-teal-800: #164555;
+    --ds-teal-900: #1D474C;
+
+    /* --- Green --- */
+    --ds-green-100: #DFFCF0;
+    --ds-green-200: #BAF3DB;
+    --ds-green-300: #7EE2B8;
+    --ds-green-400: #4BCE97;
+    --ds-green-500: #2ABB7F;
+    --ds-green-600: #22A06B;
+    --ds-green-700: #1F845A;
+    --ds-green-800: #164B35;
+    --ds-green-900: #133527;
+
+    /* --- Yellow --- */
+    --ds-yellow-100: #FFF7D6;
+    --ds-yellow-200: #F8E6A0;
+    --ds-yellow-300: #F5CD47;
+    --ds-yellow-400: #E2B203;
+    --ds-yellow-500: #CF9F02;
+    --ds-yellow-600: #B38600;
+    --ds-yellow-700: #946F00;
+    --ds-yellow-800: #5C4B00;
+    --ds-yellow-900: #3D2E00;
+
+    /* --- Orange --- */
+    --ds-orange-100: #FFF4E5;
+    --ds-orange-200: #FFE2BD;
+    --ds-orange-300: #FEC57B;
+    --ds-orange-400: #FAA53D;
+    --ds-orange-500: #F18D13;
+    --ds-orange-600: #D97008;
+    --ds-orange-700: #B65C02;
+    --ds-orange-800: #5F3811;
+    --ds-orange-900: #43290F;
+
+    /* --- Red --- */
+    --ds-red-100: #FFD2CC;
+    --ds-red-200: #FF9C8F;
+    --ds-red-300: #F87462;
+    --ds-red-400: #E2483D;
+    --ds-red-500: #C9372C;
+    --ds-red-600: #AE2A19;
+    --ds-red-700: #952919;
+    --ds-red-800: #601E16;
+    --ds-red-900: #42221F;
+
+    /* --- Purple --- */
+    --ds-purple-100: #DFD8FD;
+    --ds-purple-200: #B8ACF6;
+    --ds-purple-300: #9F8FEF;
+    --ds-purple-400: #8F7EE7;
+    --ds-purple-500: #8270DB;
+    --ds-purple-600: #6E5DC6;
+    --ds-purple-700: #5E4DB2;
+    --ds-purple-800: #352C63;
+    --ds-purple-900: #2B2952;
+
+    /* --- Magenta --- */
+    --ds-magenta-100: #FDD0EC;
+    --ds-magenta-200: #F797D2;
+    --ds-magenta-300: #E774BB;
+    --ds-magenta-400: #DA62AC;
+    --ds-magenta-500: #CD519D;
+    --ds-magenta-600: #AE4787;
+    --ds-magenta-700: #943D73;
+    --ds-magenta-800: #50253F;
+    --ds-magenta-900: #3D2232;
+
+    /* --- Lime --- */
+    --ds-lime-100: #D3F1A7;
+    --ds-lime-200: #B3DF72;
+    --ds-lime-300: #94C748;
+    --ds-lime-400: #82B536;
+    --ds-lime-500: #6A9A23;
+    --ds-lime-600: #5B7F24;
+    --ds-lime-700: #4C6B1F;
+    --ds-lime-800: #37471F;
+    --ds-lime-900: #2D3A1A;
+
+    /* --- Neutral (Light mode) --- */
+    --ds-neutral-0: #FFFFFF;
+    --ds-neutral-100: #F7F8F9;
+    --ds-neutral-200: #F1F2F4;
+    --ds-neutral-300: #DCDFE4;
+    --ds-neutral-400: #B3B9C4;
+    --ds-neutral-500: #8590A2;
+    --ds-neutral-600: #758195;
+    --ds-neutral-700: #626F86;
+    --ds-neutral-800: #44546F;
+    --ds-neutral-900: #2C3E5D;
+    --ds-neutral-1000: #172B4D;
+    --ds-neutral-1100: #091E42;
+
+    /* ============================================
+       SEMANTIC COLOR TOKENS
+       ============================================ */
+
+    /* --- Brand --- */
+    --ds-brand: var(--ds-blue-600);
+    --ds-brand-bold: var(--ds-blue-700);
+
+    /* --- Backgrounds --- */
+    --ds-background-input: var(--ds-neutral-0);
+    --ds-background-input-hovered: var(--ds-neutral-100);
+    --ds-background-neutral: var(--ds-neutral-200);
+    --ds-background-neutral-hovered: var(--ds-neutral-300);
+    --ds-background-neutral-subtle: transparent;
+    --ds-background-neutral-subtle-hovered: var(--ds-neutral-200);
+    --ds-background-selected: #E9F2FF;
+    --ds-background-selected-bold: var(--ds-blue-600);
+    --ds-background-brand-bold: var(--ds-blue-600);
+    --ds-background-brand-bold-hovered: var(--ds-blue-700);
+    --ds-background-danger: #FFEDEB;
+    --ds-background-danger-bold: var(--ds-red-600);
+    --ds-background-success: #DFFCF0;
+    --ds-background-success-bold: var(--ds-green-600);
+    --ds-background-warning: #FFF7D6;
+    --ds-background-warning-bold: var(--ds-yellow-400);
+    --ds-background-information: #E9F2FF;
+    --ds-background-information-bold: var(--ds-blue-600);
+    --ds-background-discovery: #F3F0FF;
+    --ds-background-discovery-bold: var(--ds-purple-600);
+    --ds-background-disabled: var(--ds-neutral-100);
+
+    /* --- Surfaces --- */
+    --ds-surface: var(--ds-neutral-0);
+    --ds-surface-hovered: var(--ds-neutral-100);
+    --ds-surface-pressed: var(--ds-neutral-200);
+    --ds-surface-sunken: var(--ds-neutral-100);
+    --ds-surface-raised: var(--ds-neutral-0);
+    --ds-surface-overlay: var(--ds-neutral-0);
+
+    /* --- Text --- */
+    --ds-text: var(--ds-neutral-1000);
+    --ds-text-subtle: var(--ds-neutral-700);
+    --ds-text-subtlest: var(--ds-neutral-600);
+    --ds-text-disabled: var(--ds-neutral-400);
+    --ds-text-inverse: var(--ds-neutral-0);
+    --ds-text-brand: var(--ds-blue-600);
+    --ds-text-selected: var(--ds-blue-600);
+    --ds-text-danger: var(--ds-red-600);
+    --ds-text-success: var(--ds-green-700);
+    --ds-text-warning: var(--ds-yellow-700);
+    --ds-text-information: var(--ds-blue-600);
+    --ds-text-discovery: var(--ds-purple-700);
+
+    /* --- Links --- */
+    --ds-link: var(--ds-blue-600);
+    --ds-link-pressed: var(--ds-blue-700);
+
+    /* --- Icons --- */
+    --ds-icon: var(--ds-neutral-700);
+    --ds-icon-subtle: var(--ds-neutral-600);
+    --ds-icon-disabled: var(--ds-neutral-400);
+    --ds-icon-inverse: var(--ds-neutral-0);
+    --ds-icon-brand: var(--ds-blue-600);
+    --ds-icon-selected: var(--ds-blue-600);
+    --ds-icon-danger: var(--ds-red-600);
+    --ds-icon-success: var(--ds-green-600);
+    --ds-icon-warning: var(--ds-orange-500);
+    --ds-icon-information: var(--ds-blue-600);
+    --ds-icon-discovery: var(--ds-purple-600);
+
+    /* --- Borders --- */
+    --ds-border: var(--ds-neutral-300);
+    --ds-border-bold: var(--ds-neutral-600);
+    --ds-border-input: var(--ds-neutral-400);
+    --ds-border-focused: var(--ds-blue-500);
+    --ds-border-selected: var(--ds-blue-600);
+    --ds-border-danger: var(--ds-red-600);
+    --ds-border-success: var(--ds-green-600);
+    --ds-border-warning: var(--ds-yellow-400);
+    --ds-border-information: var(--ds-blue-600);
+    --ds-border-discovery: var(--ds-purple-600);
+    --ds-border-disabled: var(--ds-neutral-200);
+
+    /* --- Blanket (overlay backdrop) --- */
+    --ds-blanket: rgba(9, 30, 66, 0.54);
+    --ds-blanket-subtle: rgba(9, 30, 66, 0.31);
+
+    /* --- Interaction states --- */
+    --ds-interaction-hovered: rgba(9, 30, 66, 0.06);
+    --ds-interaction-pressed: rgba(9, 30, 66, 0.10);
+
+    /* ============================================
+       ELEVATION (Shadows)
+       ============================================ */
+    --ds-shadow-raised: 0px 1px 1px rgba(9, 30, 66, 0.25), 0px 0px 1px rgba(9, 30, 66, 0.31);
+    --ds-shadow-overlay: 0px 8px 12px rgba(9, 30, 66, 0.15), 0px 0px 1px rgba(9, 30, 66, 0.31);
+    --ds-shadow-overflow: 0px 0px 12px rgba(9, 30, 66, 0.2), 0px 0px 1px rgba(9, 30, 66, 0.31);
+
+    /* ============================================
+       TYPOGRAPHY
+       ============================================ */
+    --ds-font-family-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+    --ds-font-family-mono: "SFMono-Medium", "SF Mono", "Segoe UI Mono", "Roboto Mono", "Ubuntu Mono", Menlo, Consolas, Courier, monospace;
+
+    --ds-font-weight-regular: 400;
+    --ds-font-weight-medium: 500;
+    --ds-font-weight-semibold: 600;
+    --ds-font-weight-bold: 700;
+
+    /* Heading sizes */
+    --ds-font-size-heading-xxl: 2rem;        /* 32px */
+    --ds-font-size-heading-xl: 1.75rem;      /* 28px */
+    --ds-font-size-heading-lg: 1.5rem;       /* 24px */
+    --ds-font-size-heading-md: 1.25rem;      /* 20px */
+    --ds-font-size-heading-sm: 1rem;         /* 16px */
+    --ds-font-size-heading-xs: 0.875rem;     /* 14px */
+    --ds-font-size-heading-xxs: 0.75rem;     /* 12px */
+
+    /* Heading line heights */
+    --ds-line-height-heading-xxl: 2.25rem;   /* 36px */
+    --ds-line-height-heading-xl: 2rem;       /* 32px */
+    --ds-line-height-heading-lg: 1.75rem;    /* 28px */
+    --ds-line-height-heading-md: 1.5rem;     /* 24px */
+    --ds-line-height-heading-sm: 1.25rem;    /* 20px */
+    --ds-line-height-heading-xs: 1.25rem;    /* 20px */
+    --ds-line-height-heading-xxs: 1rem;      /* 16px */
+
+    /* Body sizes */
+    --ds-font-size-body-lg: 1rem;            /* 16px */
+    --ds-font-size-body: 0.875rem;           /* 14px */
+    --ds-font-size-body-sm: 0.75rem;         /* 12px */
+
+    /* Body line heights */
+    --ds-line-height-body-lg: 1.5rem;        /* 24px */
+    --ds-line-height-body: 1.25rem;          /* 20px */
+    --ds-line-height-body-sm: 1rem;          /* 16px */
+
+    /* Code */
+    --ds-font-size-code: 0.75rem;            /* 12px */
+    --ds-line-height-code: 1.25rem;          /* 20px */
+
+    /* ============================================
+       SPACING (8px base grid)
+       ============================================ */
+    --ds-space-0: 0;
+    --ds-space-025: 0.125rem;   /* 2px */
+    --ds-space-050: 0.25rem;    /* 4px */
+    --ds-space-075: 0.375rem;   /* 6px */
+    --ds-space-100: 0.5rem;     /* 8px */
+    --ds-space-150: 0.75rem;    /* 12px */
+    --ds-space-200: 1rem;       /* 16px */
+    --ds-space-250: 1.25rem;    /* 20px */
+    --ds-space-300: 1.5rem;     /* 24px */
+    --ds-space-400: 2rem;       /* 32px */
+    --ds-space-500: 2.5rem;     /* 40px */
+    --ds-space-600: 3rem;       /* 48px */
+    --ds-space-800: 4rem;       /* 64px */
+    --ds-space-1000: 5rem;      /* 80px */
+
+    /* ============================================
+       BORDER RADIUS
+       ============================================ */
+    --ds-radius-050: 2px;
+    --ds-radius-100: 4px;
+    --ds-radius-200: 8px;
+    --ds-radius-300: 12px;
+    --ds-radius-400: 16px;
+    --ds-radius-round: 50%;
+    --ds-radius-full: 9999px;
+
+    /* ============================================
+       BORDER WIDTH
+       ============================================ */
+    --ds-border-width: 1px;
+    --ds-border-width-indicator: 2px;
+    --ds-border-width-outline: 3px;
+
+    /* ============================================
+       Z-INDEX
+       ============================================ */
+    --ds-z-blanket: 500;
+    --ds-z-navigation: 200;
+    --ds-z-dialog: 510;
+    --ds-z-layer: 400;
+    --ds-z-tooltip: 600;
+    --ds-z-flag: 700;
+    --ds-z-spotlight: 800;
+    --ds-z-modal: 510;
+
+    /* ============================================
+       TRANSITIONS
+       ============================================ */
+    --ds-duration-fast: 100ms;
+    --ds-duration-normal: 200ms;
+    --ds-duration-slow: 350ms;
+    --ds-ease-in-out: cubic-bezier(0.15, 1, 0.3, 1);
+    --ds-ease-out: cubic-bezier(0.2, 0, 0, 1);
+
+    /* ============================================
+       LAYOUT
+       ============================================ */
+    --ds-topbar-height: 48px;
+    --ds-sidebar-width: 240px;
+    --ds-sidebar-width-collapsed: 56px;
+    --ds-content-max-width: 1200px;
+    --ds-slide-panel-width: 420px;
+
+    /* ============================================
+       APP-SPECIFIC TOKENS
+       ============================================ */
+
+    /* Brand colors (herencia de v1) */
+    --app-brand: #585d8a;
+    --app-brand-rgb: 88, 93, 138;
+    --app-accent: #f86e15;
+    --app-accent-rgb: 248, 110, 21;
+    --app-brand-dark: #3d4163;
+
+    /* LMS Platform colors */
+    --app-lms-moodle: #F97316;
+    --app-lms-canvas: #E63F2E;
+
+    /* Task status colors */
+    --app-status-pending: var(--ds-neutral-400);
+    --app-status-in-progress: var(--ds-blue-500);
+    --app-status-paused: var(--ds-yellow-400);
+    --app-status-completed: var(--ds-green-500);
+    --app-status-cancelled: var(--ds-red-500);
+
+    /* Task priority colors */
+    --app-priority-urgent: var(--ds-red-500);
+    --app-priority-high: var(--ds-orange-500);
+    --app-priority-medium: var(--ds-blue-500);
+    --app-priority-low: var(--ds-neutral-400);
+}
+
+/* ============================================
+   KEYFRAMES
+   ============================================ */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; transform: translateY(0); }
+    to   { opacity: 0; transform: translateY(8px); }
+}
+
+@keyframes slideInRight {
+    from { transform: translateX(100%); }
+    to   { transform: translateX(0); }
+}
+
+@keyframes slideOutRight {
+    from { transform: translateX(0); }
+    to   { transform: translateX(100%); }
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}

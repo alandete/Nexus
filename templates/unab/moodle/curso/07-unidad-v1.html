@@ -1,0 +1,8 @@
+<div id="{{ topicid }}" class="tab-pane" role="tabpanel">
+  <h3 class="tabHeadings">Unidad {{ UnidadNumero }}</h3>
+  {{ DescripcionRecurso }}
+  <div class="embed-responsive embed-responsive-{{ ratio }}">
+    <iframe loading="lazy" allowfullscreen src="{{ RecursoUrl }}"></iframe>
+  </div>
+  <p class="zoomBox"><a target="_blank" rel="noopener noreferrer" href="{{ RecursoUrl }}"><i class="fa fa-search-plus" aria-hidden="true"></i> Clic para ver en pantalla completa</a></p>
+</div> <!-- END {{ topicid }} -->

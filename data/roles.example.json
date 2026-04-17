@@ -1,0 +1,32 @@
+{
+    "admin": {
+        "permissions": {
+            "alliances": ["read", "write", "delete"],
+            "utilities": ["read", "write", "delete"],
+            "settings": ["read", "write", "delete"],
+            "users": ["read", "write", "delete"],
+            "backup": true,
+            "restore": true
+        }
+    },
+    "editor": {
+        "permissions": {
+            "alliances": ["read", "write"],
+            "utilities": ["read", "write"],
+            "settings": ["read"],
+            "users": ["read"],
+            "backup": false,
+            "restore": false
+        }
+    },
+    "viewer": {
+        "permissions": {
+            "alliances": ["read"],
+            "utilities": ["read"],
+            "settings": ["read"],
+            "users": [],
+            "backup": false,
+            "restore": false
+        }
+    }
+}

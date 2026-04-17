@@ -1,0 +1,56 @@
+# S4Learning - Configuracion de URLs Limpias
+# Este archivo habilita las URLs limpias usando mod_rewrite de Apache
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # RewriteBase para dominios virtuales de Laragon
+    # Si usa dominio virtual (s4learning.test): /
+    # Si usa subdirectorio (localhost/s4learning/): /s4learning/
+    RewriteBase /
+
+    # Excluir rutas de API del rewrite (deben procesarse directamente)
+    RewriteCond %{REQUEST_URI} ^/api/ [NC]
+    RewriteRule ^ - [L]
+
+    # Favicon fallback
+    RewriteRule ^favicon\.ico$ assets/img/favicon.svg [L]
+
+    # Raiz del directorio -> index.php (home)
+    RewriteRule ^$ index.php [L]
+
+    # Ignorar archivos y directorios reales (CSS, JS, imagenes, etc.)
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+
+    # URLs limpias: /login -> index.php?page=login
+    RewriteRule ^([a-zA-Z0-9_-]+)/?$ index.php?page=$1 [L,QSA]
+
+</IfModule>
+
+# Prevenir listado de directorios
+Options -Indexes
+
+# Proteger archivos sensibles
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Habilitar compresión GZIP
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json
+</IfModule>
+
+# Configurar caché para assets estáticos
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/jpg "access plus 1 year"
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/gif "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType image/svg+xml "access plus 1 year"
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+    ExpiresByType text/javascript "access plus 1 month"
+</IfModule>

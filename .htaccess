@@ -31,6 +31,11 @@
 # Prevenir listado de directorios
 Options -Indexes
 
+# Paginas de error custom (redirigen a nuestras paginas)
+ErrorDocument 403 /index.php?page=403
+ErrorDocument 404 /index.php?page=404
+ErrorDocument 500 /index.php?page=500
+
 # Proteger archivos sensibles
 <FilesMatch "^\.">
     Order allow,deny

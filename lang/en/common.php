@@ -23,7 +23,7 @@ return [
         'image_optimizer' => 'Optimize images',
         'users' => 'Users',
         'manage_alliances' => 'Manage alliances',
-        'project' => 'Project',
+        'application' => 'Application',
         'integrations' => 'Integrations',
         'backups' => 'Backups',
         'system' => 'System',
@@ -106,16 +106,41 @@ return [
 
     // Common states
     'common' => [
-        'save'   => 'Save',
-        'cancel' => 'Cancel',
-        'edit'   => 'Edit',
-        'delete' => 'Delete',
-        'view'   => 'View',
-        'back'   => 'Back',
-        'search' => 'Search',
-        'filter' => 'Filter',
-        'export' => 'Export',
-        'import' => 'Import',
+        'save'     => 'Save',
+        'saving'   => 'Saving...',
+        'create'   => 'Create',
+        'cancel'   => 'Cancel',
+        'confirm'  => 'Confirm',
+        'edit'     => 'Edit',
+        'delete'   => 'Delete',
+        'view'     => 'View',
+        'back'     => 'Back',
+        'search'   => 'Search',
+        'filter'   => 'Filter',
+        'export'   => 'Export',
+        'import'   => 'Import',
+        'download' => 'Download',
+        'err_network' => 'Network error. Please try again.',
+    ],
+
+    'time' => [
+        'just_now'    => 'just now',
+        'minutes_ago' => '{n}m ago',
+        'hours_ago'   => '{n}h ago',
+        'days_ago'    => '{n}d ago',
+        'months_ago'  => '{n}mo ago',
+        'years_ago'   => '{n}y ago',
+    ],
+
+    'settings_overview' => [
+        'subtitle'          => 'System configuration, management and monitoring.',
+        'users_desc'        => 'Accounts, roles, permissions and sessions.',
+        'alliances_desc'    => 'Partner institutions, responsibles and files.',
+        'application_desc'  => 'Identity, colors, timezone, maintenance mode and company.',
+        'integrations_desc' => 'API keys for external services.',
+        'backups_desc'      => 'Automatic and manual backups.',
+        'system_desc'       => 'Dependencies, database and diagnostics.',
+        'activity_desc'     => 'Action history with filters.',
     ],
 
     // Settings
@@ -221,5 +246,6 @@ return [
         '500_title'       => 'Server error',
         '500_description' => 'An unexpected error occurred. Please try again later.',
         'go_home'         => 'Go to home',
+        'go_back'         => 'Go back',
     ],
 ];

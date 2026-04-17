@@ -24,7 +24,7 @@ return [
         'image_optimizer' => 'Optimizar imagenes',
         'users' => 'Usuarios',
         'manage_alliances' => 'Gestionar alianzas',
-        'project' => 'Proyecto',
+        'application' => 'Aplicacion',
         'integrations' => 'Integraciones',
         'backups' => 'Copias de seguridad',
         'system' => 'Sistema',
@@ -113,16 +113,43 @@ return [
 
     // Estados comunes
     'common' => [
-        'save'   => 'Guardar',
-        'cancel' => 'Cancelar',
-        'edit'   => 'Editar',
-        'delete' => 'Eliminar',
-        'view'   => 'Ver',
-        'back'   => 'Volver',
-        'search' => 'Buscar',
-        'filter' => 'Filtrar',
-        'export' => 'Exportar',
-        'import' => 'Importar',
+        'save'     => 'Guardar',
+        'saving'   => 'Guardando...',
+        'create'   => 'Crear',
+        'cancel'   => 'Cancelar',
+        'confirm'  => 'Confirmar',
+        'edit'     => 'Editar',
+        'delete'   => 'Eliminar',
+        'view'     => 'Ver',
+        'back'     => 'Volver',
+        'search'   => 'Buscar',
+        'filter'   => 'Filtrar',
+        'export'   => 'Exportar',
+        'import'   => 'Importar',
+        'download' => 'Descargar',
+        'err_network' => 'Error de red. Intenta de nuevo.',
+    ],
+
+    // Tiempo relativo
+    'time' => [
+        'just_now'    => 'hace un momento',
+        'minutes_ago' => 'hace {n} min',
+        'hours_ago'   => 'hace {n} h',
+        'days_ago'    => 'hace {n} d',
+        'months_ago'  => 'hace {n} m',
+        'years_ago'   => 'hace {n} a',
+    ],
+
+    // Settings overview
+    'settings_overview' => [
+        'subtitle'          => 'Configuracion del sistema, gestion y monitoreo.',
+        'users_desc'        => 'Cuentas, roles, permisos y sesiones.',
+        'alliances_desc'    => 'Instituciones aliadas, responsables y archivos.',
+        'application_desc'  => 'Identidad, colores, zona horaria, modo mantenimiento y empresa.',
+        'integrations_desc' => 'Claves API para servicios externos.',
+        'backups_desc'      => 'Copias de seguridad automaticas y manuales.',
+        'system_desc'       => 'Dependencias, base de datos y diagnostico.',
+        'activity_desc'     => 'Historial de acciones con filtros.',
     ],
 
     // Ajustes
@@ -229,5 +256,6 @@ return [
         '500_title'       => 'Error del servidor',
         '500_description' => 'Ocurrio un error inesperado. Intenta de nuevo mas tarde.',
         'go_home'         => 'Volver al inicio',
+        'go_back'         => 'Regresar',
     ],
 ];

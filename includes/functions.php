@@ -365,6 +365,36 @@ function countryFlag(string $code): string
 }
 
 /**
+ * Tiempo relativo legible. Usa i18n en lang/.../common.php (key time.*)
+ */
+function relativeTime(string $datetime): string
+{
+    $ts = strtotime($datetime);
+    if (!$ts) return '';
+
+    $diff = time() - $ts;
+    if ($diff < 60)       return __('time.just_now');
+    if ($diff < 3600)     return str_replace('{n}', (string) floor($diff / 60),    __('time.minutes_ago'));
+    if ($diff < 86400)    return str_replace('{n}', (string) floor($diff / 3600),  __('time.hours_ago'));
+    if ($diff < 2592000)  return str_replace('{n}', (string) floor($diff / 86400), __('time.days_ago'));
+    if ($diff < 31536000) return str_replace('{n}', (string) floor($diff / 2592000), __('time.months_ago'));
+    return str_replace('{n}', (string) floor($diff / 31536000), __('time.years_ago'));
+}
+
+/**
+ * Formatea un tamaño en bytes a KB/MB/GB legible
+ */
+if (!function_exists('formatFileSize')) {
+    function formatFileSize(int $bytes): string
+    {
+        if ($bytes >= 1073741824) return round($bytes / 1073741824, 1) . ' GB';
+        if ($bytes >= 1048576)    return round($bytes / 1048576, 1) . ' MB';
+        if ($bytes >= 1024)       return round($bytes / 1024, 1) . ' KB';
+        return $bytes . ' B';
+    }
+}
+
+/**
  * Obtener alianzas del sistema
  */
 function getAlliances(): array

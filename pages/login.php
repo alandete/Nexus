@@ -45,6 +45,7 @@ $canonicalBase = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'http
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base href="/">
     <meta name="description" content="<?= htmlspecialchars($projectInfo['description'] ?: __('site_title')) ?>">
     <meta name="author" content="<?= htmlspecialchars($projectInfo['company_name'] ?: $projectInfo['app_name']) ?>">
     <?php if (!empty($projectInfo['privacy_mode'])): ?>

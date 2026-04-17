@@ -85,12 +85,12 @@ function cleanupScan(): void
 }
 
 // ── Limpiar ─────────────────────────────────────────────────────────────────
+// NOTA: solo limpia archivos temporales de /temp/. El registro de actividad
+// se limpia desde /activity con su boton dedicado.
 function cleanupClean(): void
 {
     $tempPath = BASE_PATH . '/temp';
-    $logPath  = BASE_PATH . '/data/activity_log.json';
 
-    // Eliminar archivos en temp/
     $deleted = 0;
     if (is_dir($tempPath)) {
         $iter = new RecursiveIteratorIterator(
@@ -106,9 +106,6 @@ function cleanupClean(): void
             }
         }
     }
-
-    // Vaciar log de actividad
-    file_put_contents($logPath, json_encode([], JSON_PRETTY_PRINT));
 
     logActivity('cleanup', 'clean', "{$deleted} archivos temporales eliminados");
 

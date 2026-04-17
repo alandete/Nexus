@@ -6,7 +6,7 @@
 
 // Constantes
 define('APP_ACCESS', true);
-define('APP_VERSION', '2.0.0');
+define('APP_VERSION', '2.0.0-alpha.2');
 define('APP_NAME', 'Nexus');
 
 // Configuracion
@@ -38,9 +38,26 @@ if (empty($_SESSION['csrf_token'])) {
 // Informacion del proyecto
 $projectInfo = getProjectInfo();
 
+// Aplicar timezone configurada
+if (!empty($projectInfo['timezone']) && in_array($projectInfo['timezone'], timezone_identifiers_list(), true)) {
+    date_default_timezone_set($projectInfo['timezone']);
+}
+
+// Idioma por defecto para visitantes sin sesion (override al de config.php si esta definido)
+if (empty($_SESSION['lang']) && !empty($projectInfo['default_lang']) && in_array($projectInfo['default_lang'], ['es', 'en'], true)) {
+    $_SESSION['lang'] = $projectInfo['default_lang'];
+    $lang = $projectInfo['default_lang'];
+}
+
 // Routing
 $page = isset($_GET['page']) ? sanitize($_GET['page']) : 'home';
-$validPages = ['home', 'tasks', 'alliances', 'utilities', 'settings', 'documentation', 'users', 'login', 'logout'];
+$validPages = [
+    'home', 'tasks', 'alliances', 'utilities', 'documentation',
+    'settings', 'users', 'manage-alliances', 'application', 'integrations',
+    'snapshots', 'system', 'activity',
+    'login', 'logout',
+    '403', '404', '500',
+];
 
 if (!in_array($page, $validPages)) {
     http_response_code(404);
@@ -55,14 +72,9 @@ if ($page === 'logout') {
     exit;
 }
 
-// Redirigir /users a settings#usuarios
-if ($page === 'users') {
-    header('Location: ' . url('settings') . '#usuarios');
-    exit;
-}
-
-// Proteger paginas (excepto login)
-if ($page !== 'login' && !isLoggedIn()) {
+// Proteger paginas (excepto login y paginas de error)
+$publicPages = ['login', '403', '404', '500'];
+if (!in_array($page, $publicPages, true) && !isLoggedIn()) {
     header('Location: ' . url('login'));
     exit;
 }
@@ -72,6 +84,30 @@ if ($page === 'login') {
     include 'pages/login.php';
     exit;
 }
+
+// Paginas de error: standalone, sin sidebar ni topbar
+if (in_array($page, ['403', '404', '500'], true)) {
+    $errorCode = $page;
+    include 'pages/error.php';
+    exit;
+}
+
+// Modo mantenimiento: bloquear acceso excepto para admins y IPs permitidas
+if (!empty($projectInfo['maintenance_mode'])) {
+    $currentUser = getCurrentUser();
+    $isAdmin = $currentUser && ($currentUser['role'] ?? '') === 'admin';
+    $clientIp = $_SERVER['REMOTE_ADDR'] ?? '';
+    $allowedIps = $projectInfo['maintenance_allowed_ips'] ?? [];
+    $ipAllowed = in_array($clientIp, $allowedIps, true);
+    $canBypassMaintenance = $isAdmin || $ipAllowed;
+
+    if (!$canBypassMaintenance && !in_array($page, ['logout', 'application'], true)) {
+        http_response_code(503);
+        header('Retry-After: 3600');
+        include 'pages/maintenance.php';
+        exit;
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="<?= $lang ?>">
@@ -79,6 +115,8 @@ if ($page === 'login') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <base href="/">
+
     <meta name="description" content="<?= htmlspecialchars($projectInfo['description'] ?: __('site_title')) ?>">
     <meta name="author" content="<?= htmlspecialchars($projectInfo['company_name'] ?: $projectInfo['app_name']) ?>">
     <?php if (!empty($projectInfo['privacy_mode'])): ?>
@@ -118,6 +156,31 @@ if ($page === 'login') {
     <!-- Nexus 2.0 CSS -->
     <link rel="stylesheet" href="assets/css/variables.css?v=<?= filemtime('assets/css/variables.css') ?>">
     <link rel="stylesheet" href="assets/css/styles.css?v=<?= filemtime('assets/css/styles.css') ?>">
+
+    <?php
+    // Override de colores de marca si estan configurados
+    $brandColor = $projectInfo['brand_color'] ?? null;
+    $accentColor = $projectInfo['accent_color'] ?? null;
+    if ($brandColor || $accentColor):
+        $brandRgb = null;
+        if ($brandColor && preg_match('/^#([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})$/', $brandColor, $m)) {
+            $brandRgb = hexdec($m[1]) . ', ' . hexdec($m[2]) . ', ' . hexdec($m[3]);
+        }
+    ?>
+    <style id="appBrandOverride">
+        :root {
+            <?php if ($brandColor): ?>
+            --app-brand: <?= htmlspecialchars($brandColor) ?>;
+            <?php endif; ?>
+            <?php if ($brandRgb): ?>
+            --app-brand-rgb: <?= $brandRgb ?>;
+            <?php endif; ?>
+            <?php if ($accentColor): ?>
+            --app-accent: <?= htmlspecialchars($accentColor) ?>;
+            <?php endif; ?>
+        }
+    </style>
+    <?php endif; ?>
 </head>
 <body class="app-layout">
 
@@ -152,8 +215,13 @@ if ($page === 'login') {
     <!-- Slide Panel -->
     <?php include 'includes/slide-panel.php'; ?>
 
+    <!-- Confirm modal -->
+    <?php include 'includes/confirm-modal.php'; ?>
+
     <!-- JS -->
     <script src="assets/js/slide-panel.js?v=<?= filemtime('assets/js/slide-panel.js') ?>"></script>
+    <script src="assets/js/confirm-modal.js?v=<?= filemtime('assets/js/confirm-modal.js') ?>"></script>
+    <script src="assets/js/toast.js?v=<?= filemtime('assets/js/toast.js') ?>"></script>
     <script src="assets/js/scripts.js?v=<?= filemtime('assets/js/scripts.js') ?>"></script>
 
     <?php if ($page === 'home'): ?>
@@ -162,6 +230,30 @@ if ($page === 'login') {
 
     <?php if ($page === 'documentation'): ?>
     <script src="assets/js/docs.js?v=<?= filemtime('assets/js/docs.js') ?>"></script>
+    <?php endif; ?>
+
+    <?php if ($page === 'users'): ?>
+    <script src="assets/js/users.js?v=<?= filemtime('assets/js/users.js') ?>"></script>
+    <?php endif; ?>
+
+    <?php if ($page === 'manage-alliances'): ?>
+    <script src="assets/js/manage-alliances.js?v=<?= filemtime('assets/js/manage-alliances.js') ?>"></script>
+    <?php endif; ?>
+
+    <?php if ($page === 'application'): ?>
+    <script src="assets/js/application.js?v=<?= filemtime('assets/js/application.js') ?>"></script>
+    <?php endif; ?>
+
+    <?php if ($page === 'activity'): ?>
+    <script src="assets/js/activity.js?v=<?= filemtime('assets/js/activity.js') ?>"></script>
+    <?php endif; ?>
+
+    <?php if ($page === 'snapshots'): ?>
+    <script src="assets/js/snapshots.js?v=<?= filemtime('assets/js/snapshots.js') ?>"></script>
+    <?php endif; ?>
+
+    <?php if ($page === 'system'): ?>
+    <script src="assets/js/system.js?v=<?= filemtime('assets/js/system.js') ?>"></script>
     <?php endif; ?>
 
     <?php if ($page === 'tasks'): ?>
@@ -174,8 +266,8 @@ if ($page === 'login') {
     <script src="assets/js/image-optimizer.js?v=<?= filemtime('assets/js/image-optimizer.js') ?>"></script>
     <?php endif; ?>
 
-    <?php if ($page === 'settings'): ?>
-    <script src="assets/js/api-settings.js?v=<?= filemtime('assets/js/api-settings.js') ?>"></script>
+    <?php if ($page === 'integrations'): ?>
+    <script src="assets/js/integrations.js?v=<?= filemtime('assets/js/integrations.js') ?>"></script>
     <?php endif; ?>
 
     <?php if ($page !== 'tasks'): ?>

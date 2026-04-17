@@ -10,7 +10,7 @@ $currentPage = isset($_GET['page']) ? $_GET['page'] : 'home';
 $currentUser = getCurrentUser();
 
 // Determinar que secciones del sidebar estan expandidas
-$settingsPages = ['settings'];
+$settingsPages = ['settings', 'users', 'manage-alliances', 'application', 'integrations', 'snapshots', 'system', 'activity'];
 $isSettingsActive = in_array($currentPage, $settingsPages);
 ?>
 
@@ -116,46 +116,46 @@ $isSettingsActive = in_array($currentPage, $settingsPages);
                 <ul class="sidebar-submenu <?= $isSettingsActive ? 'show' : '' ?>" id="sidebar-sub-settings" role="menu">
                     <?php if (canAccessModule($currentUser, 'users')): ?>
                     <li role="none">
-                        <a class="sidebar-sublink" href="<?= url('settings') ?>#usuarios" role="menuitem">
+                        <a class="sidebar-sublink <?= $currentPage === 'users' ? 'active' : '' ?>" href="<?= url('users') ?>" role="menuitem">
                             <i class="bi bi-people sidebar-link-icon" aria-hidden="true"></i>
                             <span class="sidebar-link-text"><?= __('menu.users') ?></span>
                         </a>
                     </li>
                     <?php endif; ?>
                     <li role="none">
-                        <a class="sidebar-sublink" href="<?= url('settings') ?>#alianzas" role="menuitem">
+                        <a class="sidebar-sublink <?= $currentPage === 'manage-alliances' ? 'active' : '' ?>" href="<?= url('manage-alliances') ?>" role="menuitem">
                             <i class="bi bi-building-gear sidebar-link-icon" aria-hidden="true"></i>
                             <span class="sidebar-link-text"><?= __('menu.manage_alliances') ?></span>
                         </a>
                     </li>
                     <li role="none">
-                        <a class="sidebar-sublink" href="<?= url('settings') ?>#proyecto" role="menuitem">
-                            <i class="bi bi-info-circle sidebar-link-icon" aria-hidden="true"></i>
-                            <span class="sidebar-link-text"><?= __('menu.project') ?></span>
+                        <a class="sidebar-sublink <?= $currentPage === 'application' ? 'active' : '' ?>" href="<?= url('application') ?>" role="menuitem">
+                            <i class="bi bi-app-indicator sidebar-link-icon" aria-hidden="true"></i>
+                            <span class="sidebar-link-text"><?= __('menu.application') ?></span>
                         </a>
                     </li>
                     <li role="none">
-                        <a class="sidebar-sublink" href="<?= url('settings') ?>#integraciones" role="menuitem">
+                        <a class="sidebar-sublink <?= $currentPage === 'integrations' ? 'active' : '' ?>" href="<?= url('integrations') ?>" role="menuitem">
                             <i class="bi bi-plug sidebar-link-icon" aria-hidden="true"></i>
                             <span class="sidebar-link-text"><?= __('menu.integrations') ?></span>
                         </a>
                     </li>
                     <?php if (canAccessModule($currentUser, 'backup')): ?>
                     <li role="none">
-                        <a class="sidebar-sublink" href="<?= url('settings') ?>#backups" role="menuitem">
+                        <a class="sidebar-sublink <?= $currentPage === 'snapshots' ? 'active' : '' ?>" href="<?= url('snapshots') ?>" role="menuitem">
                             <i class="bi bi-cloud-arrow-down sidebar-link-icon" aria-hidden="true"></i>
                             <span class="sidebar-link-text"><?= __('menu.backups') ?></span>
                         </a>
                     </li>
                     <?php endif; ?>
                     <li role="none">
-                        <a class="sidebar-sublink" href="<?= url('settings') ?>#sistema" role="menuitem">
+                        <a class="sidebar-sublink <?= $currentPage === 'system' ? 'active' : '' ?>" href="<?= url('system') ?>" role="menuitem">
                             <i class="bi bi-cpu sidebar-link-icon" aria-hidden="true"></i>
                             <span class="sidebar-link-text"><?= __('menu.system') ?></span>
                         </a>
                     </li>
                     <li role="none">
-                        <a class="sidebar-sublink" href="<?= url('settings') ?>#actividad" role="menuitem">
+                        <a class="sidebar-sublink <?= $currentPage === 'activity' ? 'active' : '' ?>" href="<?= url('activity') ?>" role="menuitem">
                             <i class="bi bi-clock-history sidebar-link-icon" aria-hidden="true"></i>
                             <span class="sidebar-link-text"><?= __('menu.activity') ?></span>
                         </a>

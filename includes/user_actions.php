@@ -219,7 +219,13 @@ if ($action === 'update') {
     // Actualizar datos
     $users[$username]['name'] = $name;
     $users[$username]['email'] = $email;
-    $users[$username]['role'] = $role;
+
+    // Proteccion: el admin no puede cambiar su propio rol ni desactivarse
+    $isSelf = ($currentUser['username'] ?? '') === $username;
+    if (!$isSelf) {
+        $users[$username]['role'] = $role;
+        $users[$username]['active'] = isset($_POST['active']) && $_POST['active'] === '1';
+    }
 
     // Idioma preferido
     $userLang = in_array($_POST['lang'] ?? '', ['es', 'en'], true) ? $_POST['lang'] : ($users[$username]['lang'] ?? 'es');

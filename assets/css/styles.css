@@ -3885,7 +3885,6 @@ a.stat-card:hover {
     font-weight: var(--ds-font-weight-semibold);
     color: var(--ds-text);
     margin: 0;
-    text-transform: uppercase;
     letter-spacing: 0.03em;
 }
 
@@ -4096,10 +4095,10 @@ a.stat-card:hover {
 
 /* Fondo segun prioridad (tintes suaves, sin bordes) */
 /* baja -> gris | media -> azul | alta -> amarillo | urgente -> naranja | vencida -> rojo */
-.task-card-priority-low    { background: var(--ds-surface-sunken); }
+.task-card-priority-low    { background: rgba(151, 160, 175, 0.20); }
 .task-card-priority-medium { background: rgba(0, 82, 204, 0.10); }
 .task-card-priority-high   { background: rgba(255, 171, 0, 0.15); }
-.task-card-priority-urgent { background: rgba(217, 128, 0, 0.15); }
+.task-card-priority-urgent { background: rgba(255, 139, 0, 0.22); }
 .task-card.is-overdue      { background: rgba(222, 53, 11, 0.15); }
 
 .task-card-top {

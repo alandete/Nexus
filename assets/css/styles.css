@@ -4059,7 +4059,10 @@ a.stat-card:hover {
     scrollbar-width: thin;
     scrollbar-color: var(--ds-border) transparent;
 
-    /* Fade solo a la derecha (indica que hay mas). Se apaga al llegar al final. */
+    /* Fade solo a la derecha (indica que hay mas). Se apaga al llegar al final.
+       >>> AJUSTAR ANCHO DEL DEGRADADO aqui: el valor `32px` define el tamano del fade.
+       Cambiarlo en ambas lineas (con y sin -webkit-) y tambien en .at-end si se
+       quisiera un fade parcial al final. */
     -webkit-mask-image: linear-gradient(to right, black 0, black calc(100% - 32px), transparent 100%);
             mask-image: linear-gradient(to right, black 0, black calc(100% - 32px), transparent 100%);
 }
@@ -4356,7 +4359,9 @@ a.stat-card:hover {
         width: calc(50% - var(--ds-space-025));
     }
 
-    /* Peek effect: la card no ocupa 100% del viewport, deja ver ~10% de la siguiente */
+    /* Peek effect: la card no ocupa 100% del viewport, deja ver ~10% de la siguiente.
+       >>> AJUSTAR PORCENTAJE DE PEEK aqui: cambiar el `90%` en ambas lineas (flex
+       y max-width). Valores tipicos: 85% (peek grande), 90% (peek sutil), 95% (minimo). */
     .task-card {
         flex: 0 0 calc(90% - var(--ds-space-075));
         max-width: calc(90% - var(--ds-space-075));

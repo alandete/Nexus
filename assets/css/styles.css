@@ -4052,6 +4052,8 @@ a.stat-card:hover {
 /* ---- Cards "Proximas" en carrusel horizontal con scroll ---- */
 .tasks-cards-grid {
     display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
     gap: var(--ds-space-150);
     overflow-x: auto;
     overflow-y: hidden;

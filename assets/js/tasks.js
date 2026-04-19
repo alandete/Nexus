@@ -347,6 +347,7 @@
                 startTicking();
                 hideAutocomplete();
                 Toast.success(t('tasks.timer_started', 'Cronometro iniciado.'));
+                if (typeof loadList === 'function') loadList();
             } else {
                 Toast.error(result.message || t('tasks.err_start', 'No se pudo iniciar.'));
             }
@@ -613,6 +614,7 @@
                 renderActiveCard();
                 SlidePanel.close();
                 Toast.success(t('tasks.task_updated', 'Cambios guardados.'));
+                if (typeof loadList === 'function') loadList();
 
                 // Si venia de forceComplete, ejecutar la accion pendiente
                 if (opts.onComplete) opts.onComplete();
@@ -657,6 +659,7 @@
                 );
                 resetState();
                 renderEmpty();
+                if (typeof loadList === 'function') loadList();
             } else {
                 Toast.error(result.message || t('tasks.err_pause', 'No se pudo pausar.'));
             }
@@ -697,6 +700,7 @@
                 );
                 resetState();
                 renderEmpty();
+                if (typeof loadList === 'function') loadList();
             } else {
                 Toast.error(result.message || t('tasks.err_stop', 'No se pudo completar.'));
             }
@@ -724,6 +728,7 @@
                 Toast.info(t('tasks.timer_discarded', 'Cronometro descartado.'));
                 resetState();
                 renderEmpty();
+                if (typeof loadList === 'function') loadList();
             } else {
                 Toast.error(result.message || t('tasks.err_discard', 'No se pudo descartar.'));
             }
@@ -767,6 +772,406 @@
     }
 
     /** ========================================================
+     * LISTADO (sub-fase 4.2)
+     * ======================================================== */
+
+    const listState = {
+        currentTab: 'active',
+        data: { active: [], scheduled: [], by_date: {}, day_totals: {} },
+        filters: { search: '', alliance: '', priority: '', tag: '', dateFrom: '', dateTo: '' },
+    };
+
+    function initListDefaults() {
+        const to = new Date();
+        const from = new Date();
+        from.setDate(to.getDate() - 7);
+        const fmt = d => d.toISOString().slice(0, 10);
+        listState.filters.dateFrom = fmt(from);
+        listState.filters.dateTo = fmt(to);
+        const fromInput = document.getElementById('filterDateFrom');
+        const toInput = document.getElementById('filterDateTo');
+        if (fromInput) fromInput.value = listState.filters.dateFrom;
+        if (toInput) toInput.value = listState.filters.dateTo;
+    }
+
+    async function loadList() {
+        const loading = document.getElementById('loadingActive');
+        if (loading) loading.classList.remove('d-none');
+
+        try {
+            const result = await api('list', {
+                date_from: listState.filters.dateFrom,
+                date_to: listState.filters.dateTo,
+                alliance_id: listState.filters.alliance,
+            });
+            if (result.success) {
+                listState.data = {
+                    active: result.active || [],
+                    scheduled: result.scheduled || [],
+                    by_date: result.by_date || {},
+                    day_totals: result.day_totals || {},
+                };
+                renderAllPanels();
+            }
+        } catch (err) {
+            console.error('List error:', err);
+        } finally {
+            if (loading) loading.classList.add('d-none');
+        }
+    }
+
+    function applyLocalFilters(items) {
+        const { search, priority, tag } = listState.filters;
+        return items.filter(task => {
+            if (search) {
+                const hay = (task.title || '').toLowerCase() + ' ' + (task.alliance_name || '').toLowerCase();
+                if (!hay.includes(search.toLowerCase())) return false;
+            }
+            if (priority && (task.priority || 'medium') !== priority) return false;
+            if (tag) {
+                const ids = String(task.tag_ids || '').split(',').filter(Boolean);
+                if (!ids.includes(String(tag))) return false;
+            }
+            return true;
+        });
+    }
+
+    function renderAllPanels() {
+        renderActivePanel();
+        renderScheduledPanel();
+        renderHistoryPanel();
+        updateTabCounts();
+    }
+
+    function updateTabCounts() {
+        const active = applyLocalFilters(listState.data.active).length;
+        const scheduled = applyLocalFilters(listState.data.scheduled).length;
+        const history = Object.values(listState.data.by_date)
+            .reduce((acc, arr) => acc + applyLocalFilters(arr.map(e => ({
+                title: e.task_title,
+                alliance_name: e.alliance_name,
+                priority: 'medium',
+                tag_ids: '',
+            }))).length, 0);
+        document.getElementById('countActive').textContent = active;
+        document.getElementById('countScheduled').textContent = scheduled;
+        document.getElementById('countHistory').textContent = history;
+    }
+
+    function emptyState(icon, title, desc) {
+        return `
+            <div class="empty-state p-300">
+                <div class="empty-state-icon"><i class="bi ${icon}" aria-hidden="true"></i></div>
+                <h3 class="empty-state-title">${escapeHtml(title)}</h3>
+                <p class="empty-state-description">${escapeHtml(desc)}</p>
+            </div>
+        `;
+    }
+
+    function priorityChip(priority) {
+        if (!priority || priority === 'medium') return '';
+        const labels = {
+            low:    t('tasks.priority_low', 'Baja'),
+            high:   t('tasks.priority_high', 'Alta'),
+            urgent: t('tasks.priority_urgent', 'Urgente'),
+        };
+        const label = labels[priority];
+        if (!label) return '';
+        return `<span class="tracker-meta-chip tracker-priority-${priority}"><i class="bi bi-flag-fill" aria-hidden="true"></i>${escapeHtml(label)}</span>`;
+    }
+
+    function tagChipsHtml(tagNames) {
+        if (!tagNames) return '';
+        return tagNames.split(',').map(n => n.trim()).filter(Boolean).map(name =>
+            `<span class="tracker-meta-chip"><i class="bi bi-tag" aria-hidden="true"></i>${escapeHtml(name)}</span>`
+        ).join('');
+    }
+
+    function allianceChip(name) {
+        if (!name) return `<span class="tracker-meta-chip tracker-meta-empty"><i class="bi bi-building" aria-hidden="true"></i>${escapeHtml(t('tasks.no_alliance', 'Sin alianza'))}</span>`;
+        return `<span class="tracker-meta-chip tracker-meta-alliance"><i class="bi bi-building" aria-hidden="true"></i>${escapeHtml(name)}</span>`;
+    }
+
+    function renderActivePanel() {
+        const container = document.getElementById('contentActive');
+        if (!container) return;
+        const items = applyLocalFilters(listState.data.active);
+
+        if (items.length === 0) {
+            container.innerHTML = emptyState('bi-play-circle',
+                t('tasks.empty_active_title', 'No hay tareas activas'),
+                t('tasks.empty_active_desc', 'Aqui apareceran las tareas en progreso o pausadas. Inicia un cronometro para comenzar.'));
+            return;
+        }
+
+        container.innerHTML = items.map(task => {
+            const total = task.total_seconds ? formatDuration(parseInt(task.total_seconds, 10)) : '0m 0s';
+            const statusLabel = task.status === 'paused' ? t('tasks.status_paused', 'Pausada') : t('tasks.status_in_progress', 'En progreso');
+            const statusClass = task.status === 'paused' ? 'lozenge-warning' : 'lozenge-info';
+            const isCurrent = state.running && state.taskId == task.id;
+            const resumeBtn = isCurrent
+                ? `<span class="lozenge lozenge-success"><i class="bi bi-record-fill" aria-hidden="true"></i> ${t('tasks.is_running', 'Corriendo')}</span>`
+                : `<button type="button" class="btn-icon" data-action="resume" data-task-id="${task.id}" data-title="${escapeHtml(task.title)}"
+                           data-tooltip="${t('tasks.btn_resume', 'Reanudar')}" data-tooltip-position="top" aria-label="${t('tasks.btn_resume', 'Reanudar')}">
+                       <i class="bi bi-play-fill" aria-hidden="true"></i>
+                   </button>`;
+
+            return `
+                <div class="task-item task-item-active">
+                    <div class="task-item-main">
+                        <div class="task-item-title-row">
+                            <span class="task-item-title">${escapeHtml(task.title)}</span>
+                            <span class="lozenge ${statusClass}">${statusLabel}</span>
+                        </div>
+                        <div class="task-item-meta">
+                            ${allianceChip(task.alliance_name)}
+                            ${tagChipsHtml(task.tag_names)}
+                            ${priorityChip(task.priority)}
+                            ${task.due_date ? `<span class="tracker-meta-chip"><i class="bi bi-calendar" aria-hidden="true"></i>${escapeHtml(task.due_date)}</span>` : ''}
+                        </div>
+                    </div>
+                    <div class="task-item-right">
+                        <span class="task-item-time" title="${t('tasks.total_time', 'Tiempo acumulado')}">
+                            <i class="bi bi-clock" aria-hidden="true"></i> ${total}
+                        </span>
+                        <div class="task-item-actions">
+                            ${resumeBtn}
+                            <button type="button" class="btn-icon" data-action="edit" data-task-id="${task.id}"
+                                    data-tooltip="${t('tasks.btn_edit', 'Editar')}" data-tooltip-position="top" aria-label="${t('tasks.btn_edit', 'Editar')}">
+                                <i class="bi bi-pencil" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function renderScheduledPanel() {
+        const container = document.getElementById('contentScheduled');
+        if (!container) return;
+        const items = applyLocalFilters(listState.data.scheduled);
+
+        if (items.length === 0) {
+            container.innerHTML = emptyState('bi-calendar-check',
+                t('tasks.empty_scheduled_title', 'No hay tareas proximas'),
+                t('tasks.empty_scheduled_desc', 'Aqui apareceran las tareas pendientes sin tiempo registrado, ordenadas por prioridad y fecha de vencimiento.'));
+            return;
+        }
+
+        container.innerHTML = items.map(task => {
+            const overdue = task.due_date && task.due_date < new Date().toISOString().slice(0, 10);
+            const dueChip = task.due_date
+                ? `<span class="tracker-meta-chip ${overdue ? 'tracker-priority-urgent' : ''}"><i class="bi bi-calendar${overdue ? '-x' : ''}" aria-hidden="true"></i>${escapeHtml(task.due_date)}</span>`
+                : '';
+
+            return `
+                <div class="task-item task-item-scheduled ${overdue ? 'is-overdue' : ''}">
+                    <div class="task-item-main">
+                        <div class="task-item-title-row">
+                            <span class="task-item-title">${escapeHtml(task.title)}</span>
+                        </div>
+                        <div class="task-item-meta">
+                            ${allianceChip(task.alliance_name)}
+                            ${tagChipsHtml(task.tag_names)}
+                            ${priorityChip(task.priority)}
+                            ${dueChip}
+                        </div>
+                    </div>
+                    <div class="task-item-right">
+                        <div class="task-item-actions">
+                            <button type="button" class="btn-icon" data-action="resume" data-task-id="${task.id}" data-title="${escapeHtml(task.title)}"
+                                    data-tooltip="${t('tasks.btn_start', 'Iniciar')}" data-tooltip-position="top" aria-label="${t('tasks.btn_start', 'Iniciar')}">
+                                <i class="bi bi-play-fill" aria-hidden="true"></i>
+                            </button>
+                            <button type="button" class="btn-icon" data-action="edit" data-task-id="${task.id}"
+                                    data-tooltip="${t('tasks.btn_edit', 'Editar')}" data-tooltip-position="top" aria-label="${t('tasks.btn_edit', 'Editar')}">
+                                <i class="bi bi-pencil" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function renderHistoryPanel() {
+        const container = document.getElementById('contentHistory');
+        if (!container) return;
+        const byDate = listState.data.by_date || {};
+        const dates = Object.keys(byDate).sort().reverse();
+
+        const filteredDates = dates.map(date => {
+            const entries = byDate[date].filter(e => {
+                const { search } = listState.filters;
+                if (search) {
+                    const hay = (e.task_title || '').toLowerCase() + ' ' + (e.alliance_name || '').toLowerCase();
+                    if (!hay.includes(search.toLowerCase())) return false;
+                }
+                return true;
+            });
+            return { date, entries };
+        }).filter(d => d.entries.length > 0);
+
+        if (filteredDates.length === 0) {
+            container.innerHTML = emptyState('bi-clock-history',
+                t('tasks.empty_history_title', 'Sin historial en este rango'),
+                t('tasks.empty_history_desc', 'Ajusta las fechas o empieza a registrar tiempo para ver el historial aqui.'));
+            return;
+        }
+
+        container.innerHTML = filteredDates.map(({ date, entries }) => {
+            const total = entries.reduce((a, e) => a + (parseInt(e.duration_seconds, 10) || 0), 0);
+            const dateLabel = new Date(date + 'T00:00:00').toLocaleDateString(undefined, { weekday: 'long', day: '2-digit', month: 'short', year: 'numeric' });
+
+            const rows = entries.map(e => {
+                const dur = formatDuration(parseInt(e.duration_seconds, 10) || 0);
+                const hour = e.start_time.slice(11, 16);
+                return `
+                    <tr>
+                        <td class="text-mono text-subtle">${hour}</td>
+                        <td>
+                            <div class="task-item-title">${escapeHtml(e.task_title)}</div>
+                            <div class="task-item-meta">
+                                ${allianceChip(e.alliance_name)}
+                                ${tagChipsHtml(e.tag_names)}
+                            </div>
+                        </td>
+                        <td class="text-right text-mono">${dur}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            return `
+                <div class="history-day">
+                    <div class="history-day-header">
+                        <span class="history-day-date">${dateLabel}</span>
+                        <span class="history-day-total"><i class="bi bi-clock" aria-hidden="true"></i> ${formatDuration(total)}</span>
+                    </div>
+                    <table class="table table-compact history-table">
+                        <tbody>${rows}</tbody>
+                    </table>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function switchTab(tabName) {
+        listState.currentTab = tabName;
+        ['active', 'scheduled', 'history'].forEach(name => {
+            const tab = document.getElementById('tab' + name.charAt(0).toUpperCase() + name.slice(1));
+            const panel = document.getElementById('panel' + name.charAt(0).toUpperCase() + name.slice(1));
+            const isActive = name === tabName;
+            if (tab) {
+                tab.classList.toggle('active', isActive);
+                tab.setAttribute('aria-selected', String(isActive));
+            }
+            if (panel) {
+                panel.classList.toggle('d-none', !isActive);
+                panel.hidden = !isActive;
+            }
+        });
+    }
+
+    function setupListBindings() {
+        // Tabs
+        document.querySelectorAll('.tasks-tabs .tab').forEach(btn => {
+            btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+        });
+
+        // Filtros
+        const searchInput = document.getElementById('filterSearch');
+        let searchDebounce = null;
+        searchInput?.addEventListener('input', () => {
+            clearTimeout(searchDebounce);
+            searchDebounce = setTimeout(() => {
+                listState.filters.search = searchInput.value.trim();
+                renderAllPanels();
+            }, 200);
+        });
+
+        document.getElementById('filterDateFrom')?.addEventListener('change', (e) => {
+            listState.filters.dateFrom = e.target.value;
+            loadList();
+        });
+        document.getElementById('filterDateTo')?.addEventListener('change', (e) => {
+            listState.filters.dateTo = e.target.value;
+            loadList();
+        });
+        document.getElementById('filterAlliance')?.addEventListener('change', (e) => {
+            listState.filters.alliance = e.target.value;
+            loadList();
+        });
+        document.getElementById('filterPriority')?.addEventListener('change', (e) => {
+            listState.filters.priority = e.target.value;
+            renderAllPanels();
+        });
+        document.getElementById('filterTag')?.addEventListener('change', (e) => {
+            listState.filters.tag = e.target.value;
+            renderAllPanels();
+        });
+        document.getElementById('btnClearFilters')?.addEventListener('click', clearFilters);
+
+        // Delegation para acciones por item
+        document.querySelector('.tasks-list-section')?.addEventListener('click', (e) => {
+            const btn = e.target.closest('[data-action]');
+            if (!btn) return;
+            const action = btn.dataset.action;
+            const taskId = parseInt(btn.dataset.taskId, 10);
+            if (action === 'resume') {
+                resumeTask(taskId, btn.dataset.title);
+            } else if (action === 'edit') {
+                editTaskById(taskId);
+            }
+        });
+    }
+
+    function clearFilters() {
+        listState.filters = { search: '', alliance: '', priority: '', tag: '', dateFrom: '', dateTo: '' };
+        ['filterSearch', 'filterAlliance', 'filterPriority', 'filterTag'].forEach(id => {
+            const el = document.getElementById(id); if (el) el.value = '';
+        });
+        initListDefaults();
+        loadList();
+    }
+
+    async function resumeTask(taskId, title) {
+        if (state.running) {
+            Toast.warning(t('tasks.err_already_running', 'Hay un cronometro corriendo. Pausalo o completalo primero.'));
+            return;
+        }
+        const input = document.getElementById('trackerInput');
+        if (input) input.value = title || '';
+        state.selectedExistingTaskId = taskId;
+        handlePlayClick().then(() => loadList());
+    }
+
+    async function editTaskById(taskId) {
+        try {
+            const result = await api('get', { task_id: taskId });
+            if (result.success && result.task) {
+                const task = result.task;
+                // Hidratar state local para que openEditForm tenga los datos
+                state.taskId = task.id;
+                state.title = task.title;
+                state.description = task.description || '';
+                state.allianceId = task.alliance_id ? parseInt(task.alliance_id, 10) : null;
+                const alliance = alliances.find(a => a.id == task.alliance_id);
+                state.allianceName = alliance?.name || null;
+                state.priority = task.priority || 'medium';
+                state.dueDate = task.due_date || null;
+                state.tagIds = String(task.tag_ids || '').split(',').filter(Boolean).map(id => parseInt(id, 10));
+                state.tagNames = task.tag_names || '';
+                openEditForm({ onComplete: () => loadList() });
+            } else {
+                Toast.error(result.message || t('tasks.err_update', 'No se pudo abrir la tarea.'));
+            }
+        } catch (err) {
+            Toast.error(t('common.err_network', 'Error de red.'));
+        }
+    }
+
+    /** ========================================================
      * Bindings
      * ======================================================== */
 
@@ -780,6 +1185,11 @@
         document.getElementById('btnCompleteData')?.addEventListener('click', () => openEditForm({ forceComplete: true }));
 
         restoreTimer();
+
+        // Listado
+        initListDefaults();
+        setupListBindings();
+        loadList();
     });
 
 })();

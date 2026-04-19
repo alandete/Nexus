@@ -114,6 +114,7 @@ a:hover {
 small, .text-sm { font-size: var(--ds-font-size-body-sm); line-height: var(--ds-line-height-body-sm); }
 .text-lg { font-size: var(--ds-font-size-body-lg); line-height: var(--ds-line-height-body-lg); }
 .text-subtle { color: var(--ds-text-subtle); }
+.text-mono { font-family: var(--ds-font-family-mono); }
 .text-subtlest { color: var(--ds-text-subtlest); }
 .text-disabled { color: var(--ds-text-disabled); }
 .text-danger { color: var(--ds-text-danger); }
@@ -3792,7 +3793,233 @@ a.stat-card:hover {
     flex: 1;
 }
 
-/* -------- Responsive -------- */
+/* ============================================
+   TASKS — Listado (sub-fase 4.2)
+   ============================================ */
+.tasks-list-section {
+    background: var(--ds-surface-raised);
+    border: var(--ds-border-width) solid var(--ds-border);
+    border-radius: var(--ds-radius-300);
+    box-shadow: var(--ds-shadow-raised);
+    overflow: hidden;
+}
+
+.tasks-tabs {
+    padding: 0 var(--ds-space-200);
+}
+
+.tab-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 18px;
+    padding: 0 var(--ds-space-050);
+    margin-left: var(--ds-space-075);
+    background: var(--ds-surface-sunken);
+    border-radius: var(--ds-radius-full);
+    font-size: 11px;
+    font-weight: var(--ds-font-weight-semibold);
+    color: var(--ds-text-subtle);
+    line-height: 1;
+}
+
+.tab.active .tab-count {
+    background: rgba(var(--app-brand-rgb), 0.12);
+    color: var(--app-brand);
+}
+
+.tasks-filter-bar {
+    padding: var(--ds-space-200);
+    margin-bottom: 0;
+    border-bottom: var(--ds-border-width) solid var(--ds-border);
+    background: var(--ds-surface-sunken);
+}
+
+.filter-bar-date {
+    max-width: 150px;
+    min-width: 130px;
+}
+
+.tasks-panel {
+    padding: var(--ds-space-100);
+}
+
+.tasks-panel-loading {
+    padding: var(--ds-space-300);
+    text-align: center;
+    color: var(--ds-text-subtle);
+    font-size: var(--ds-font-size-body-sm);
+}
+
+.tasks-panel-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-space-075);
+}
+
+/* ---- Task item (activas y scheduled) ---- */
+.task-item {
+    display: flex;
+    align-items: center;
+    gap: var(--ds-space-200);
+    padding: var(--ds-space-150) var(--ds-space-200);
+    background: var(--ds-surface);
+    border: var(--ds-border-width) solid var(--ds-border);
+    border-radius: var(--ds-radius-200);
+    transition: border-color var(--ds-duration-fast), box-shadow var(--ds-duration-fast);
+}
+
+.task-item:hover {
+    border-color: var(--ds-border-bold);
+    box-shadow: var(--ds-shadow-raised);
+}
+
+.task-item.is-overdue {
+    border-left: 3px solid var(--ds-red-500, #ca3521);
+}
+
+.task-item-main {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-space-075);
+}
+
+.task-item-title-row {
+    display: flex;
+    align-items: center;
+    gap: var(--ds-space-100);
+    flex-wrap: wrap;
+}
+
+.task-item-title {
+    font-size: var(--ds-font-size-body);
+    font-weight: var(--ds-font-weight-semibold);
+    color: var(--ds-text);
+    word-break: break-word;
+}
+
+.task-item-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ds-space-050);
+    align-items: center;
+}
+
+.task-item-right {
+    display: flex;
+    align-items: center;
+    gap: var(--ds-space-150);
+    flex-shrink: 0;
+}
+
+.task-item-time {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ds-space-050);
+    font-family: var(--ds-font-family-mono);
+    font-size: var(--ds-font-size-body-sm);
+    font-weight: var(--ds-font-weight-semibold);
+    color: var(--app-brand);
+    padding: var(--ds-space-050) var(--ds-space-100);
+    background: rgba(var(--app-brand-rgb), 0.08);
+    border-radius: var(--ds-radius-100);
+    white-space: nowrap;
+}
+
+.task-item-actions {
+    display: flex;
+    gap: 2px;
+}
+
+/* ---- Historial (tabla por dia) ---- */
+.history-day {
+    padding: var(--ds-space-100);
+    background: var(--ds-surface);
+    border: var(--ds-border-width) solid var(--ds-border);
+    border-radius: var(--ds-radius-200);
+    margin-bottom: var(--ds-space-100);
+}
+
+.history-day-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--ds-space-075) var(--ds-space-100);
+    margin-bottom: var(--ds-space-075);
+    border-bottom: var(--ds-border-width) solid var(--ds-border);
+}
+
+.history-day-date {
+    font-size: var(--ds-font-size-body-sm);
+    font-weight: var(--ds-font-weight-semibold);
+    color: var(--ds-text);
+    text-transform: capitalize;
+}
+
+.history-day-total {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ds-space-050);
+    font-family: var(--ds-font-family-mono);
+    font-size: var(--ds-font-size-body-sm);
+    color: var(--app-brand);
+    font-weight: var(--ds-font-weight-semibold);
+}
+
+.history-table {
+    margin: 0;
+}
+
+.history-table td {
+    padding: var(--ds-space-075) var(--ds-space-100);
+    border-bottom: var(--ds-border-width) solid var(--ds-border);
+    font-size: var(--ds-font-size-body-sm);
+    vertical-align: middle;
+}
+
+.history-table tr:last-child td {
+    border-bottom: none;
+}
+
+.history-table .task-item-title {
+    font-size: var(--ds-font-size-body);
+    margin-bottom: var(--ds-space-050);
+}
+
+.history-table .text-right {
+    text-align: right;
+    white-space: nowrap;
+    color: var(--app-brand);
+    font-weight: var(--ds-font-weight-semibold);
+}
+
+.table-compact th,
+.table-compact td {
+    padding: var(--ds-space-075) var(--ds-space-100);
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 767px) {
+    .task-item {
+        flex-direction: column;
+        align-items: stretch;
+        gap: var(--ds-space-100);
+    }
+
+    .task-item-right {
+        justify-content: space-between;
+    }
+
+    .filter-bar-date {
+        flex: 1 1 calc(50% - var(--ds-space-100));
+        max-width: none;
+    }
+}
+
+/* -------- Responsive tracker -------- */
 @media (max-width: 767px) {
     .tracker-task-title {
         flex: 1 1 100%;

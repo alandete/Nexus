@@ -6,6 +6,18 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 ## [2.0.0-alpha.3] — 2026-04-19 (en desarrollo)
 
 ### Agregado
+- **Pagina `/tasks` — Sub-fase 4.2: Listado y filtros**
+  - **3 tabs con contador**: Activas (en progreso/pausadas), Proximas (pendientes sin tiempo, ordenadas por prioridad y vencimiento), Historial (entradas agrupadas por dia con total)
+  - **Barra de filtros**: busqueda (titulo + alianza), rango de fechas, alianza, prioridad, etiqueta, boton limpiar
+  - **Filtros al servidor**: rango de fechas y alianza (reconsultan `list`). **Filtros locales**: busqueda, prioridad, etiqueta (sin roundtrip)
+  - **Tarjeta compacta por tarea** con titulo, chips de meta (alianza, etiquetas, prioridad, fecha) y tiempo acumulado en mono + brand
+  - **Tarea vencida** marcada con borde izquierdo rojo + chip de fecha urgente
+  - **Acciones por item**: reanudar (brinca al tracker inline y arranca) y editar (abre slide panel)
+  - Si hay timer corriendo en esta misma tarea, se muestra lozenge "Corriendo" en lugar del boton reanudar
+  - Tabla de historial compacta con hora (mono), tarea + chips y duracion a la derecha, con total del dia en el header
+  - Empty states contextuales por tab
+  - Auto-refresh del listado despues de iniciar, pausar, completar o descartar el cronometro
+  - Refresh tambien al guardar cambios en el slide panel
 - **Pagina `/tasks` — Sub-fase 4.1: Cronometro y tarea activa (flujo hibrido)**
   - **Tracker inline friccion-cero**: input grande con icono de cronometro y boton play, el usuario escribe el nombre y arranca sin ningun formulario previo
   - **Autocomplete en vivo** al escribir (debounce 250ms): muestra hasta 6 tareas existentes con alianza + lozenge de estado. Clic en una sugerencia reanuda el timer asociado

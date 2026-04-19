@@ -96,8 +96,40 @@ return [
         'err_update'         => 'No se pudieron guardar los cambios.',
         'err_create_tag'     => 'No se pudo crear la etiqueta.',
 
+        // Listado (sub-fase 4.2)
+        'list_title'   => 'Listado de tareas',
+        'tabs_label'   => 'Vistas del listado',
+        'tab_active'   => 'Activas',
+        'tab_scheduled'=> 'Proximas',
+        'tab_history'  => 'Historial',
+
+        'filters_label'            => 'Filtros del listado',
+        'filter_search_placeholder'=> 'Buscar por titulo o alianza...',
+        'filter_search_label'      => 'Buscar tarea',
+        'filter_date_from'         => 'Desde',
+        'filter_date_to'           => 'Hasta',
+        'filter_alliance'          => 'Filtrar por alianza',
+        'filter_all_alliances'     => 'Todas las alianzas',
+        'filter_priority'          => 'Filtrar por prioridad',
+        'filter_all_priorities'    => 'Todas las prioridades',
+        'filter_tag'               => 'Filtrar por etiqueta',
+        'filter_all_tags'          => 'Todas las etiquetas',
+        'filter_clear'             => 'Limpiar',
+
+        'empty_active_title'     => 'No hay tareas activas',
+        'empty_active_desc'      => 'Aqui apareceran las tareas en progreso o pausadas. Inicia un cronometro para comenzar.',
+        'empty_scheduled_title'  => 'No hay tareas proximas',
+        'empty_scheduled_desc'   => 'Aqui apareceran las tareas pendientes sin tiempo registrado, ordenadas por prioridad y fecha de vencimiento.',
+        'empty_history_title'    => 'Sin historial en este rango',
+        'empty_history_desc'     => 'Ajusta las fechas o empieza a registrar tiempo para ver el historial aqui.',
+
+        'btn_resume'   => 'Reanudar',
+        'is_running'   => 'Corriendo',
+        'total_time'   => 'Tiempo acumulado',
+        'err_already_running' => 'Hay un cronometro corriendo. Pausalo o completalo primero.',
+
         // Placeholder para sub-fases siguientes
-        'upcoming_placeholder_title' => 'Proximas tareas, listado y kanban',
-        'upcoming_placeholder_desc'  => 'Esta area se construira en las proximas sub-fases: listado con filtros, kanban de prioridades, reportes y dashboard de vencimientos.',
+        'upcoming_placeholder_title' => 'Kanban y reportes',
+        'upcoming_placeholder_desc'  => 'Las siguientes sub-fases traen: kanban de prioridades, reportes (PDF/Excel/CSV) y dashboard de vencimientos.',
     ],
 ];

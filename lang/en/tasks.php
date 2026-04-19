@@ -97,7 +97,40 @@ return [
         'err_create_tag'     => 'Could not create the tag.',
 
         // Placeholder for upcoming sub-phases
-        'upcoming_placeholder_title' => 'Upcoming tasks, list and kanban',
-        'upcoming_placeholder_desc'  => 'This area will be built in upcoming sub-phases: list with filters, priority kanban, reports and due dates dashboard.',
+        // List (sub-phase 4.2)
+        'list_title'   => 'Task list',
+        'tabs_label'   => 'List views',
+        'tab_active'   => 'Active',
+        'tab_scheduled'=> 'Upcoming',
+        'tab_history'  => 'History',
+
+        'filters_label'            => 'List filters',
+        'filter_search_placeholder'=> 'Search by title or alliance...',
+        'filter_search_label'      => 'Search task',
+        'filter_date_from'         => 'From',
+        'filter_date_to'           => 'To',
+        'filter_alliance'          => 'Filter by alliance',
+        'filter_all_alliances'     => 'All alliances',
+        'filter_priority'          => 'Filter by priority',
+        'filter_all_priorities'    => 'All priorities',
+        'filter_tag'               => 'Filter by tag',
+        'filter_all_tags'          => 'All tags',
+        'filter_clear'             => 'Clear',
+
+        'empty_active_title'     => 'No active tasks',
+        'empty_active_desc'      => 'Active or paused tasks will appear here. Start a timer to begin.',
+        'empty_scheduled_title'  => 'No upcoming tasks',
+        'empty_scheduled_desc'   => 'Pending tasks with no logged time will appear here, ordered by priority and due date.',
+        'empty_history_title'    => 'No history in this range',
+        'empty_history_desc'     => 'Adjust the date range or start logging time to see history here.',
+
+        'btn_resume'   => 'Resume',
+        'is_running'   => 'Running',
+        'total_time'   => 'Total time',
+        'err_already_running' => 'A timer is already running. Pause or complete it first.',
+
+        // Placeholder for upcoming sub-phases
+        'upcoming_placeholder_title' => 'Kanban and reports',
+        'upcoming_placeholder_desc'  => 'Upcoming sub-phases bring: priority kanban, reports (PDF/Excel/CSV) and due-dates dashboard.',
     ],
 ];

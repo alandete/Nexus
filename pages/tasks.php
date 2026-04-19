@@ -93,14 +93,90 @@ if (isDBAvailable()) {
     </div>
 </section>
 
-<!-- Placeholder sub-fases siguientes -->
-<div class="card">
-    <div class="empty-state p-300">
-        <div class="empty-state-icon"><i class="bi bi-list-task" aria-hidden="true"></i></div>
-        <h3 class="empty-state-title"><?= __('tasks.upcoming_placeholder_title') ?></h3>
-        <p class="empty-state-description"><?= __('tasks.upcoming_placeholder_desc') ?></p>
+<!-- ============ LISTADO DE TAREAS (Sub-fase 4.2) ============ -->
+<section class="tasks-list-section" aria-labelledby="tasks-list-title">
+    <h2 class="visually-hidden" id="tasks-list-title"><?= __('tasks.list_title') ?></h2>
+
+    <!-- Tabs -->
+    <div class="tabs tasks-tabs" role="tablist" aria-label="<?= __('tasks.tabs_label') ?>">
+        <button type="button" class="tab active" id="tabActive" role="tab" aria-selected="true" aria-controls="panelActive" data-tab="active">
+            <?= __('tasks.tab_active') ?>
+            <span class="tab-count" id="countActive">0</span>
+        </button>
+        <button type="button" class="tab" id="tabScheduled" role="tab" aria-selected="false" aria-controls="panelScheduled" data-tab="scheduled">
+            <?= __('tasks.tab_scheduled') ?>
+            <span class="tab-count" id="countScheduled">0</span>
+        </button>
+        <button type="button" class="tab" id="tabHistory" role="tab" aria-selected="false" aria-controls="panelHistory" data-tab="history">
+            <?= __('tasks.tab_history') ?>
+            <span class="tab-count" id="countHistory">0</span>
+        </button>
     </div>
-</div>
+
+    <!-- Barra de filtros -->
+    <div class="filter-bar tasks-filter-bar" role="group" aria-label="<?= __('tasks.filters_label') ?>">
+        <div class="filter-bar-search">
+            <i class="bi bi-search filter-bar-search-icon" aria-hidden="true"></i>
+            <input type="search" id="filterSearch" class="form-control"
+                   placeholder="<?= __('tasks.filter_search_placeholder') ?>"
+                   aria-label="<?= __('tasks.filter_search_label') ?>">
+        </div>
+
+        <input type="date" id="filterDateFrom" class="form-control filter-bar-date"
+               aria-label="<?= __('tasks.filter_date_from') ?>"
+               title="<?= __('tasks.filter_date_from') ?>">
+
+        <input type="date" id="filterDateTo" class="form-control filter-bar-date"
+               aria-label="<?= __('tasks.filter_date_to') ?>"
+               title="<?= __('tasks.filter_date_to') ?>">
+
+        <select id="filterAlliance" class="form-control filter-bar-select" aria-label="<?= __('tasks.filter_alliance') ?>">
+            <option value=""><?= __('tasks.filter_all_alliances') ?></option>
+            <?php foreach ($activeAlliances as $a): ?>
+            <option value="<?= (int) $a['id'] ?>"><?= htmlspecialchars($a['name']) ?></option>
+            <?php endforeach; ?>
+        </select>
+
+        <select id="filterPriority" class="form-control filter-bar-select" aria-label="<?= __('tasks.filter_priority') ?>">
+            <option value=""><?= __('tasks.filter_all_priorities') ?></option>
+            <option value="urgent"><?= __('tasks.priority_urgent') ?></option>
+            <option value="high"><?= __('tasks.priority_high') ?></option>
+            <option value="medium"><?= __('tasks.priority_medium') ?></option>
+            <option value="low"><?= __('tasks.priority_low') ?></option>
+        </select>
+
+        <select id="filterTag" class="form-control filter-bar-select" aria-label="<?= __('tasks.filter_tag') ?>">
+            <option value=""><?= __('tasks.filter_all_tags') ?></option>
+            <?php foreach ($allTags as $tag): ?>
+            <option value="<?= (int) $tag['id'] ?>"><?= htmlspecialchars($tag['name']) ?></option>
+            <?php endforeach; ?>
+        </select>
+
+        <button type="button" class="btn btn-subtle btn-sm" id="btnClearFilters"
+                data-tooltip="<?= __('tasks.filter_clear') ?>" data-tooltip-position="top">
+            <i class="bi bi-x-circle" aria-hidden="true"></i>
+            <?= __('tasks.filter_clear') ?>
+        </button>
+    </div>
+
+    <!-- Panel: activas -->
+    <div class="tasks-panel" id="panelActive" role="tabpanel" aria-labelledby="tabActive">
+        <div class="tasks-panel-loading d-none" id="loadingActive">
+            <span class="spinner" aria-hidden="true"></span> <?= __('common.loading') ?>
+        </div>
+        <div class="tasks-panel-content" id="contentActive"></div>
+    </div>
+
+    <!-- Panel: proximas -->
+    <div class="tasks-panel d-none" id="panelScheduled" role="tabpanel" aria-labelledby="tabScheduled" hidden>
+        <div class="tasks-panel-content" id="contentScheduled"></div>
+    </div>
+
+    <!-- Panel: historial -->
+    <div class="tasks-panel d-none" id="panelHistory" role="tabpanel" aria-labelledby="tabHistory" hidden>
+        <div class="tasks-panel-content" id="contentHistory"></div>
+    </div>
+</section>
 
 <script>
 window.__TASKS_ALLIANCES__ = <?= json_encode(array_values(array_map(fn($a) => [

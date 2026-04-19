@@ -3716,9 +3716,18 @@ a.stat-card:hover {
     align-self: flex-start;
 }
 
-.tracker-incomplete i {
+.tracker-incomplete-label {
+    display: inline-flex;
+    align-items: baseline;
+    gap: var(--ds-space-075);
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.tracker-incomplete-label i {
     font-size: 14px;
     flex-shrink: 0;
+    align-self: center;
 }
 
 .tracker-incomplete-cta {

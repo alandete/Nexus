@@ -84,8 +84,10 @@ if (isDBAvailable()) {
 
         <!-- Alerta sutil si faltan datos -->
         <div class="tracker-incomplete d-none" id="trackerIncomplete" role="status">
-            <i class="bi bi-info-circle" aria-hidden="true"></i>
-            <span id="trackerIncompleteText"></span>
+            <span class="tracker-incomplete-label">
+                <i class="bi bi-info-circle" aria-hidden="true"></i>
+                <span id="trackerIncompleteText"></span>
+            </span>
             <button type="button" class="tracker-incomplete-cta" id="btnCompleteData">
                 <?= __('tasks.btn_complete_data') ?>
             </button>

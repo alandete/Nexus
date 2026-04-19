@@ -4059,22 +4059,12 @@ a.stat-card:hover {
     scrollbar-width: thin;
     scrollbar-color: var(--ds-border) transparent;
 
-    /* Fade en ambos lados; las clases at-start/at-end lo apagan del lado sin overflow */
-    -webkit-mask-image: linear-gradient(to right, transparent 0, black 32px, black calc(100% - 32px), transparent 100%);
-            mask-image: linear-gradient(to right, transparent 0, black 32px, black calc(100% - 32px), transparent 100%);
-}
-
-.tasks-cards-grid.at-start {
+    /* Fade solo a la derecha (indica que hay mas). Se apaga al llegar al final. */
     -webkit-mask-image: linear-gradient(to right, black 0, black calc(100% - 32px), transparent 100%);
             mask-image: linear-gradient(to right, black 0, black calc(100% - 32px), transparent 100%);
 }
 
 .tasks-cards-grid.at-end {
-    -webkit-mask-image: linear-gradient(to right, transparent 0, black 32px, black 100%);
-            mask-image: linear-gradient(to right, transparent 0, black 32px, black 100%);
-}
-
-.tasks-cards-grid.at-start.at-end {
     -webkit-mask-image: none;
             mask-image: none;
 }
@@ -4366,10 +4356,10 @@ a.stat-card:hover {
         width: calc(50% - var(--ds-space-025));
     }
 
-    /* Peek effect: la card no ocupa 100% del viewport, deja ver parte de la siguiente */
+    /* Peek effect: la card no ocupa 100% del viewport, deja ver ~10% de la siguiente */
     .task-card {
-        flex: 0 0 calc(85% - var(--ds-space-075));
-        max-width: calc(85% - var(--ds-space-075));
+        flex: 0 0 calc(90% - var(--ds-space-075));
+        max-width: calc(90% - var(--ds-space-075));
     }
 }
 

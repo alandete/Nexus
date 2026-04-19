@@ -3400,11 +3400,9 @@ a.stat-card:hover {
     display: flex;
     gap: var(--ds-space-150);
     align-items: stretch;
-    padding: var(--ds-space-200);
+    padding: var(--ds-space-100);
     background: var(--ds-surface-raised);
-    border: var(--ds-border-width) solid var(--ds-border);
     border-radius: var(--ds-radius-300);
-    box-shadow: var(--ds-shadow-raised);
 }
 
 .tracker-input-wrapper {
@@ -4097,11 +4095,12 @@ a.stat-card:hover {
 }
 
 /* Fondo segun prioridad (tintes suaves, sin bordes) */
+/* baja -> gris | media -> azul | alta -> amarillo | urgente -> naranja | vencida -> rojo */
 .task-card-priority-low    { background: var(--ds-surface-sunken); }
-.task-card-priority-medium { background: rgba(var(--app-brand-rgb), 0.10); }
-.task-card-priority-high   { background: rgba(217, 128, 0, 0.12); }
-.task-card-priority-urgent { background: rgba(222, 53, 11, 0.12); }
-.task-card.is-overdue      { background: rgba(222, 53, 11, 0.18); }
+.task-card-priority-medium { background: rgba(0, 82, 204, 0.10); }
+.task-card-priority-high   { background: rgba(255, 171, 0, 0.15); }
+.task-card-priority-urgent { background: rgba(217, 128, 0, 0.15); }
+.task-card.is-overdue      { background: rgba(222, 53, 11, 0.15); }
 
 .task-card-top {
     display: flex;
@@ -4118,9 +4117,10 @@ a.stat-card:hover {
     color: var(--ds-text-subtle);
 }
 
-.task-card-priority-medium .task-card-priority-label { color: var(--app-brand); }
-.task-card-priority-high .task-card-priority-label   { color: var(--ds-orange-700, #974f0c); }
-.task-card-priority-urgent .task-card-priority-label { color: var(--ds-red-700, #ae2a19); }
+.task-card-priority-medium .task-card-priority-label { color: #0052cc; }
+.task-card-priority-high .task-card-priority-label   { color: #b38600; }
+.task-card-priority-urgent .task-card-priority-label { color: var(--ds-orange-700, #974f0c); }
+.task-card.is-overdue .task-card-priority-label      { color: var(--ds-red-700, #ae2a19); }
 
 .task-card-overdue-tag {
     display: inline-flex;
@@ -4149,7 +4149,9 @@ a.stat-card:hover {
 }
 
 .task-card-alliance {
-    font-size: var(--ds-font-size-body-sm);
+    margin-left: auto;
+    max-width: 55%;
+    font-size: 11px;
     color: var(--ds-text);
     font-weight: var(--ds-font-weight-medium);
     white-space: nowrap;

@@ -1115,9 +1115,9 @@
                 ? `<span class="task-card-overdue-tag">${escapeHtml(t('tasks.is_overdue', 'Vencida'))}</span>`
                 : '';
 
-            const alliance = task.alliance_name
-                ? `<div class="task-card-alliance">${escapeHtml(task.alliance_name)}</div>`
-                : `<div class="task-card-alliance task-card-alliance-empty">${escapeHtml(t('tasks.no_alliance', 'Sin alianza'))}</div>`;
+            const allianceBadge = task.alliance_name
+                ? `<span class="task-card-alliance" title="${escapeHtml(task.alliance_name)}">${escapeHtml(task.alliance_name)}</span>`
+                : `<span class="task-card-alliance task-card-alliance-empty">${escapeHtml(t('tasks.no_alliance', 'Sin alianza'))}</span>`;
 
             const tagsPlain = task.tag_names
                 ? `<div class="task-card-tags">${task.tag_names.split(',').map(n => n.trim()).filter(Boolean).map(name =>
@@ -1130,9 +1130,9 @@
                     <div class="task-card-top">
                         <span class="task-card-priority-label">${escapeHtml(priorityLabels[priority] || priority)}</span>
                         ${overdueTag}
+                        ${allianceBadge}
                     </div>
                     <h4 class="task-card-title">${escapeHtml(task.title)}</h4>
-                    ${alliance}
                     ${tagsPlain}
                     <div class="task-card-footer">
                         ${dueInfo}

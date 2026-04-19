@@ -99,9 +99,18 @@ return [
         // Listado (sub-fase 4.2)
         'list_title'   => 'Listado de tareas',
         'tabs_label'   => 'Vistas del listado',
-        'tab_active'   => 'Activas',
-        'tab_scheduled'=> 'Proximas',
+        'tab_active'   => 'Tareas activas',
+        'tab_scheduled'=> 'Proximas tareas',
+        'tab_yesterday'=> 'Tareas de ayer',
         'tab_history'  => 'Historial',
+
+        'col_alliance'   => 'Alianza',
+        'col_task'       => 'Tarea',
+        'col_status'     => 'Estado',
+        'col_tags'       => 'Etiquetas',
+        'col_total_time' => 'Tiempo',
+        'entry_count_hint' => 'Numero de registros',
+        'is_overdue'       => 'Vencida',
 
         'filters_label'            => 'Filtros del listado',
         'filter_search_placeholder'=> 'Buscar por titulo o alianza...',
@@ -122,6 +131,8 @@ return [
         'empty_scheduled_desc'   => 'Aqui apareceran las tareas pendientes sin tiempo registrado, ordenadas por prioridad y fecha de vencimiento.',
         'empty_history_title'    => 'Sin historial en este rango',
         'empty_history_desc'     => 'Ajusta las fechas o empieza a registrar tiempo para ver el historial aqui.',
+        'empty_yesterday_title'  => 'No hubo actividad ayer',
+        'empty_yesterday_desc'   => 'Aqui apareceran las tareas en las que trabajaste ayer, con total de tiempo y numero de sesiones.',
 
         'btn_resume'   => 'Reanudar',
         'is_running'   => 'Corriendo',

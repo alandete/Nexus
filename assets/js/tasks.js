@@ -831,24 +831,63 @@
     }
 
     function renderAllPanels() {
-        renderActivePanel();
         renderScheduledPanel();
+        renderActivePanel();
+        renderYesterdayPanel();
         renderHistoryPanel();
-        updateTabCounts();
+        updateSectionCounts();
     }
 
-    function updateTabCounts() {
+    function todayStr() {
+        return new Date().toISOString().slice(0, 10);
+    }
+
+    function yesterdayStr() {
+        const d = new Date();
+        d.setDate(d.getDate() - 1);
+        return d.toISOString().slice(0, 10);
+    }
+
+    // Agrupa entries de una fecha por task_id
+    function groupEntriesByTask(entries) {
+        const grouped = {};
+        entries.forEach(e => {
+            const id = e.task_id;
+            if (!grouped[id]) {
+                grouped[id] = {
+                    task_id: id,
+                    title: e.task_title,
+                    alliance_name: e.alliance_name,
+                    tag_names: e.tag_names,
+                    status: e.task_status,
+                    total_seconds: 0,
+                    entry_count: 0,
+                    priority: 'medium',
+                };
+            }
+            grouped[id].total_seconds += parseInt(e.duration_seconds, 10) || 0;
+            grouped[id].entry_count += 1;
+        });
+        return Object.values(grouped);
+    }
+
+    function updateSectionCounts() {
         const active = applyLocalFilters(listState.data.active).length;
         const scheduled = applyLocalFilters(listState.data.scheduled).length;
-        const history = Object.values(listState.data.by_date)
-            .reduce((acc, arr) => acc + applyLocalFilters(arr.map(e => ({
+        const yesterdayEntries = listState.data.by_date[yesterdayStr()] || [];
+        const yesterdayTasks = applyLocalFilters(groupEntriesByTask(yesterdayEntries)).length;
+        const history = Object.entries(listState.data.by_date)
+            .filter(([date]) => date !== yesterdayStr())
+            .reduce((acc, [, arr]) => acc + applyLocalFilters(arr.map(e => ({
                 title: e.task_title,
                 alliance_name: e.alliance_name,
                 priority: 'medium',
                 tag_ids: '',
             }))).length, 0);
+
         document.getElementById('countActive').textContent = active;
         document.getElementById('countScheduled').textContent = scheduled;
+        document.getElementById('countYesterday').textContent = yesterdayTasks;
         document.getElementById('countHistory').textContent = history;
     }
 
@@ -886,10 +925,86 @@
         return `<span class="tracker-meta-chip tracker-meta-alliance"><i class="bi bi-building" aria-hidden="true"></i>${escapeHtml(name)}</span>`;
     }
 
+    // Encabezados de la tabla-grid
+    function gridTableHeader() {
+        return `
+            <div class="grid-table-head" role="row">
+                <span role="columnheader">${escapeHtml(t('tasks.col_alliance', 'Alianza'))}</span>
+                <span role="columnheader">${escapeHtml(t('tasks.col_task', 'Tarea'))}</span>
+                <span role="columnheader">${escapeHtml(t('tasks.col_status', 'Estado'))}</span>
+                <span role="columnheader">${escapeHtml(t('tasks.col_tags', 'Etiquetas'))}</span>
+                <span role="columnheader" class="text-right">${escapeHtml(t('tasks.col_total_time', 'Tiempo'))}</span>
+                <span role="columnheader" class="sr-only">${escapeHtml(t('common.actions', 'Acciones'))}</span>
+            </div>
+        `;
+    }
+
+    function statusLozenge(status) {
+        const map = {
+            in_progress: { cls: 'lozenge-info',    label: t('tasks.status_in_progress', 'En progreso') },
+            paused:      { cls: 'lozenge-warning', label: t('tasks.status_paused',      'Pausada') },
+            pending:     { cls: 'lozenge-default', label: t('tasks.status_pending',     'Pendiente') },
+            completed:   { cls: 'lozenge-success', label: t('tasks.status_completed',   'Completada') },
+        };
+        const entry = map[status] || map.pending;
+        return `<span class="lozenge ${entry.cls}">${entry.label}</span>`;
+    }
+
+    // Fila tabla-grid reutilizable para activas y ayer
+    function gridTableRow(task, opts = {}) {
+        const total = task.total_seconds ? formatDuration(parseInt(task.total_seconds, 10)) : '—';
+        const isCurrent = state.running && state.taskId == task.task_id;
+        const count = task.entry_count ? `<span class="task-entry-count" title="${t('tasks.entry_count_hint', 'Registros')}">${task.entry_count}</span>` : '';
+
+        const runningBadge = isCurrent
+            ? `<span class="lozenge lozenge-success"><i class="bi bi-record-fill" aria-hidden="true"></i> ${t('tasks.is_running', 'Corriendo')}</span>`
+            : '';
+
+        const resumeBtn = isCurrent ? '' : `
+            <button type="button" class="btn-icon" data-action="resume" data-task-id="${task.task_id}" data-title="${escapeHtml(task.title)}"
+                    data-tooltip="${t('tasks.btn_resume', 'Reanudar')}" data-tooltip-position="top" aria-label="${t('tasks.btn_resume', 'Reanudar')}">
+                <i class="bi bi-play-fill" aria-hidden="true"></i>
+            </button>`;
+
+        return `
+            <div class="grid-table-row" role="row">
+                <span class="grid-cell cell-alliance" role="gridcell">
+                    ${task.alliance_name
+                        ? `<span class="cell-alliance-chip"><i class="bi bi-building" aria-hidden="true"></i> ${escapeHtml(task.alliance_name)}</span>`
+                        : `<span class="text-subtle">${escapeHtml(t('tasks.no_alliance', 'Sin alianza'))}</span>`}
+                </span>
+                <span class="grid-cell cell-task" role="gridcell">
+                    <span class="cell-task-title">${escapeHtml(task.title)}</span>
+                    ${count}
+                </span>
+                <span class="grid-cell cell-status" role="gridcell">
+                    ${runningBadge || statusLozenge(task.status)}
+                </span>
+                <span class="grid-cell cell-tags" role="gridcell">
+                    ${task.tag_names ? tagChipsHtml(task.tag_names) : `<span class="text-subtle text-sm">—</span>`}
+                </span>
+                <span class="grid-cell cell-time text-right text-mono" role="gridcell">${total}</span>
+                <span class="grid-cell cell-actions" role="gridcell">
+                    ${resumeBtn}
+                    <button type="button" class="btn-icon" data-action="edit" data-task-id="${task.task_id}"
+                            data-tooltip="${t('tasks.btn_edit', 'Editar')}" data-tooltip-position="top" aria-label="${t('tasks.btn_edit', 'Editar')}">
+                        <i class="bi bi-pencil" aria-hidden="true"></i>
+                    </button>
+                </span>
+            </div>
+        `;
+    }
+
     function renderActivePanel() {
         const container = document.getElementById('contentActive');
         if (!container) return;
-        const items = applyLocalFilters(listState.data.active);
+        // Normalizar: active tasks tienen id (no task_id)
+        const items = applyLocalFilters(listState.data.active).map(t => ({
+            ...t,
+            task_id: t.id,
+            entry_count: (listState.data.by_date && Object.values(listState.data.by_date)
+                .flat().filter(e => e.task_id == t.id).length) || null,
+        }));
 
         if (items.length === 0) {
             container.innerHTML = emptyState('bi-play-circle',
@@ -898,63 +1013,56 @@
             return;
         }
 
-        container.innerHTML = items.map(task => {
-            const total = task.total_seconds ? formatDuration(parseInt(task.total_seconds, 10)) : '0m 0s';
-            const statusLabel = task.status === 'paused' ? t('tasks.status_paused', 'Pausada') : t('tasks.status_in_progress', 'En progreso');
-            const statusClass = task.status === 'paused' ? 'lozenge-warning' : 'lozenge-info';
-            const isCurrent = state.running && state.taskId == task.id;
-            const resumeBtn = isCurrent
-                ? `<span class="lozenge lozenge-success"><i class="bi bi-record-fill" aria-hidden="true"></i> ${t('tasks.is_running', 'Corriendo')}</span>`
-                : `<button type="button" class="btn-icon" data-action="resume" data-task-id="${task.id}" data-title="${escapeHtml(task.title)}"
-                           data-tooltip="${t('tasks.btn_resume', 'Reanudar')}" data-tooltip-position="top" aria-label="${t('tasks.btn_resume', 'Reanudar')}">
-                       <i class="bi bi-play-fill" aria-hidden="true"></i>
-                   </button>`;
+        container.innerHTML = gridTableHeader() + items.map(task => gridTableRow(task)).join('');
+    }
 
-            return `
-                <div class="task-item task-item-active">
-                    <div class="task-item-main">
-                        <div class="task-item-title-row">
-                            <span class="task-item-title">${escapeHtml(task.title)}</span>
-                            <span class="lozenge ${statusClass}">${statusLabel}</span>
-                        </div>
-                        <div class="task-item-meta">
-                            ${allianceChip(task.alliance_name)}
-                            ${tagChipsHtml(task.tag_names)}
-                            ${priorityChip(task.priority)}
-                            ${task.due_date ? `<span class="tracker-meta-chip"><i class="bi bi-calendar" aria-hidden="true"></i>${escapeHtml(task.due_date)}</span>` : ''}
-                        </div>
-                    </div>
-                    <div class="task-item-right">
-                        <span class="task-item-time" title="${t('tasks.total_time', 'Tiempo acumulado')}">
-                            <i class="bi bi-clock" aria-hidden="true"></i> ${total}
-                        </span>
-                        <div class="task-item-actions">
-                            ${resumeBtn}
-                            <button type="button" class="btn-icon" data-action="edit" data-task-id="${task.id}"
-                                    data-tooltip="${t('tasks.btn_edit', 'Editar')}" data-tooltip-position="top" aria-label="${t('tasks.btn_edit', 'Editar')}">
-                                <i class="bi bi-pencil" aria-hidden="true"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }).join('');
+    function renderYesterdayPanel() {
+        const container = document.getElementById('contentYesterday');
+        if (!container) return;
+
+        const entries = listState.data.by_date[yesterdayStr()] || [];
+        const items = applyLocalFilters(groupEntriesByTask(entries));
+
+        if (items.length === 0) {
+            container.innerHTML = emptyState('bi-calendar-minus',
+                t('tasks.empty_yesterday_title', 'No hubo actividad ayer'),
+                t('tasks.empty_yesterday_desc', 'Aqui apareceran las tareas en las que trabajaste ayer, con total de tiempo y numero de sesiones.'));
+            return;
+        }
+
+        container.innerHTML = gridTableHeader() + items.map(task => gridTableRow(task)).join('');
     }
 
     function renderScheduledPanel() {
         const container = document.getElementById('contentScheduled');
         if (!container) return;
-        const items = applyLocalFilters(listState.data.scheduled);
 
-        if (items.length === 0) {
+        const today = todayStr();
+        const priorityOrder = { urgent: 1, high: 2, medium: 3, low: 4 };
+
+        // Orden: vencidas -> urgent -> high -> medium -> low; dentro de cada bucket, due_date asc
+        const sorted = applyLocalFilters(listState.data.scheduled).slice().sort((a, b) => {
+            const aOverdue = a.due_date && a.due_date < today ? 0 : 1;
+            const bOverdue = b.due_date && b.due_date < today ? 0 : 1;
+            if (aOverdue !== bOverdue) return aOverdue - bOverdue;
+            const aP = priorityOrder[a.priority || 'medium'] || 5;
+            const bP = priorityOrder[b.priority || 'medium'] || 5;
+            if (aP !== bP) return aP - bP;
+            return (a.due_date || '9999-12-31').localeCompare(b.due_date || '9999-12-31');
+        });
+
+        if (sorted.length === 0) {
             container.innerHTML = emptyState('bi-calendar-check',
                 t('tasks.empty_scheduled_title', 'No hay tareas proximas'),
                 t('tasks.empty_scheduled_desc', 'Aqui apareceran las tareas pendientes sin tiempo registrado, ordenadas por prioridad y fecha de vencimiento.'));
+            container.classList.remove('has-scroll');
             return;
         }
 
-        container.innerHTML = items.map(task => {
-            const overdue = task.due_date && task.due_date < new Date().toISOString().slice(0, 10);
+        container.classList.toggle('has-scroll', sorted.length > 5);
+
+        container.innerHTML = sorted.map(task => {
+            const overdue = task.due_date && task.due_date < today;
             const priority = task.priority || 'medium';
             const priorityLabels = {
                 low:    t('tasks.priority_low', 'Baja'),
@@ -964,35 +1072,37 @@
             };
 
             const dueInfo = task.due_date ? `
-                <div class="task-card-due ${overdue ? 'is-overdue' : ''}">
+                <span class="task-card-due ${overdue ? 'is-overdue' : ''}">
                     <i class="bi bi-calendar${overdue ? '-x-fill' : ''}" aria-hidden="true"></i>
-                    <span>${escapeHtml(task.due_date)}</span>
-                </div>` : '';
+                    ${escapeHtml(task.due_date)}
+                </span>` : '';
+
+            const overdueTag = overdue
+                ? `<span class="task-card-overdue-tag">${escapeHtml(t('tasks.is_overdue', 'Vencida'))}</span>`
+                : '';
 
             return `
                 <article class="task-card task-card-priority-${priority} ${overdue ? 'is-overdue' : ''}">
-                    <header class="task-card-header">
+                    <div class="task-card-top">
                         <span class="task-card-priority-label">${escapeHtml(priorityLabels[priority] || priority)}</span>
+                        ${overdueTag}
                         ${dueInfo}
-                    </header>
-
+                    </div>
                     <h4 class="task-card-title">${escapeHtml(task.title)}</h4>
-
                     <div class="task-card-meta">
                         ${allianceChip(task.alliance_name)}
                         ${tagChipsHtml(task.tag_names)}
                     </div>
-
-                    <footer class="task-card-footer">
-                        <button type="button" class="btn btn-primary btn-sm" data-action="resume" data-task-id="${task.id}" data-title="${escapeHtml(task.title)}">
+                    <div class="task-card-actions">
+                        <button type="button" class="btn-icon" data-action="resume" data-task-id="${task.id}" data-title="${escapeHtml(task.title)}"
+                                data-tooltip="${t('tasks.btn_start', 'Iniciar')}" data-tooltip-position="top" aria-label="${t('tasks.btn_start', 'Iniciar')}">
                             <i class="bi bi-play-fill" aria-hidden="true"></i>
-                            ${t('tasks.btn_start', 'Iniciar')}
                         </button>
                         <button type="button" class="btn-icon" data-action="edit" data-task-id="${task.id}"
                                 data-tooltip="${t('tasks.btn_edit', 'Editar')}" data-tooltip-position="top" aria-label="${t('tasks.btn_edit', 'Editar')}">
                             <i class="bi bi-pencil" aria-hidden="true"></i>
                         </button>
-                    </footer>
+                    </div>
                 </article>
             `;
         }).join('');
@@ -1002,7 +1112,8 @@
         const container = document.getElementById('contentHistory');
         if (!container) return;
         const byDate = listState.data.by_date || {};
-        const dates = Object.keys(byDate).sort().reverse();
+        const yday = yesterdayStr();
+        const dates = Object.keys(byDate).filter(d => d !== yday).sort().reverse();
 
         const filteredDates = dates.map(date => {
             const entries = byDate[date].filter(e => {

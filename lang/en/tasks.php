@@ -100,9 +100,18 @@ return [
         // List (sub-phase 4.2)
         'list_title'   => 'Task list',
         'tabs_label'   => 'List views',
-        'tab_active'   => 'Active',
-        'tab_scheduled'=> 'Upcoming',
+        'tab_active'   => 'Active tasks',
+        'tab_scheduled'=> 'Upcoming tasks',
+        'tab_yesterday'=> 'Yesterday\'s tasks',
         'tab_history'  => 'History',
+
+        'col_alliance'   => 'Alliance',
+        'col_task'       => 'Task',
+        'col_status'     => 'Status',
+        'col_tags'       => 'Tags',
+        'col_total_time' => 'Time',
+        'entry_count_hint' => 'Number of entries',
+        'is_overdue'       => 'Overdue',
 
         'filters_label'            => 'List filters',
         'filter_search_placeholder'=> 'Search by title or alliance...',
@@ -123,6 +132,8 @@ return [
         'empty_scheduled_desc'   => 'Pending tasks with no logged time will appear here, ordered by priority and due date.',
         'empty_history_title'    => 'No history in this range',
         'empty_history_desc'     => 'Adjust the date range or start logging time to see history here.',
+        'empty_yesterday_title'  => 'No activity yesterday',
+        'empty_yesterday_desc'   => 'Tasks you worked on yesterday will appear here, with total time and session count.',
 
         'btn_resume'   => 'Resume',
         'is_running'   => 'Running',

@@ -97,7 +97,31 @@ if (isDBAvailable()) {
 <section class="tasks-list-section" aria-labelledby="tasks-list-title">
     <h2 class="visually-hidden" id="tasks-list-title"><?= __('tasks.list_title') ?></h2>
 
-    <!-- Barra de filtros compacta -->
+    <!-- Seccion: proximas (cards compactas, max 5 visibles) -->
+    <div class="tasks-section" id="sectionScheduled">
+        <div class="tasks-section-header">
+            <h3 class="tasks-section-title">
+                <i class="bi bi-calendar-check" aria-hidden="true"></i>
+                <?= __('tasks.tab_scheduled') ?>
+                <span class="tasks-section-count" id="countScheduled">0</span>
+            </h3>
+        </div>
+        <div class="tasks-panel-content tasks-cards-grid" id="contentScheduled"></div>
+    </div>
+
+    <!-- Seccion: activas (layout tabla) -->
+    <div class="tasks-section" id="sectionActive">
+        <div class="tasks-section-header">
+            <h3 class="tasks-section-title">
+                <i class="bi bi-record-circle" aria-hidden="true"></i>
+                <?= __('tasks.tab_active') ?>
+                <span class="tasks-section-count" id="countActive">0</span>
+            </h3>
+        </div>
+        <div class="tasks-panel-content tasks-grid-table" id="contentActive" role="grid"></div>
+    </div>
+
+    <!-- Barra de filtros compacta (aplica a ayer + historial) -->
     <div class="filter-bar tasks-filter-bar" role="group" aria-label="<?= __('tasks.filters_label') ?>">
         <div class="filter-bar-search">
             <i class="bi bi-search filter-bar-search-icon" aria-hidden="true"></i>
@@ -145,28 +169,16 @@ if (isDBAvailable()) {
         </button>
     </div>
 
-    <!-- Seccion: activas -->
-    <div class="tasks-section" id="sectionActive">
+    <!-- Seccion: tareas de ayer (layout tabla) -->
+    <div class="tasks-section" id="sectionYesterday">
         <div class="tasks-section-header">
             <h3 class="tasks-section-title">
-                <i class="bi bi-record-circle" aria-hidden="true"></i>
-                <?= __('tasks.tab_active') ?>
-                <span class="tasks-section-count" id="countActive">0</span>
+                <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>
+                <?= __('tasks.tab_yesterday') ?>
+                <span class="tasks-section-count" id="countYesterday">0</span>
             </h3>
         </div>
-        <div class="tasks-panel-content" id="contentActive"></div>
-    </div>
-
-    <!-- Seccion: proximas (cards destacadas) -->
-    <div class="tasks-section" id="sectionScheduled">
-        <div class="tasks-section-header">
-            <h3 class="tasks-section-title">
-                <i class="bi bi-calendar-check" aria-hidden="true"></i>
-                <?= __('tasks.tab_scheduled') ?>
-                <span class="tasks-section-count" id="countScheduled">0</span>
-            </h3>
-        </div>
-        <div class="tasks-panel-content tasks-cards-grid" id="contentScheduled"></div>
+        <div class="tasks-panel-content tasks-grid-table" id="contentYesterday" role="grid"></div>
     </div>
 
     <!-- Seccion: historial -->

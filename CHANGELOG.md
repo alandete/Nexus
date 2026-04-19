@@ -7,17 +7,22 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ### Agregado
 - **Pagina `/tasks` — Sub-fase 4.2: Listado y filtros**
-  - **3 tabs con contador**: Activas (en progreso/pausadas), Proximas (pendientes sin tiempo, ordenadas por prioridad y vencimiento), Historial (entradas agrupadas por dia con total)
-  - **Barra de filtros**: busqueda (titulo + alianza), rango de fechas, alianza, prioridad, etiqueta, boton limpiar
-  - **Filtros al servidor**: rango de fechas y alianza (reconsultan `list`). **Filtros locales**: busqueda, prioridad, etiqueta (sin roundtrip)
-  - **Tarjeta compacta por tarea** con titulo, chips de meta (alianza, etiquetas, prioridad, fecha) y tiempo acumulado en mono + brand
-  - **Tarea vencida** marcada con borde izquierdo rojo + chip de fecha urgente
-  - **Acciones por item**: reanudar (brinca al tracker inline y arranca) y editar (abre slide panel)
-  - Si hay timer corriendo en esta misma tarea, se muestra lozenge "Corriendo" en lugar del boton reanudar
-  - Tabla de historial compacta con hora (mono), tarea + chips y duracion a la derecha, con total del dia en el header
-  - Empty states contextuales por tab
-  - Auto-refresh del listado despues de iniciar, pausar, completar o descartar el cronometro
-  - Refresh tambien al guardar cambios en el slide panel
+  - **5 secciones apiladas** (orden): Proximas, Activas, Barra de filtros, Tareas de ayer, Historial
+  - **Proximas tareas** como cards compactas con borde lateral de color por prioridad:
+    - Orden: vencidas -> urgentes -> altas -> medias -> bajas (dentro de cada grupo por fecha asc)
+    - Tag "VENCIDA" rojo para las atrasadas, con fondo gradient sutil
+    - Maximo 5 visibles; si hay mas, aparece scroll vertical con scrollbar discreto
+    - Acciones como iconos (Iniciar, Editar) para que la card sea liviana
+  - **Tareas activas** y **Tareas de ayer** con layout tabla sin `<table>` (CSS Grid):
+    - Columnas: Alianza, Tarea (con contador de registros), Estado, Etiquetas, Tiempo, Botones
+    - Lozenge "Corriendo" si la fila corresponde al timer activo
+    - Contador de registros = entries en el rango filtrado (para ayer: sesiones del dia)
+    - En <992px se colapsa a layout card (headers ocultos, celdas apiladas)
+  - **Historial**: entradas individuales agrupadas por dia con total diario (ayer va a su propia seccion)
+  - **Barra de filtros compacta** (posicion entre Activas y Ayer): busqueda, rango fechas, alianza, prioridad, etiqueta, boton limpiar como icono
+  - Filtros al servidor: rango fechas + alianza. Filtros locales: busqueda, prioridad, etiqueta
+  - Empty states contextuales por seccion
+  - Auto-refresh tras start/pause/stop/discard/edit
 - **Pagina `/tasks` — Sub-fase 4.1: Cronometro y tarea activa (flujo hibrido)**
   - **Tracker inline friccion-cero**: input grande con icono de cronometro y boton play, el usuario escribe el nombre y arranca sin ningun formulario previo
   - **Autocomplete en vivo** al escribir (debounce 250ms): muestra hasta 6 tareas existentes con alianza + lozenge de estado. Clic en una sugerencia reanuda el timer asociado

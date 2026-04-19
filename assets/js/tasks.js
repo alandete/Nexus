@@ -1070,6 +1070,28 @@
         container.innerHTML = gridTableHeader() + items.map(task => gridTableRow(task)).join('');
     }
 
+    function updateScrollMask(container) {
+        if (!container) return;
+        const canScroll = container.scrollWidth > container.clientWidth + 1;
+        const atStart = !canScroll || container.scrollLeft <= 1;
+        const atEnd   = !canScroll || container.scrollLeft + container.clientWidth >= container.scrollWidth - 1;
+        container.classList.toggle('at-start', atStart);
+        container.classList.toggle('at-end', atEnd);
+    }
+
+    function setupScrollMask(container) {
+        if (!container || container._scrollMaskBound) return;
+        container._scrollMaskBound = true;
+        container.addEventListener('scroll', () => updateScrollMask(container), { passive: true });
+        // Observar cambios de tamano por si el viewport o el contenido cambian
+        if (typeof ResizeObserver !== 'undefined') {
+            const ro = new ResizeObserver(() => updateScrollMask(container));
+            ro.observe(container);
+        } else {
+            window.addEventListener('resize', () => updateScrollMask(container));
+        }
+    }
+
     function renderScheduledPanel() {
         const container = document.getElementById('contentScheduled');
         if (!container) return;
@@ -1092,8 +1114,11 @@
             container.innerHTML = emptyState('bi-calendar-check',
                 t('tasks.empty_scheduled_title', 'No hay tareas proximas'),
                 t('tasks.empty_scheduled_desc', 'Aqui apareceran las tareas pendientes sin tiempo registrado, ordenadas por prioridad y fecha de vencimiento.'));
+            container.classList.remove('at-start', 'at-end');
             return;
         }
+
+        setupScrollMask(container);
 
         container.innerHTML = sorted.map(task => {
             const overdue = task.due_date && task.due_date < today;
@@ -1154,6 +1179,9 @@
                 </article>
             `;
         }).join('');
+
+        // Actualizar mascara de fade despues de inyectar el DOM
+        requestAnimationFrame(() => updateScrollMask(container));
     }
 
     function renderHistoryPanel() {

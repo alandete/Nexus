@@ -5,6 +5,49 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [2.0.0-alpha.3] — 2026-04-19 (en desarrollo)
 
+### Deuda tecnica priorizada (resolver antes de Sub-fase 4.5 Reportes)
+
+- **Backend `timer_discard` no resetea el status de la tarea**. Cuando el usuario descarta un timer recien iniciado, el entry se borra pero la tarea queda en `in_progress` sin ninguna sesion. Genera "tareas fantasma" en Activas y falsea totales en reportes futuros.
+  - Workaround actual: el frontend filtra activas con `total_seconds > 0` o con al menos un entry en rango.
+  - Fix pendiente en backend: `timerDiscard` debe verificar si la tarea tenia otras entries; si no, setear status a `pending`. Ver `includes/tasks_actions.php:472` (hay TODO inline).
+
+### Iteracion continua de 4.2 (ronda 2)
+
+- **Boton "Nueva tarea"** en el page-header (primary con icono +). Abre el slide panel en modo `create` → crea tareas programadas con status `pending` via endpoint `create`
+- **Nueva seccion "Tareas de hoy"** (arriba de la barra de filtros, entre Activas y filtros). Agrupa entries del dia excluyendo las tareas aun activas. Se oculta cuando no hay actividad
+- **Orden de secciones actualizado**: Proximas -> Activas -> Hoy -> Filtros -> Ayer -> Historial. "Activas" ahora tambien se oculta cuando esta vacia
+- **Helper `renderTaskTable`** reutilizable (Activas + Hoy + Ayer comparten schema): columnas configurables via CSS var, acciones opcionales, modo `expandable` con chevron y fila detalle lazy-load
+- **Fila detalle colapsable** en Activas y Hoy: Prioridad | Vencimiento | Desde | chip de estado (a tiempo / con retraso). Debajo descripcion + tabla de registros agrupada por fecha (solo lectura). Borde inferior sutil como separador
+- **Edicion de tarea centralizada en el slide panel**:
+  - Alianza | Etiquetas en la misma fila. Etiquetas como **dropdown multiselect** con checkboxes + crear etiqueta nueva dentro del dropdown
+  - Fila readonly: Atendida desde | Tiempo acumulado | Estado (a tiempo / retraso)
+  - Seccion de Registros editable al final: hora inicio/fin con inputs `type=time`, duracion recalculada en vivo, guardar (hover verde) y eliminar (hover rojo + ConfirmModal). Total se recalcula automaticamente
+- **Filtros**: filtro de etiquetas ahora **multi-select** (semantica OR) en la barra principal, con trigger que muestra nombres o conteo segun seleccion. Campos de fecha reducidos a 120px. Barra con fondo brand-tint para destacar como "control"
+- **Paleta de prioridades** en cards de proximas: baja (gris), media (azul #0052cc), alta (amarillo), urgente (naranja vibrante), vencida (rojo). Fondos tintados sin bordes
+- **Carrusel de proximas**:
+  - Alianza al top como badge junto al label de prioridad y etiqueta "VENCIDA"
+  - Mobile: **peek effect** (card al 90% para que asome la siguiente)
+  - Desktop y mobile: **mask-image** fade a la derecha que se apaga al llegar al final (clase `at-end`)
+  - Comentarios `>>> AJUSTAR ...` en el CSS para ubicar rapido los valores de peek y degradado
+- **Tracker inline**:
+  - Etiquetas compactas: un solo chip con conteo (`🏷️ 3 etiquetas`) + tooltip custom con los nombres completos
+  - La fecha de vencimiento **ya no se muestra** en el rastreador (se asume actividad del dia)
+  - Cronometro de alto contraste (brand solido + texto blanco bold)
+  - Alianza con color institucional como tint en el badge
+- **Alianza con color institucional** aplicada en las tres ubicaciones: tracker, cards proximas y tabla (via `color-mix` con `--alliance-color`)
+- **Layout tabla (Activas/Hoy/Ayer)**:
+  - Columnas: Alianza | Tarea (con contador) | Estado | Etiquetas | Tiempo | Acciones. Estado en minusculas, alineado a la izquierda
+  - Badge de alianza con tamano fijo (width 100% de la celda, ellipsis si es largo)
+  - Chips de etiquetas compactos dentro de la celda
+  - Acciones: Reanudar (success), Editar, Eliminar (danger), Expandir detalle
+- **Formato de fechas uniforme**: helper `formatDateDMY(value)` convierte YYYY-MM-DD a DD/MM/YYYY en todos los textos de fecha (Vencimiento, Desde, fechas de registros, headers de historial). Los `input type="date"` siguen con el formato del navegador
+- **Fix**: edicion de tarea desde la lista ya no contamina el state del tracker. `openEditForm` con `opts.task` aisla la edicion; `handleEditSubmit` solo sincroniza state si la tarea editada coincide con el timer corriendo
+- **Fix**: hidratacion completa del state tras `timer_start` y `timer_status` (endpoints que no devuelven priority/due_date/description/tag_ids) via fetch adicional a `get`
+- **Fix**: `todayStr()` y `yesterdayStr()` usan fecha local en vez de `toISOString()` UTC
+- **Fix**: cards de proximas en fila horizontal (flex-direction row explicito, antes heredaban column del padre)
+- **Fix**: el alert "datos incompletos" en mobile agrupa icono + texto en un wrapper para evitar que se separen
+
+
 ### Agregado
 - **Pagina `/tasks` — Sub-fase 4.2: Listado y filtros**
   - **Secciones apiladas** (orden): Proximas, Activas, Ayer (se oculta si vacia), Barra de filtros, Historial. Titulos de seccion sin borde inferior, mas pegados al contenido

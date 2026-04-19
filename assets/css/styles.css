@@ -937,6 +937,24 @@ select.form-control {
     padding: var(--ds-space-300) 0 var(--ds-space-200) 0;
 }
 
+/* Page header con boton de accion a la derecha */
+.page-header-with-action {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ds-space-200);
+    flex-wrap: wrap;
+}
+
+.page-header-with-action .page-header-text {
+    flex: 1;
+    min-width: 220px;
+}
+
+.page-header-with-action > .btn {
+    flex-shrink: 0;
+}
+
 .page-title {
     font-size: var(--ds-font-size-heading-lg);
     font-weight: var(--ds-font-weight-semibold);
@@ -3640,6 +3658,12 @@ a.stat-card:hover {
     border-color: rgba(var(--app-brand-rgb), 0.2);
 }
 
+/* Si la alianza tiene color institucional, usarlo tenue */
+.tracker-meta-alliance.has-alliance-color {
+    background: color-mix(in srgb, var(--alliance-color) 15%, transparent);
+    border-color: color-mix(in srgb, var(--alliance-color) 30%, transparent);
+}
+
 .tracker-meta-empty {
     border-style: dashed;
     color: var(--ds-text-subtlest);
@@ -3800,6 +3824,216 @@ a.stat-card:hover {
     flex: 1;
 }
 
+/* -------- Campo estatico readonly en formularios -------- */
+.form-static {
+    padding: var(--ds-space-100);
+    background: var(--ds-surface-sunken);
+    border-radius: var(--ds-radius-100);
+    font-size: var(--ds-font-size-body);
+    color: var(--ds-text);
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+}
+
+.form-static-mono {
+    font-family: var(--ds-font-family-mono);
+    font-weight: var(--ds-font-weight-semibold);
+    color: var(--app-brand);
+}
+
+/* Form grid de 3 columnas (se apila en mobile) */
+.form-grid-3 {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--ds-space-100);
+}
+
+@media (min-width: 600px) {
+    .form-grid-3 {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+/* -------- Multiselect de etiquetas en formulario -------- */
+.tags-multiselect {
+    position: relative;
+}
+
+.tags-multiselect-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ds-space-075);
+    width: 100%;
+    cursor: pointer;
+    text-align: left;
+}
+
+.tags-multiselect-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+}
+
+.tags-multiselect-chevron {
+    font-size: 11px;
+    color: var(--ds-text-subtle);
+    transition: transform var(--ds-duration-fast);
+    flex-shrink: 0;
+}
+
+.tags-multiselect-trigger[aria-expanded="true"] .tags-multiselect-chevron {
+    transform: rotate(180deg);
+}
+
+.tags-multiselect-dropdown {
+    position: absolute;
+    top: calc(100% + var(--ds-space-050));
+    left: 0;
+    right: 0;
+    z-index: 30;
+    background: var(--ds-surface-overlay);
+    border: var(--ds-border-width) solid var(--ds-border);
+    border-radius: var(--ds-radius-200);
+    box-shadow: var(--ds-shadow-overlay);
+    overflow: hidden;
+}
+
+.tags-multiselect-options {
+    max-height: 220px;
+    overflow-y: auto;
+    padding: var(--ds-space-050);
+}
+
+.tags-multiselect-option {
+    display: flex;
+    align-items: center;
+    gap: var(--ds-space-075);
+    padding: var(--ds-space-075) var(--ds-space-100);
+    border-radius: var(--ds-radius-100);
+    cursor: pointer;
+    font-size: var(--ds-font-size-body-sm);
+    color: var(--ds-text);
+    transition: background var(--ds-duration-fast);
+    user-select: none;
+}
+
+.tags-multiselect-option:hover {
+    background: var(--ds-surface-hovered, rgba(9, 30, 66, 0.04));
+}
+
+.tags-multiselect-option input {
+    margin: 0;
+    accent-color: var(--app-brand);
+}
+
+.tags-multiselect-empty {
+    padding: var(--ds-space-100);
+    margin: 0;
+    text-align: center;
+    color: var(--ds-text-subtle);
+    font-size: var(--ds-font-size-body-sm);
+    font-style: italic;
+}
+
+.tags-multiselect-create {
+    display: flex;
+    gap: var(--ds-space-075);
+    padding: var(--ds-space-075);
+    background: var(--ds-surface-sunken);
+    border-top: var(--ds-border-width) solid var(--ds-border);
+}
+
+.tags-multiselect-create .form-control {
+    flex: 1;
+}
+
+/* -------- Lista de registros editables dentro del slide panel -------- */
+.task-entries-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-space-075);
+}
+
+.task-entries-loading {
+    display: flex;
+    align-items: center;
+    gap: var(--ds-space-100);
+    padding: var(--ds-space-150);
+    color: var(--ds-text-subtle);
+    font-size: var(--ds-font-size-body-sm);
+    background: var(--ds-surface-sunken);
+    border-radius: var(--ds-radius-100);
+}
+
+.task-entries-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-space-050);
+}
+
+.task-entry-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: var(--ds-space-075);
+    padding: var(--ds-space-075);
+    background: var(--ds-surface-sunken);
+    border-radius: var(--ds-radius-100);
+}
+
+.task-entry-date {
+    white-space: nowrap;
+    min-width: 86px;
+}
+
+.task-entry-input {
+    font-family: var(--ds-font-family-mono);
+    min-width: 0;
+}
+
+.task-entry-sep {
+    color: var(--ds-text-subtle);
+    font-size: 12px;
+}
+
+.task-entry-duration {
+    min-width: 56px;
+    text-align: right;
+    font-weight: var(--ds-font-weight-semibold);
+    color: var(--app-brand);
+    font-size: var(--ds-font-size-body-sm);
+}
+
+.task-entry-actions {
+    display: flex;
+    gap: 2px;
+}
+
+.task-entry-actions .btn-icon {
+    width: 28px;
+    height: 28px;
+}
+
+@media (max-width: 600px) {
+    .task-entry-row {
+        grid-template-columns: 1fr auto auto;
+        grid-template-areas:
+            "date date date"
+            "start sep end"
+            "duration duration actions";
+        gap: var(--ds-space-075);
+    }
+    .task-entry-date     { grid-area: date; }
+    .task-entry-input[data-field="start"] { grid-area: start; }
+    .task-entry-sep      { grid-area: sep; }
+    .task-entry-input[data-field="end"]   { grid-area: end; }
+    .task-entry-duration { grid-area: duration; text-align: left; }
+    .task-entry-actions  { grid-area: actions; justify-self: end; }
+}
+
 /* ============================================
    TASKS — Listado (sub-fase 4.2, secciones apiladas)
    ============================================ */
@@ -3815,8 +4049,8 @@ a.stat-card:hover {
     align-items: center;
     padding: var(--ds-space-100) var(--ds-space-150);
     margin-bottom: var(--ds-space-300);
-    background: var(--ds-surface-raised);
-    border: var(--ds-border-width) solid var(--ds-border);
+    /* Fondo tinte brand para destacarla como "barra de controles" sobre el contenido */
+    background: rgba(var(--app-brand-rgb), 0.06);
     border-radius: var(--ds-radius-200);
 }
 
@@ -3847,13 +4081,101 @@ a.stat-card:hover {
 }
 
 .filter-bar-date {
-    width: 140px;
+    width: 120px;
     min-width: 0;
 }
 
 .tasks-filter-bar .filter-bar-select {
     min-width: 130px;
     max-width: 170px;
+}
+
+/* Multi-select custom (etiquetas): boton trigger + dropdown con checkboxes */
+.filter-multiselect {
+    position: relative;
+    min-width: 150px;
+    max-width: 200px;
+}
+
+.filter-multiselect-trigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ds-space-075);
+    width: 100%;
+    cursor: pointer;
+    text-align: left;
+}
+
+.filter-multiselect-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+}
+
+.filter-multiselect-chevron {
+    font-size: 11px;
+    color: var(--ds-text-subtle);
+    transition: transform var(--ds-duration-fast);
+    flex-shrink: 0;
+}
+
+.filter-multiselect-trigger[aria-expanded="true"] .filter-multiselect-chevron {
+    transform: rotate(180deg);
+}
+
+.filter-multiselect-trigger.has-selection {
+    border-color: var(--app-brand);
+    color: var(--app-brand);
+    font-weight: var(--ds-font-weight-semibold);
+}
+
+.filter-multiselect-dropdown {
+    position: absolute;
+    top: calc(100% + var(--ds-space-050));
+    left: 0;
+    right: 0;
+    min-width: 200px;
+    max-height: 240px;
+    overflow-y: auto;
+    padding: var(--ds-space-050);
+    background: var(--ds-surface-overlay);
+    border: var(--ds-border-width) solid var(--ds-border);
+    border-radius: var(--ds-radius-200);
+    box-shadow: var(--ds-shadow-overlay);
+    z-index: 30;
+}
+
+.filter-multiselect-option {
+    display: flex;
+    align-items: center;
+    gap: var(--ds-space-075);
+    padding: var(--ds-space-075) var(--ds-space-100);
+    border-radius: var(--ds-radius-100);
+    cursor: pointer;
+    font-size: var(--ds-font-size-body-sm);
+    color: var(--ds-text);
+    user-select: none;
+    transition: background var(--ds-duration-fast);
+}
+
+.filter-multiselect-option:hover {
+    background: var(--ds-surface-hovered, rgba(9, 30, 66, 0.04));
+}
+
+.filter-multiselect-option input {
+    margin: 0;
+    accent-color: var(--app-brand);
+}
+
+.filter-multiselect-empty {
+    padding: var(--ds-space-100);
+    margin: 0;
+    text-align: center;
+    color: var(--ds-text-subtle);
+    font-size: var(--ds-font-size-body-sm);
+    font-style: italic;
 }
 
 .form-control-sm {
@@ -3939,7 +4261,9 @@ a.stat-card:hover {
 .grid-table-head,
 .grid-table-row {
     display: grid;
-    grid-template-columns: minmax(140px, 1.2fr) minmax(180px, 2fr) 110px minmax(120px, 1.5fr) 90px 80px;
+    /* Ancho de columnas configurado por JS via --grid-columns.
+       El fallback aqui es el schema de Activas/Ayer por si falta la var. */
+    grid-template-columns: var(--grid-columns, minmax(90px, 0.7fr) minmax(220px, 2.3fr) 110px minmax(180px, 2.5fr) 90px 110px);
     gap: var(--ds-space-150);
     align-items: center;
     padding: var(--ds-space-100) var(--ds-space-150);
@@ -3983,8 +4307,19 @@ a.stat-card:hover {
     overflow: hidden;
 }
 
+/* Estado en la tabla: sin mayusculas y siempre a la izquierda */
+.cell-status {
+    text-align: left;
+}
+
+.cell-status .lozenge {
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: var(--ds-font-weight-semibold);
+}
+
 .cell-alliance-chip {
-    display: inline-flex;
+    display: flex;
     align-items: center;
     gap: var(--ds-space-050);
     padding: 2px var(--ds-space-100);
@@ -3992,10 +4327,18 @@ a.stat-card:hover {
     border-radius: var(--ds-radius-full);
     font-size: var(--ds-font-size-body-sm);
     color: var(--ds-text);
+    /* Tamano fijo: ocupa el ancho completo de la celda para que todos los chips
+       tengan las mismas dimensiones (con ellipsis si el nombre es muy largo) */
+    width: 100%;
+    min-width: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 100%;
+}
+
+/* Cuando la alianza tiene color institucional, aplicarlo tenue como fondo */
+.cell-alliance-chip.has-alliance-color {
+    background: color-mix(in srgb, var(--alliance-color) 15%, transparent);
 }
 
 .cell-alliance-chip i {
@@ -4039,8 +4382,19 @@ a.stat-card:hover {
 .cell-tags {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--ds-space-050);
+    gap: 4px;
     overflow: hidden;
+}
+
+/* Chips de etiquetas mas compactos dentro de las celdas de la tabla */
+.cell-tags .tracker-meta-chip {
+    padding: 1px var(--ds-space-075);
+    font-size: 11px;
+    line-height: 1.4;
+}
+
+.cell-tags .tracker-meta-chip i {
+    font-size: 10px;
 }
 
 .cell-time {
@@ -4053,6 +4407,206 @@ a.stat-card:hover {
     display: flex;
     gap: 2px;
     justify-content: flex-end;
+}
+
+/* Boton chevron para expandir fila */
+.btn-icon-expand i {
+    transition: transform var(--ds-duration-fast);
+}
+
+.grid-table-row.is-expanded .btn-icon-expand i {
+    transform: rotate(180deg);
+}
+
+.grid-table-row.is-expanded {
+    background: var(--ds-surface-hovered, rgba(9, 30, 66, 0.03));
+    border-bottom-color: transparent;
+}
+
+/* Fila detalle (sibling de la row): fondo sutil + separador inferior suave */
+.grid-table-detail {
+    padding: var(--ds-space-200) var(--ds-space-150);
+    background: var(--ds-surface-sunken);
+    border-bottom: var(--ds-border-width) solid var(--ds-border);
+}
+
+.task-detail-loading,
+.task-detail-error {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--ds-space-100);
+    padding: var(--ds-space-200);
+    color: var(--ds-text-subtle);
+    font-size: var(--ds-font-size-body-sm);
+}
+
+.task-detail-error {
+    color: var(--ds-red-700, #ae2a19);
+}
+
+.task-detail-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-space-200);
+}
+
+/* Primera linea: prioridad + fecha inline (label: dato) */
+.task-detail-meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ds-space-300);
+    padding-bottom: var(--ds-space-150);
+    border-bottom: var(--ds-border-width) solid var(--ds-border);
+}
+
+.task-detail-meta-item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ds-space-075);
+    font-size: var(--ds-font-size-body-sm);
+    color: var(--ds-text);
+}
+
+.task-detail-meta-label {
+    color: var(--ds-text-subtle);
+    font-weight: var(--ds-font-weight-medium);
+}
+
+.task-detail-due {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ds-space-050);
+    color: var(--ds-text);
+}
+
+.task-detail-due i {
+    color: var(--ds-text-subtle);
+    font-size: 13px;
+}
+
+/* Segunda linea: descripcion + registros */
+.task-detail-body {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--ds-space-300);
+}
+
+@media (min-width: 992px) {
+    .task-detail-body {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+    }
+}
+
+.task-detail-block {
+    min-width: 0;
+}
+
+.task-detail-label {
+    margin: 0 0 var(--ds-space-075) 0;
+    font-size: 11px;
+    font-weight: var(--ds-font-weight-semibold);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--ds-text-subtle);
+}
+
+.task-detail-desc {
+    font-size: var(--ds-font-size-body-sm);
+    color: var(--ds-text);
+    line-height: 1.5;
+    word-break: break-word;
+}
+
+/* Pildora de prioridad tintada */
+.task-detail-priority {
+    display: inline-flex;
+    align-items: center;
+    padding: 1px var(--ds-space-100);
+    border-radius: var(--ds-radius-full);
+    font-size: var(--ds-font-size-body-sm);
+    font-weight: var(--ds-font-weight-semibold);
+}
+.task-detail-priority-low    { background: rgba(151, 160, 175, 0.20); color: var(--ds-text-subtle); }
+.task-detail-priority-medium { background: rgba(0, 82, 204, 0.10);    color: #0052cc; }
+.task-detail-priority-high   { background: rgba(255, 171, 0, 0.15);   color: #b38600; }
+.task-detail-priority-urgent { background: rgba(255, 139, 0, 0.22);   color: var(--ds-orange-700, #974f0c); }
+
+/* Tabla de registros */
+.task-detail-entries {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--ds-font-size-body-sm);
+}
+
+.task-detail-entries th {
+    text-align: left;
+    padding: var(--ds-space-050) var(--ds-space-100);
+    font-size: 11px;
+    font-weight: var(--ds-font-weight-semibold);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--ds-text-subtle);
+    border-bottom: var(--ds-border-width) solid var(--ds-border);
+}
+
+.task-detail-entries td {
+    padding: var(--ds-space-075) var(--ds-space-100);
+    border-bottom: var(--ds-border-width) solid var(--ds-border);
+    vertical-align: middle;
+}
+
+.task-detail-entries tr:last-child td {
+    border-bottom: none;
+}
+
+.task-detail-entries .text-right {
+    text-align: right;
+    color: var(--app-brand);
+    font-weight: var(--ds-font-weight-semibold);
+}
+
+/* Separador de dia entre grupos de registros */
+.task-detail-entries-daysep td {
+    padding: var(--ds-space-075) var(--ds-space-100) var(--ds-space-025);
+    font-size: 11px;
+    font-weight: var(--ds-font-weight-semibold);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--ds-text-subtle);
+    border-bottom: none;
+    background: transparent;
+}
+
+/* Chip de estado de entrega (a tiempo / con retraso) */
+.task-detail-meta-badge {
+    margin-left: auto;
+}
+
+.task-detail-status-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ds-space-050);
+    padding: 2px var(--ds-space-100);
+    border-radius: var(--ds-radius-full);
+    font-size: 11px;
+    font-weight: var(--ds-font-weight-semibold);
+    letter-spacing: 0.02em;
+}
+
+.task-detail-status-chip i {
+    font-size: 12px;
+}
+
+.task-detail-status-chip.is-ontime {
+    background: rgba(34, 164, 119, 0.12);
+    color: var(--ds-green-700, #1f6e48);
+}
+
+.task-detail-status-chip.is-late {
+    background: rgba(222, 53, 11, 0.12);
+    color: var(--ds-red-700, #ae2a19);
 }
 
 /* ---- Cards "Proximas" en carrusel horizontal con scroll ---- */
@@ -4178,6 +4732,13 @@ a.stat-card:hover {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+/* Cuando la alianza tiene color institucional, renderizar como badge tinte */
+.task-card-alliance.has-alliance-color {
+    padding: 1px var(--ds-space-075);
+    border-radius: var(--ds-radius-full);
+    background: color-mix(in srgb, var(--alliance-color) 18%, transparent);
 }
 
 .task-card-alliance-empty {

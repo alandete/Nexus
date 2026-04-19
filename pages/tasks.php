@@ -20,9 +20,15 @@ if (isDBAvailable()) {
 }
 ?>
 
-<div class="page-header">
-    <h1 class="page-title"><?= __('tasks.page_title') ?></h1>
-    <p class="page-description"><?= __('tasks.page_subtitle') ?></p>
+<div class="page-header page-header-with-action">
+    <div class="page-header-text">
+        <h1 class="page-title"><?= __('tasks.page_title') ?></h1>
+        <p class="page-description"><?= __('tasks.page_subtitle') ?></p>
+    </div>
+    <button type="button" class="btn btn-primary" id="btnNewTask">
+        <i class="bi bi-plus-lg" aria-hidden="true"></i>
+        <?= __('tasks.btn_new_task') ?>
+    </button>
 </div>
 
 <!-- ============ TRACKER INLINE ============ -->
@@ -111,8 +117,8 @@ if (isDBAvailable()) {
         <div class="tasks-panel-content tasks-cards-grid" id="contentScheduled"></div>
     </div>
 
-    <!-- Seccion: activas (layout tabla) -->
-    <div class="tasks-section" id="sectionActive">
+    <!-- Seccion: activas (layout tabla) - se oculta si esta vacia -->
+    <div class="tasks-section d-none" id="sectionActive">
         <div class="tasks-section-header">
             <h3 class="tasks-section-title">
                 <i class="bi bi-record-circle" aria-hidden="true"></i>
@@ -121,6 +127,18 @@ if (isDBAvailable()) {
             </h3>
         </div>
         <div class="tasks-panel-content tasks-grid-table" id="contentActive" role="grid"></div>
+    </div>
+
+    <!-- Seccion: tareas de hoy (layout tabla) - se oculta si esta vacia -->
+    <div class="tasks-section d-none" id="sectionToday">
+        <div class="tasks-section-header">
+            <h3 class="tasks-section-title">
+                <i class="bi bi-sun" aria-hidden="true"></i>
+                <?= __('tasks.tab_today') ?>
+                <span class="tasks-section-count" id="countToday">0</span>
+            </h3>
+        </div>
+        <div class="tasks-panel-content tasks-grid-table" id="contentToday" role="grid"></div>
     </div>
 
     <!-- Seccion: tareas de ayer (layout tabla) - se oculta si esta vacia -->
@@ -169,12 +187,27 @@ if (isDBAvailable()) {
             <option value="low"><?= __('tasks.priority_low') ?></option>
         </select>
 
-        <select id="filterTag" class="form-control form-control-sm filter-bar-select" aria-label="<?= __('tasks.filter_tag') ?>">
-            <option value=""><?= __('tasks.filter_all_tags') ?></option>
-            <?php foreach ($allTags as $tag): ?>
-            <option value="<?= (int) $tag['id'] ?>"><?= htmlspecialchars($tag['name']) ?></option>
-            <?php endforeach; ?>
-        </select>
+        <div class="filter-multiselect" id="filterTagsWrapper">
+            <button type="button" class="form-control form-control-sm filter-multiselect-trigger"
+                    id="filterTagsTrigger"
+                    aria-haspopup="listbox" aria-expanded="false"
+                    aria-label="<?= __('tasks.filter_tag') ?>">
+                <span class="filter-multiselect-label" id="filterTagsLabel"><?= __('tasks.filter_all_tags') ?></span>
+                <i class="bi bi-chevron-down filter-multiselect-chevron" aria-hidden="true"></i>
+            </button>
+            <div class="filter-multiselect-dropdown d-none" id="filterTagsDropdown" role="listbox" aria-multiselectable="true">
+                <?php if (empty($allTags)): ?>
+                <p class="filter-multiselect-empty"><?= __('tasks.no_tags_yet') ?></p>
+                <?php else: ?>
+                <?php foreach ($allTags as $tag): ?>
+                <label class="filter-multiselect-option" role="option">
+                    <input type="checkbox" value="<?= (int) $tag['id'] ?>">
+                    <span><?= htmlspecialchars($tag['name']) ?></span>
+                </label>
+                <?php endforeach; ?>
+                <?php endif; ?>
+            </div>
+        </div>
 
         <button type="button" class="btn-icon" id="btnClearFilters"
                 data-tooltip="<?= __('tasks.filter_clear') ?>" data-tooltip-position="top"
@@ -183,15 +216,8 @@ if (isDBAvailable()) {
         </button>
     </div>
 
-    <!-- Seccion: historial -->
-    <div class="tasks-section" id="sectionHistory">
-        <div class="tasks-section-header">
-            <h3 class="tasks-section-title">
-                <i class="bi bi-clock-history" aria-hidden="true"></i>
-                <?= __('tasks.tab_history') ?>
-                <span class="tasks-section-count" id="countHistory">0</span>
-            </h3>
-        </div>
+    <!-- Seccion: historial (sin header: los dias actuan como titulos) -->
+    <div class="tasks-section tasks-section-history" id="sectionHistory">
         <div class="tasks-panel-content" id="contentHistory"></div>
     </div>
 </section>

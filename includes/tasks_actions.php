@@ -471,6 +471,10 @@ function timerStatus(PDO $db, int $userId): void
 
 function timerDiscard(PDO $db, int $userId): void
 {
+    // TODO [prioritario, antes de reportes 4.5]: reset del status de la tarea tras descartar.
+    // Si la tarea no tiene mas entries despues del DELETE, debe volver a 'pending' para
+    // evitar tareas fantasma en el listado de Activas (status=in_progress sin sesiones).
+    // Actualmente el frontend filtra las fantasma pero esto falsea totales/reportes.
     $db->prepare("DELETE FROM time_entries WHERE user_id = ? AND end_time IS NULL")->execute([$userId]);
     echo json_encode(['success' => true, 'message' => 'Entrada descartada']);
 }

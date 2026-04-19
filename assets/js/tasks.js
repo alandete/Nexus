@@ -1017,19 +1017,21 @@
     }
 
     function renderYesterdayPanel() {
+        const section = document.getElementById('sectionYesterday');
         const container = document.getElementById('contentYesterday');
-        if (!container) return;
+        if (!container || !section) return;
 
         const entries = listState.data.by_date[yesterdayStr()] || [];
         const items = applyLocalFilters(groupEntriesByTask(entries));
 
+        // Ocultar la seccion si no hay contenido
         if (items.length === 0) {
-            container.innerHTML = emptyState('bi-calendar-minus',
-                t('tasks.empty_yesterday_title', 'No hubo actividad ayer'),
-                t('tasks.empty_yesterday_desc', 'Aqui apareceran las tareas en las que trabajaste ayer, con total de tiempo y numero de sesiones.'));
+            section.classList.add('d-none');
+            container.innerHTML = '';
             return;
         }
 
+        section.classList.remove('d-none');
         container.innerHTML = gridTableHeader() + items.map(task => gridTableRow(task)).join('');
     }
 
@@ -1055,11 +1057,8 @@
             container.innerHTML = emptyState('bi-calendar-check',
                 t('tasks.empty_scheduled_title', 'No hay tareas proximas'),
                 t('tasks.empty_scheduled_desc', 'Aqui apareceran las tareas pendientes sin tiempo registrado, ordenadas por prioridad y fecha de vencimiento.'));
-            container.classList.remove('has-scroll');
             return;
         }
-
-        container.classList.toggle('has-scroll', sorted.length > 5);
 
         container.innerHTML = sorted.map(task => {
             const overdue = task.due_date && task.due_date < today;
@@ -1075,10 +1074,20 @@
                 <span class="task-card-due ${overdue ? 'is-overdue' : ''}">
                     <i class="bi bi-calendar${overdue ? '-x-fill' : ''}" aria-hidden="true"></i>
                     ${escapeHtml(task.due_date)}
-                </span>` : '';
+                </span>` : `<span class="task-card-due task-card-due-empty">—</span>`;
 
             const overdueTag = overdue
                 ? `<span class="task-card-overdue-tag">${escapeHtml(t('tasks.is_overdue', 'Vencida'))}</span>`
+                : '';
+
+            const alliance = task.alliance_name
+                ? `<div class="task-card-alliance">${escapeHtml(task.alliance_name)}</div>`
+                : `<div class="task-card-alliance task-card-alliance-empty">${escapeHtml(t('tasks.no_alliance', 'Sin alianza'))}</div>`;
+
+            const tagsPlain = task.tag_names
+                ? `<div class="task-card-tags">${task.tag_names.split(',').map(n => n.trim()).filter(Boolean).map(name =>
+                        `<span class="task-card-tag">${escapeHtml(name)}</span>`
+                    ).join('')}</div>`
                 : '';
 
             return `
@@ -1086,22 +1095,26 @@
                     <div class="task-card-top">
                         <span class="task-card-priority-label">${escapeHtml(priorityLabels[priority] || priority)}</span>
                         ${overdueTag}
-                        ${dueInfo}
                     </div>
                     <h4 class="task-card-title">${escapeHtml(task.title)}</h4>
-                    <div class="task-card-meta">
-                        ${allianceChip(task.alliance_name)}
-                        ${tagChipsHtml(task.tag_names)}
-                    </div>
-                    <div class="task-card-actions">
-                        <button type="button" class="btn-icon" data-action="resume" data-task-id="${task.id}" data-title="${escapeHtml(task.title)}"
-                                data-tooltip="${t('tasks.btn_start', 'Iniciar')}" data-tooltip-position="top" aria-label="${t('tasks.btn_start', 'Iniciar')}">
-                            <i class="bi bi-play-fill" aria-hidden="true"></i>
-                        </button>
-                        <button type="button" class="btn-icon" data-action="edit" data-task-id="${task.id}"
-                                data-tooltip="${t('tasks.btn_edit', 'Editar')}" data-tooltip-position="top" aria-label="${t('tasks.btn_edit', 'Editar')}">
-                            <i class="bi bi-pencil" aria-hidden="true"></i>
-                        </button>
+                    ${alliance}
+                    ${tagsPlain}
+                    <div class="task-card-footer">
+                        ${dueInfo}
+                        <div class="task-card-actions">
+                            <button type="button" class="btn-icon" data-action="edit" data-task-id="${task.id}"
+                                    data-tooltip="${t('tasks.btn_edit', 'Editar')}" data-tooltip-position="top" aria-label="${t('tasks.btn_edit', 'Editar')}">
+                                <i class="bi bi-pencil" aria-hidden="true"></i>
+                            </button>
+                            <button type="button" class="btn-icon btn-icon-success" data-action="resume" data-task-id="${task.id}" data-title="${escapeHtml(task.title)}"
+                                    data-tooltip="${t('tasks.btn_start', 'Iniciar')}" data-tooltip-position="top" aria-label="${t('tasks.btn_start', 'Iniciar')}">
+                                <i class="bi bi-play-fill" aria-hidden="true"></i>
+                            </button>
+                            <button type="button" class="btn-icon btn-icon-danger" data-action="delete" data-task-id="${task.id}" data-title="${escapeHtml(task.title)}"
+                                    data-tooltip="${t('tasks.btn_delete', 'Eliminar')}" data-tooltip-position="top" aria-label="${t('tasks.btn_delete', 'Eliminar')}">
+                                <i class="bi bi-trash" aria-hidden="true"></i>
+                            </button>
+                        </div>
                     </div>
                 </article>
             `;
@@ -1214,8 +1227,35 @@
                 resumeTask(taskId, btn.dataset.title);
             } else if (action === 'edit') {
                 editTaskById(taskId);
+            } else if (action === 'delete') {
+                deleteTaskById(taskId, btn.dataset.title);
             }
         });
+    }
+
+    async function deleteTaskById(taskId, title) {
+        const confirmed = await ConfirmModal.show({
+            title:   t('tasks.delete_title', 'Eliminar tarea'),
+            message: t('tasks.delete_message', 'Se eliminara la tarea "{title}" y todas sus entradas de tiempo. Esta accion no se puede deshacer.')
+                .replace('{title}', title || ''),
+            acceptText: t('tasks.btn_delete', 'Eliminar'),
+            acceptVariant: 'danger',
+            icon: 'bi-trash',
+            variant: 'danger',
+        });
+        if (!confirmed) return;
+
+        try {
+            const result = await api('delete', { task_id: taskId });
+            if (result.success) {
+                Toast.success(t('tasks.task_deleted', 'Tarea eliminada.'));
+                loadList();
+            } else {
+                Toast.error(result.message || t('tasks.err_delete', 'No se pudo eliminar la tarea.'));
+            }
+        } catch (err) {
+            Toast.error(t('common.err_network', 'Error de red.'));
+        }
     }
 
     function clearFilters() {

@@ -7,12 +7,15 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ### Agregado
 - **Pagina `/tasks` — Sub-fase 4.2: Listado y filtros**
-  - **5 secciones apiladas** (orden): Proximas, Activas, Barra de filtros, Tareas de ayer, Historial
-  - **Proximas tareas** como cards compactas con borde lateral de color por prioridad:
+  - **Secciones apiladas** (orden): Proximas, Activas, Ayer (se oculta si vacia), Barra de filtros, Historial. Titulos de seccion sin borde inferior, mas pegados al contenido
+  - **Proximas tareas** como **carrusel horizontal** (cards de 280px ancho, altura minima 180px):
+    - Scroll horizontal con scrollbar discreto cuando hay mas de ~4-5 cards (segun ancho del viewport)
+    - Fondo con tinte de color segun prioridad (sin bordes): medium (brand), high (orange), urgent (red), low (neutral); vencidas con rojo mas intenso
     - Orden: vencidas -> urgentes -> altas -> medias -> bajas (dentro de cada grupo por fecha asc)
-    - Tag "VENCIDA" rojo para las atrasadas, con fondo gradient sutil
-    - Maximo 5 visibles; si hay mas, aparece scroll vertical con scrollbar discreto
-    - Acciones como iconos (Iniciar, Editar) para que la card sea liviana
+    - Tag "VENCIDA" rojo solido para las atrasadas
+    - Alianza como texto sin fondo brand; etiquetas como chips planos sin icono
+    - Footer agrupa fecha (izquierda) + acciones (Editar, Iniciar, Eliminar) a la derecha
+    - Iniciar con btn-icon success hover, Eliminar con btn-icon danger hover y ConfirmModal
   - **Tareas activas** y **Tareas de ayer** con layout tabla sin `<table>` (CSS Grid):
     - Columnas: Alianza, Tarea (con contador de registros), Estado, Etiquetas, Tiempo, Botones
     - Lozenge "Corriendo" si la fila corresponde al timer activo

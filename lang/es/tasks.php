@@ -30,6 +30,7 @@ return [
         'btn_discard_confirm' => 'Descartar cronometro',
         'btn_add_tag'         => 'Agregar',
         'btn_complete_data'   => 'Completar informacion',
+        'btn_delete'          => 'Eliminar',
 
         // Campos
         'field_task'         => 'Tarea',
@@ -95,6 +96,10 @@ return [
         'err_discard'        => 'No se pudo descartar.',
         'err_update'         => 'No se pudieron guardar los cambios.',
         'err_create_tag'     => 'No se pudo crear la etiqueta.',
+        'err_delete'         => 'No se pudo eliminar la tarea.',
+        'task_deleted'       => 'Tarea eliminada.',
+        'delete_title'       => 'Eliminar tarea',
+        'delete_message'     => 'Se eliminara la tarea "{title}" y todas sus entradas de tiempo. Esta accion no se puede deshacer.',
 
         // Listado (sub-fase 4.2)
         'list_title'   => 'Listado de tareas',

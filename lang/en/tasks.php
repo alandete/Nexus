@@ -30,6 +30,7 @@ return [
         'btn_discard_confirm' => 'Discard timer',
         'btn_add_tag'         => 'Add',
         'btn_complete_data'   => 'Complete info',
+        'btn_delete'          => 'Delete',
 
         // Fields
         'field_task'         => 'Task',
@@ -95,6 +96,10 @@ return [
         'err_discard'        => 'Could not discard.',
         'err_update'         => 'Could not save changes.',
         'err_create_tag'     => 'Could not create the tag.',
+        'err_delete'         => 'Could not delete the task.',
+        'task_deleted'       => 'Task deleted.',
+        'delete_title'       => 'Delete task',
+        'delete_message'     => 'Task "{title}" and all its time entries will be deleted. This action cannot be undone.',
 
         // Placeholder for upcoming sub-phases
         // List (sub-phase 4.2)

@@ -4263,7 +4263,7 @@ a.stat-card:hover {
     display: grid;
     /* Ancho de columnas configurado por JS via --grid-columns.
        El fallback aqui es el schema de Activas/Ayer por si falta la var. */
-    grid-template-columns: var(--grid-columns, minmax(90px, 0.7fr) minmax(220px, 2.3fr) 110px minmax(180px, 2.5fr) 90px 110px);
+    grid-template-columns: var(--grid-columns, minmax(90px, 0.7fr) minmax(260px, 3fr) 110px 120px 70px 110px);
     gap: var(--ds-space-150);
     align-items: center;
     padding: var(--ds-space-100) var(--ds-space-150);
@@ -4348,6 +4348,14 @@ a.stat-card:hover {
 
 .cell-task {
     display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    justify-content: center;
+}
+
+.cell-task-body {
+    display: flex;
     align-items: center;
     gap: var(--ds-space-075);
     min-width: 0;
@@ -4362,6 +4370,7 @@ a.stat-card:hover {
     flex: 1;
     min-width: 0;
 }
+
 
 .task-entry-count {
     display: inline-flex;
@@ -4819,28 +4828,30 @@ a.stat-card:hover {
     color: #fff;
 }
 
-/* ---- Historial (agrupado por dia, sin marcos gruesos) ---- */
+/* ---- Historial agrupado por dia ---- */
 .history-day {
-    margin-bottom: var(--ds-space-200);
+    margin-bottom: var(--ds-space-300);
 }
 
-.history-day:last-child {
-    margin-bottom: 0;
+.history-day:last-of-type {
+    margin-bottom: var(--ds-space-200);
 }
 
 .history-day-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: var(--ds-space-050) 0;
-    margin-bottom: var(--ds-space-050);
+    gap: var(--ds-space-100);
+    padding: var(--ds-space-075) 0;
+    margin-bottom: var(--ds-space-075);
+    border-bottom: var(--ds-border-width) solid var(--ds-border);
 }
 
 .history-day-date {
     font-size: var(--ds-font-size-body-sm);
     font-weight: var(--ds-font-weight-semibold);
-    color: var(--ds-text-subtle);
-    text-transform: capitalize;
+    color: var(--ds-text);
+    text-transform: none;
 }
 
 .history-day-total {
@@ -4853,37 +4864,16 @@ a.stat-card:hover {
     font-weight: var(--ds-font-weight-semibold);
 }
 
-.history-table {
-    margin: 0;
-    width: 100%;
-}
-
-.history-table td {
-    padding: var(--ds-space-100);
-    border-bottom: var(--ds-border-width) solid var(--ds-border);
-    font-size: var(--ds-font-size-body-sm);
-    vertical-align: middle;
-}
-
-.history-table tr:last-child td {
-    border-bottom: none;
-}
-
-.history-table .task-item-title {
-    font-size: var(--ds-font-size-body);
-    margin-bottom: var(--ds-space-050);
-}
-
-.history-table .text-right {
-    text-align: right;
-    white-space: nowrap;
-    color: var(--app-brand);
-    font-weight: var(--ds-font-weight-semibold);
-}
-
-.table-compact th,
-.table-compact td {
-    padding: var(--ds-space-075) var(--ds-space-100);
+/* Paginacion de historial (reutiliza .pagination-btn / .pagination-info globales) */
+.history-pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--ds-space-200);
+    padding-top: var(--ds-space-200);
+    margin-top: var(--ds-space-200);
+    border-top: var(--ds-border-width) solid var(--ds-border);
+    flex-wrap: wrap;
 }
 
 /* ---- Responsive ---- */

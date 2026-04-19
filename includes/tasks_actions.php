@@ -550,6 +550,9 @@ function daySummary(PDO $db, int $userId): void
 
 function timeEntryUpdate(PDO $db, int $userId): void
 {
+    // TODO [prioritario, fase QA]: rechazar si el rango se solapa con otro entry del
+    // mismo user_id en la misma fecha. Actualmente la validacion esta solo en frontend
+    // (saveFormEntry -> findOverlappingEntry) y podria saltarse con requests directos.
     $entryId = (int) ($_POST['entry_id'] ?? 0);
 
     // Verificar propiedad

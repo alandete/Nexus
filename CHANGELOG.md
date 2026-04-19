@@ -11,6 +11,19 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
   - Workaround actual: el frontend filtra activas con `total_seconds > 0` o con al menos un entry en rango.
   - Fix pendiente en backend: `timerDiscard` debe verificar si la tarea tenia otras entries; si no, setear status a `pending`. Ver `includes/tasks_actions.php:472` (hay TODO inline).
 
+- **Backend `time_entry_update` y `time_entry_create` no validan solapamientos**. Actualmente dos registros de distintas tareas pueden coincidir en el mismo rango horario. El frontend valida en `saveFormEntry` (via `findOverlappingEntry`) pero un request directo al endpoint puede saltarse la validacion.
+  - Fix pendiente en backend: rechazar con 400 si el rango `[start_time, end_time]` se solapa con otro entry del mismo `user_id` en la misma fecha. Ver `includes/tasks_actions.php:551` (hay TODO inline).
+
+### Iteracion continua de 4.2 (ronda 3)
+
+- **Historial rediseñado**: agrupa entries por tarea dentro de cada dia con header `Viernes, 17 de abril de 2026` + total del dia. Mismo schema de columnas que Activas/Hoy/Ayer + nueva columna "Hora" (primera hora de inicio) antes de Tiempo. Tareas ordenadas desc por hora de inicio. Paginacion de 7 dias por pagina con ellipsis + reset a pagina 1 al filtrar
+- **Etiquetas agrupadas** en las tablas: un solo chip `🏷️ N etiquetas` con tooltip custom que lista los nombres. Ancho de columna reducido a 120px. Mas espacio para el nombre de la tarea
+- **Filtro de detalle por dia**: al expandir una fila en Hoy / Ayer / Historial, los registros mostrados se filtran al dia visible (antes mostraba todo el historico de la tarea y mezclaba sesiones de fechas distintas). En Activas sigue mostrando todo (tiene sentido alli)
+- **Validacion de solapamiento** al editar registros: `saveFormEntry` valida que el rango `[start, end]` no colisione con otros entries del mismo dia del usuario (via `findOverlappingEntry` sobre `listState.data.by_date`). Si hay overlap, Toast con el nombre de la tarea conflictiva y su rango
+- **Formato consistente de tiempos**: `formatDuration` sin segundos (coherente con las horas `HH:MM`). Redondea al minuto mas cercano; sesiones `< 1m` se marcan como tal
+- **Anchos de columna ajustados**: alianza 90px (0.7fr), tarea 260px (3fr), estado 110px, etiquetas 120px, hora 55px (historial), tiempo 70px
+- **Boton guardar de registros** con hover verde (variante `btn-icon-success`) para alinearlo con el eliminar (rojo)
+
 ### Iteracion continua de 4.2 (ronda 2)
 
 - **Boton "Nueva tarea"** en el page-header (primary con icono +). Abre el slide panel en modo `create` → crea tareas programadas con status `pending` via endpoint `create`

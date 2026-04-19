@@ -49,10 +49,15 @@
     }
 
     function formatDuration(seconds) {
-        const h = Math.floor(seconds / 3600);
-        const m = Math.floor((seconds % 3600) / 60);
-        if (h > 0) return `${h}h ${m}m`;
-        return `${m}m ${seconds % 60}s`;
+        // Consistente con las horas de los registros (sin segundos).
+        // Redondeamos al minuto mas cercano; sesiones muy cortas se marcan como "< 1m".
+        if (seconds < 60) return '< 1m';
+        const totalMin = Math.round(seconds / 60);
+        const h = Math.floor(totalMin / 60);
+        const m = totalMin % 60;
+        if (h > 0 && m > 0) return `${h}h ${m}m`;
+        if (h > 0) return `${h}h`;
+        return `${m}m`;
     }
 
     function escapeHtml(str) {
@@ -1069,6 +1074,8 @@
     const listState = {
         data: { active: [], scheduled: [], by_date: {}, day_totals: {} },
         filters: { search: '', alliance: '', priority: '', tags: [], dateFrom: '', dateTo: '' },
+        historyPage: 1,
+        historyPageSize: 7,
     };
 
     function initListDefaults() {
@@ -1160,15 +1167,28 @@
                     task_id: id,
                     title: e.task_title,
                     alliance_name: e.alliance_name,
+                    alliance_id: e.alliance_id,
+                    alliance_color: e.alliance_color,
                     tag_names: e.tag_names,
+                    tag_ids: e.tag_ids,
                     status: e.task_status,
                     total_seconds: 0,
                     entry_count: 0,
                     priority: 'medium',
+                    entries: [],
                 };
             }
             grouped[id].total_seconds += parseInt(e.duration_seconds, 10) || 0;
             grouped[id].entry_count += 1;
+            grouped[id].entries.push({
+                start_time: e.start_time,
+                end_time:   e.end_time,
+                duration_seconds: e.duration_seconds,
+            });
+        });
+        // Ordenar entries por hora asc
+        Object.values(grouped).forEach(g => {
+            g.entries.sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''));
         });
         return Object.values(grouped);
     }
@@ -1342,7 +1362,19 @@
         const count = item.entry_count
             ? `<span class="task-entry-count" title="${t('tasks.entry_count_hint', 'Registros')}">${item.entry_count}</span>`
             : '';
-        return `<span class="cell-task-title">${escapeHtml(item.title)}</span>${count}`;
+        return `
+            <div class="cell-task-body">
+                <span class="cell-task-title">${escapeHtml(item.title)}</span>
+                ${count}
+            </div>
+        `;
+    }
+
+    // Renderer de columna "Hora" (hora de inicio de la primera sesion del dia)
+    function cellStartTime(item) {
+        const first = (item.entries && item.entries[0] && item.entries[0].start_time) || item.first_time;
+        if (!first) return `<span class="text-subtle">—</span>`;
+        return `<span class="text-mono">${escapeHtml(first.slice(11, 16))}</span>`;
     }
     function cellStatus(item) {
         const isCurrent = state.running && state.taskId == item.task_id;
@@ -1350,23 +1382,46 @@
         return statusLozenge(item.status);
     }
     function cellTags(item) {
-        return item.tag_names
-            ? tagChipsHtml(item.tag_names)
-            : `<span class="text-subtle text-sm">—</span>`;
+        if (!item.tag_names) return `<span class="text-subtle text-sm">—</span>`;
+        const tagList = item.tag_names.split(',').map(n => n.trim()).filter(Boolean);
+        const count = tagList.length;
+        if (!count) return `<span class="text-subtle text-sm">—</span>`;
+        const label = count === 1
+            ? t('tasks.tag_singular', 'etiqueta')
+            : t('tasks.tag_plural',   'etiquetas');
+        return `<span class="tracker-meta-chip" data-tooltip="${escapeHtml(tagList.join(', '))}" data-tooltip-position="top"><i class="bi bi-tag" aria-hidden="true"></i>${count} ${escapeHtml(label)}</span>`;
     }
     function cellTime(item) {
         return `<span class="text-mono">${item.total_seconds ? formatDuration(parseInt(item.total_seconds, 10)) : '—'}</span>`;
     }
 
-    /* ---- Schema compartido para listados de tareas (Activas, Ayer) ---- */
+    /* ---- Schema compartido para listados de tareas (Activas, Ayer, Hoy) ---- */
     function taskTableColumns() {
         return [
             { key: 'alliance', label: t('tasks.col_alliance',   'Alianza'),   width: 'minmax(90px, 0.7fr)',  render: cellAlliance },
-            { key: 'task',     label: t('tasks.col_task',       'Tarea'),     width: 'minmax(220px, 2.3fr)', render: cellTask },
+            { key: 'task',     label: t('tasks.col_task',       'Tarea'),     width: 'minmax(260px, 3fr)',   render: cellTask },
             { key: 'status',   label: t('tasks.col_status',     'Estado'),    width: '110px',                render: cellStatus },
-            { key: 'tags',     label: t('tasks.col_tags',       'Etiquetas'), width: 'minmax(180px, 2.5fr)', render: cellTags },
-            { key: 'time',     label: t('tasks.col_total_time', 'Tiempo'),    width: '90px', align: 'right', render: cellTime },
+            { key: 'tags',     label: t('tasks.col_tags',       'Etiquetas'), width: '120px',                render: cellTags },
+            { key: 'time',     label: t('tasks.col_total_time', 'Tiempo'),    width: '70px', align: 'right', render: cellTime },
         ];
+    }
+
+    // Columnas para Historial: mismo schema + columna "Hora de inicio" antes de Tiempo
+    function historyTableColumns() {
+        const base = taskTableColumns();
+        const timeCol = {
+            key: 'start_time',
+            label: t('tasks.col_start_time', 'Hora'),
+            width: '55px',
+            align: 'right',
+            render: cellStartTime,
+        };
+        // Insertar antes de la columna 'time' (tiempo acumulado)
+        const idx = base.findIndex(c => c.key === 'time');
+        const out = [...base];
+        if (idx >= 0) out.splice(idx, 0, timeCol);
+        else out.push(timeCol);
+        return out;
     }
 
     function taskTableActions() {
@@ -1437,6 +1492,8 @@
         }
 
         section.classList.remove('d-none');
+        // Alcance de dia: los detalles colapsables filtran entries a este dia
+        container.dataset.dayScope = todayStr();
 
         renderTaskTable({
             container,
@@ -1468,6 +1525,7 @@
         }
 
         section.classList.remove('d-none');
+        container.dataset.dayScope = yesterdayStr();
 
         renderTaskTable({
             container,
@@ -1599,67 +1657,154 @@
         requestAnimationFrame(() => updateScrollMask(container));
     }
 
+    // Formatea "Viernes, 17 de abril de 2026" (formato largo, capitalizado)
+    function formatDayLabel(isoDate) {
+        const d = new Date(isoDate + 'T00:00:00');
+        const label = d.toLocaleDateString(undefined, {
+            weekday: 'long',
+            day: 'numeric',
+            month: 'long',
+            year: 'numeric',
+        });
+        return label.charAt(0).toUpperCase() + label.slice(1);
+    }
+
     function renderHistoryPanel() {
         const container = document.getElementById('contentHistory');
         if (!container) return;
         const byDate = listState.data.by_date || {};
         const today = todayStr();
-        const yday = yesterdayStr();
-        const dates = Object.keys(byDate).filter(d => d !== today && d !== yday).sort().reverse();
+        const yday  = yesterdayStr();
 
-        const filteredDates = dates.map(date => {
-            const entries = byDate[date].filter(e => {
-                const { search } = listState.filters;
-                if (search) {
-                    const hay = (e.task_title || '').toLowerCase() + ' ' + (e.alliance_name || '').toLowerCase();
-                    if (!hay.includes(search.toLowerCase())) return false;
-                }
-                return true;
-            });
-            return { date, entries };
-        }).filter(d => d.entries.length > 0);
+        // Agrupar por task dentro de cada dia, ordenar por hora de inicio DESC y filtrar
+        const datesWithTasks = Object.keys(byDate)
+            .filter(d => d !== today && d !== yday)
+            .sort().reverse()
+            .map(date => {
+                const tasks = applyLocalFilters(groupEntriesByTask(byDate[date]));
+                // Tareas del dia mas recientes primero (hora de inicio desc)
+                tasks.sort((a, b) => {
+                    const ta = (a.entries && a.entries[0] && a.entries[0].start_time) || '';
+                    const tb = (b.entries && b.entries[0] && b.entries[0].start_time) || '';
+                    return tb.localeCompare(ta);
+                });
+                return { date, tasks };
+            })
+            .filter(d => d.tasks.length > 0);
 
-        if (filteredDates.length === 0) {
+        if (datesWithTasks.length === 0) {
             container.innerHTML = emptyState('bi-clock-history',
                 t('tasks.empty_history_title', 'Sin historial en este rango'),
                 t('tasks.empty_history_desc', 'Ajusta las fechas o empieza a registrar tiempo para ver el historial aqui.'));
             return;
         }
 
-        container.innerHTML = filteredDates.map(({ date, entries }) => {
-            const total = entries.reduce((a, e) => a + (parseInt(e.duration_seconds, 10) || 0), 0);
-            const dateLabel = formatDateDMY(date);
+        // Paginar por dia
+        const pageSize = listState.historyPageSize;
+        const totalPages = Math.max(1, Math.ceil(datesWithTasks.length / pageSize));
+        if (listState.historyPage > totalPages) listState.historyPage = totalPages;
+        if (listState.historyPage < 1) listState.historyPage = 1;
+        const startIdx = (listState.historyPage - 1) * pageSize;
+        const visible = datesWithTasks.slice(startIdx, startIdx + pageSize);
 
-            const rows = entries.map(e => {
-                const dur = formatDuration(parseInt(e.duration_seconds, 10) || 0);
-                const hour = e.start_time.slice(11, 16);
-                return `
-                    <tr>
-                        <td class="text-mono text-subtle">${hour}</td>
-                        <td>
-                            <div class="task-item-title">${escapeHtml(e.task_title)}</div>
-                            <div class="task-item-meta">
-                                ${allianceChip(e.alliance_name)}
-                                ${tagChipsHtml(e.tag_names)}
-                            </div>
-                        </td>
-                        <td class="text-right text-mono">${dur}</td>
-                    </tr>
-                `;
-            }).join('');
-
+        // Render grupos
+        const groupsHtml = visible.map(({ date, tasks }) => {
+            const dayTotal = tasks.reduce((a, tk) => a + (parseInt(tk.total_seconds, 10) || 0), 0);
             return `
-                <div class="history-day">
+                <div class="history-day" data-day="${escapeHtml(date)}">
                     <div class="history-day-header">
-                        <span class="history-day-date">${dateLabel}</span>
-                        <span class="history-day-total"><i class="bi bi-clock" aria-hidden="true"></i> ${formatDuration(total)}</span>
+                        <span class="history-day-date">${escapeHtml(formatDayLabel(date))}</span>
+                        <span class="history-day-total"><i class="bi bi-clock" aria-hidden="true"></i> ${formatDuration(dayTotal)}</span>
                     </div>
-                    <table class="table table-compact history-table">
-                        <tbody>${rows}</tbody>
-                    </table>
+                    <div class="tasks-grid-table history-day-table" data-day-container="${escapeHtml(date)}"></div>
                 </div>
             `;
         }).join('');
+
+        const paginationHtml = totalPages > 1
+            ? `<div class="history-pagination" id="historyPagination"></div>`
+            : '';
+
+        container.innerHTML = groupsHtml + paginationHtml;
+
+        // Renderizar cada dia usando el helper (tabla con acciones)
+        visible.forEach(({ date, tasks }) => {
+            const dayContainer = container.querySelector(`[data-day-container="${date}"]`);
+            if (!dayContainer) return;
+            renderTaskTable({
+                container: dayContainer,
+                columns: historyTableColumns(),
+                items: tasks,
+                actions: taskTableActions(),
+                expandable: true,
+                emptyState: {
+                    icon:  'bi-clock-history',
+                    title: '',
+                    desc:  '',
+                },
+            });
+        });
+
+        // Paginacion
+        renderHistoryPagination(totalPages);
+    }
+
+    function renderHistoryPagination(totalPages) {
+        const pag = document.getElementById('historyPagination');
+        if (!pag) return;
+        const current = listState.historyPage;
+
+        const pageNums = [];
+        if (totalPages <= 7) {
+            for (let i = 1; i <= totalPages; i++) pageNums.push(i);
+        } else {
+            pageNums.push(1);
+            if (current > 3) pageNums.push('...');
+            const startN = Math.max(2, current - 1);
+            const endN   = Math.min(totalPages - 1, current + 1);
+            for (let i = startN; i <= endN; i++) pageNums.push(i);
+            if (current < totalPages - 2) pageNums.push('...');
+            pageNums.push(totalPages);
+        }
+
+        const numBtns = pageNums.map(n => {
+            if (n === '...') return `<span class="pagination-ellipsis" aria-hidden="true">…</span>`;
+            const active = n === current ? 'pagination-btn-active' : '';
+            return `<button type="button" class="pagination-btn ${active}" data-history-page="${n}" ${n === current ? 'aria-current="page"' : ''}>${n}</button>`;
+        }).join('');
+
+        const prevDisabled = current <= 1 ? 'disabled' : '';
+        const nextDisabled = current >= totalPages ? 'disabled' : '';
+
+        pag.innerHTML = `
+            <div class="pagination-info text-sm text-subtle">
+                ${t('tasks.history_page_info', 'Pagina {page} de {pages}')
+                    .replace('{page}', current).replace('{pages}', totalPages)}
+            </div>
+            <div class="pagination-controls">
+                <button type="button" class="pagination-btn" data-history-page="${current - 1}" ${prevDisabled}
+                        aria-label="${t('tasks.pagination_prev', 'Anterior')}">
+                    <i class="bi bi-chevron-left" aria-hidden="true"></i>
+                </button>
+                ${numBtns}
+                <button type="button" class="pagination-btn" data-history-page="${current + 1}" ${nextDisabled}
+                        aria-label="${t('tasks.pagination_next', 'Siguiente')}">
+                    <i class="bi bi-chevron-right" aria-hidden="true"></i>
+                </button>
+            </div>
+        `;
+
+        pag.querySelectorAll('[data-history-page]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const page = parseInt(btn.dataset.historyPage, 10);
+                if (!isNaN(page) && page >= 1 && page <= totalPages) {
+                    listState.historyPage = page;
+                    renderHistoryPanel();
+                    // Scroll al inicio de la seccion historial
+                    document.getElementById('sectionHistory')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
     }
 
     function setupListBindings() {
@@ -1670,24 +1815,29 @@
             clearTimeout(searchDebounce);
             searchDebounce = setTimeout(() => {
                 listState.filters.search = searchInput.value.trim();
+                listState.historyPage = 1;
                 renderAllPanels();
             }, 200);
         });
 
         document.getElementById('filterDateFrom')?.addEventListener('change', (e) => {
             listState.filters.dateFrom = e.target.value;
+            listState.historyPage = 1;
             loadList();
         });
         document.getElementById('filterDateTo')?.addEventListener('change', (e) => {
             listState.filters.dateTo = e.target.value;
+            listState.historyPage = 1;
             loadList();
         });
         document.getElementById('filterAlliance')?.addEventListener('change', (e) => {
             listState.filters.alliance = e.target.value;
+            listState.historyPage = 1;
             loadList();
         });
         document.getElementById('filterPriority')?.addEventListener('change', (e) => {
             listState.filters.priority = e.target.value;
+            listState.historyPage = 1;
             renderAllPanels();
         });
         setupTagsMultiselect();
@@ -1739,6 +1889,29 @@
         return (eh * 3600 + em * 60) - (sh * 3600 + sm * 60);
     }
 
+    function hmToMinutes(hm) {
+        const [h, m] = hm.split(':').map(Number);
+        return h * 60 + m;
+    }
+
+    // Busca un entry del dia que se solape con el rango dado (excluyendo el propio).
+    // Usa listState.data.by_date que ya trae los entries del user_id desde el backend.
+    function findOverlappingEntry(datePart, startHour, endHour, excludeEntryId) {
+        const dayEntries = listState.data.by_date[datePart] || [];
+        const s = hmToMinutes(startHour);
+        const e = hmToMinutes(endHour);
+        for (const ent of dayEntries) {
+            if (String(ent.id) === String(excludeEntryId)) continue;
+            const eStart = (ent.start_time || '').slice(11, 16);
+            const eEnd   = ent.end_time ? ent.end_time.slice(11, 16) : null;
+            if (!eStart || !eEnd) continue;
+            const es = hmToMinutes(eStart);
+            const ee = hmToMinutes(eEnd);
+            if (s < ee && es < e) return ent;
+        }
+        return null;
+    }
+
     async function saveFormEntry(btn) {
         const row = btn.closest('.task-entry-row');
         if (!row) return;
@@ -1754,6 +1927,18 @@
         }
         if (diffSeconds(startHour, endHour) <= 0) {
             Toast.error(t('tasks.entry_err_order', 'La hora de fin debe ser posterior al inicio.'));
+            return;
+        }
+
+        // Validar solapamiento con otros entries del mismo dia del usuario
+        const overlap = findOverlappingEntry(date, startHour, endHour, entryId);
+        if (overlap) {
+            const os = (overlap.start_time || '').slice(11, 16);
+            const oe = (overlap.end_time   || '').slice(11, 16);
+            Toast.error(t('tasks.entry_err_overlap', 'Se solapa con otro registro del dia ({task}, {start}-{end})')
+                .replace('{task}',  overlap.task_title || '')
+                .replace('{start}', os)
+                .replace('{end}',   oe));
             return;
         }
 
@@ -1856,6 +2041,12 @@
 
         if (detail.dataset.loaded === '1') return;
 
+        // Alcance de dia: si la fila vive dentro de Hoy/Ayer/Historial, los registros
+        // se filtran a esa fecha para no mezclar sesiones de dias distintos.
+        // En Activas no hay day-scope y se muestra el historico completo.
+        const scoped = row.closest('[data-day-scope], [data-day-container]');
+        const dayScope = scoped?.dataset.dayScope || scoped?.dataset.dayContainer || null;
+
         detail.innerHTML = `<div class="task-detail-loading"><span class="spinner spinner-sm" aria-hidden="true"></span> ${escapeHtml(t('common.loading', 'Cargando...'))}</div>`;
         try {
             const [taskResult, entriesResult] = await Promise.all([
@@ -1863,7 +2054,10 @@
                 api('time_entries', { task_id: taskId }),
             ]);
             const task = taskResult.success ? taskResult.task : null;
-            const entries = entriesResult.success ? (entriesResult.entries || []) : [];
+            let entries = entriesResult.success ? (entriesResult.entries || []) : [];
+            if (dayScope) {
+                entries = entries.filter(e => (e.start_time || '').slice(0, 10) === dayScope);
+            }
             detail.innerHTML = renderTaskDetail(task, entries);
             detail.dataset.loaded = '1';
         } catch (err) {
@@ -2001,6 +2195,7 @@
 
     function clearFilters() {
         listState.filters = { search: '', alliance: '', priority: '', tags: [], dateFrom: '', dateTo: '' };
+        listState.historyPage = 1;
         ['filterSearch', 'filterAlliance', 'filterPriority'].forEach(id => {
             const el = document.getElementById(id); if (el) el.value = '';
         });
@@ -2055,6 +2250,7 @@
             const selected = Array.from(dropdown.querySelectorAll('input[type="checkbox"]:checked'))
                 .map(cb => parseInt(cb.value, 10));
             listState.filters.tags = selected;
+            listState.historyPage = 1;
             updateTagsMultiselectLabel();
             renderAllPanels();
         });

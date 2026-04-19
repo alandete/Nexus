@@ -365,12 +365,32 @@
     function openEditForm(opts = {}) {
         const forceComplete = opts.forceComplete || false;
 
+        // Si se pasa opts.task editamos una tarea arbitraria (de la lista).
+        // Si no, es la tarea del timer activo y tomamos los valores del state.
+        const current = opts.task ? {
+            id:          opts.task.id,
+            title:       opts.task.title || '',
+            description: opts.task.description || '',
+            allianceId:  opts.task.alliance_id ? parseInt(opts.task.alliance_id, 10) : null,
+            tagIds:      String(opts.task.tag_ids || '').split(',').filter(Boolean).map(id => parseInt(id, 10)),
+            priority:    opts.task.priority || 'medium',
+            dueDate:     opts.task.due_date || '',
+        } : {
+            id:          state.taskId,
+            title:       state.title || '',
+            description: state.description || '',
+            allianceId:  state.allianceId,
+            tagIds:      state.tagIds,
+            priority:    state.priority || 'medium',
+            dueDate:     state.dueDate || '',
+        };
+
         const allianceOpts = alliances.map(a =>
-            `<option value="${a.id}" ${state.allianceId == a.id ? 'selected' : ''}>${escapeHtml(a.name)}</option>`
+            `<option value="${a.id}" ${current.allianceId == a.id ? 'selected' : ''}>${escapeHtml(a.name)}</option>`
         ).join('');
 
         const tagChips = allTags.map(tag => {
-            const selected = state.tagIds.includes(tag.id);
+            const selected = current.tagIds.includes(tag.id);
             return `
                 <label class="task-tag-chip ${selected ? 'is-selected' : ''}" data-tag-id="${tag.id}">
                     <input type="checkbox" name="tag_ids[]" value="${tag.id}" ${selected ? 'checked' : ''}>
@@ -379,10 +399,18 @@
             `;
         }).join('');
 
-        const priorities = ['low', 'medium', 'high', 'urgent'];
-        const priorityOpts = priorities.map(p =>
-            `<option value="${p}" ${state.priority === p ? 'selected' : ''}>${escapeHtml(t('tasks.priority_' + p, p))}</option>`
+        const priorityLabels = {
+            low:    t('tasks.priority_low',    'Baja'),
+            medium: t('tasks.priority_medium', 'Media'),
+            high:   t('tasks.priority_high',   'Alta'),
+            urgent: t('tasks.priority_urgent', 'Urgente'),
+        };
+        const priorityOpts = ['low', 'medium', 'high', 'urgent'].map(p =>
+            `<option value="${p}" ${current.priority === p ? 'selected' : ''}>${escapeHtml(priorityLabels[p])}</option>`
         ).join('');
+
+        // Guardamos current en opts para que handleEditSubmit lo use
+        opts._current = current;
 
         const completeNotice = forceComplete
             ? `<div class="alert alert-warning mb-200" role="alert">
@@ -400,7 +428,7 @@
                         ${t('tasks.field_task', 'Tarea')} <span class="form-required" aria-hidden="true">*</span>
                     </label>
                     <input type="text" id="fTaskTitle" name="title" class="form-control" required
-                           value="${escapeHtml(state.title || '')}">
+                           value="${escapeHtml(current.title)}">
                     <p class="form-error" id="fTaskTitleError" aria-live="polite"></p>
                 </div>
 
@@ -408,7 +436,7 @@
                     <label for="fTaskDescription" class="form-label">${t('tasks.field_description', 'Descripcion')}</label>
                     <textarea id="fTaskDescription" name="description" class="form-control" rows="3"
                               placeholder="${t('tasks.description_placeholder', 'Agrega detalles, notas o contexto adicional...')}"
-                    >${escapeHtml(state.description || '')}</textarea>
+                    >${escapeHtml(current.description)}</textarea>
                 </div>
 
                 <div class="form-group">
@@ -452,7 +480,7 @@
                     <div class="form-group">
                         <label for="fTaskDueDate" class="form-label">${t('tasks.field_due_date', 'Fecha de vencimiento')}</label>
                         <input type="date" id="fTaskDueDate" name="due_date" class="form-control"
-                               value="${escapeHtml(state.dueDate || '')}">
+                               value="${escapeHtml(current.dueDate)}">
                     </div>
                 </div>
 
@@ -581,6 +609,11 @@
         }
         if (hasError) return;
 
+        // ID de la tarea que estamos editando (arbitraria o la del timer)
+        const editingTaskId = opts._current?.id || state.taskId;
+        // Es la tarea del timer si coincide con state.taskId Y hay timer corriendo
+        const isTimerTask = !opts.task && state.running && state.taskId === editingTaskId;
+
         submitBtn.disabled = true;
         const btnText = submitBtn.querySelector('.btn-text');
         const originalText = btnText?.textContent;
@@ -588,7 +621,7 @@
 
         try {
             const result = await api('update', {
-                task_id: state.taskId,
+                task_id: editingTaskId,
                 title: title,
                 description: description,
                 alliance_id: allianceId,
@@ -597,21 +630,23 @@
                 tag_ids: tagIds.join(','),
             });
             if (result.success) {
-                // Actualizar estado local
-                state.title = title;
-                state.description = description;
-                state.allianceId = allianceId ? parseInt(allianceId, 10) : null;
-                const alliance = alliances.find(a => a.id == allianceId);
-                state.allianceName = alliance?.name || null;
-                state.priority = priority;
-                state.dueDate = dueDate || null;
-                state.tagIds = tagIds.map(id => parseInt(id, 10));
-                state.tagNames = tagIds.map(id => {
-                    const tag = allTags.find(tg => tg.id == id);
-                    return tag?.name || '';
-                }).filter(Boolean).join(', ');
+                // Actualizar el estado del tracker SOLO si es la tarea del timer activo
+                if (isTimerTask) {
+                    state.title = title;
+                    state.description = description;
+                    state.allianceId = allianceId ? parseInt(allianceId, 10) : null;
+                    const alliance = alliances.find(a => a.id == allianceId);
+                    state.allianceName = alliance?.name || null;
+                    state.priority = priority;
+                    state.dueDate = dueDate || null;
+                    state.tagIds = tagIds.map(id => parseInt(id, 10));
+                    state.tagNames = tagIds.map(id => {
+                        const tag = allTags.find(tg => tg.id == id);
+                        return tag?.name || '';
+                    }).filter(Boolean).join(', ');
+                    renderActiveCard();
+                }
 
-                renderActiveCard();
                 SlidePanel.close();
                 Toast.success(t('tasks.task_updated', 'Cambios guardados.'));
                 if (typeof loadList === 'function') loadList();
@@ -1282,19 +1317,8 @@
         try {
             const result = await api('get', { task_id: taskId });
             if (result.success && result.task) {
-                const task = result.task;
-                // Hidratar state local para que openEditForm tenga los datos
-                state.taskId = task.id;
-                state.title = task.title;
-                state.description = task.description || '';
-                state.allianceId = task.alliance_id ? parseInt(task.alliance_id, 10) : null;
-                const alliance = alliances.find(a => a.id == task.alliance_id);
-                state.allianceName = alliance?.name || null;
-                state.priority = task.priority || 'medium';
-                state.dueDate = task.due_date || null;
-                state.tagIds = String(task.tag_ids || '').split(',').filter(Boolean).map(id => parseInt(id, 10));
-                state.tagNames = task.tag_names || '';
-                openEditForm({ onComplete: () => loadList() });
+                // Abrir el form con la tarea como dato aislado (no toca state del timer)
+                openEditForm({ task: result.task });
             } else {
                 Toast.error(result.message || t('tasks.err_update', 'No se pudo abrir la tarea.'));
             }

@@ -3,6 +3,42 @@
 Todos los cambios relevantes del proyecto se documentan en este archivo.
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+## [2.0.0-alpha.3] — 2026-04-19 (en desarrollo)
+
+### Agregado
+- **Pagina `/tasks` — Sub-fase 4.1: Cronometro y tarea activa (flujo hibrido)**
+  - **Tracker inline friccion-cero**: input grande con icono de cronometro y boton play, el usuario escribe el nombre y arranca sin ningun formulario previo
+  - **Autocomplete en vivo** al escribir (debounce 250ms): muestra hasta 6 tareas existentes con alianza + lozenge de estado. Clic en una sugerencia reanuda el timer asociado
+  - **Validacion tardia**: el timer arranca solo con titulo; la alianza y etiquetas son obligatorias unicamente al pausar o completar
+  - **Estado activo compacto en una sola fila**: `[●] titulo · etiquetas · alianza · prioridad · fecha · tiempo · [editar][pausar][completar][descartar]`. Cronometro reducido (1.125rem con fondo brand sutil) y tarjeta con padding compacto para no ocupar espacio innecesario
+  - **Chips de meta con estado vacio dashed**: si falta alianza o etiquetas se muestran chips con borde punteado para invitar a completarlos
+  - **Alerta inline "datos incompletos"** compacta con CTA textual (no bloquea el uso, solo avisa)
+  - **Prioridad con color semantico en el chip**: alta (orange) y urgente (red); baja y media neutrales
+  - Botones de accion como iconos con tooltip (edit, pause warning, stop success, discard danger) — ahorra espacio sin perder contexto
+  - **Flujo forzado al pausar/completar con datos incompletos**: abre el slide panel, se guarda y reintenta la accion automaticamente
+  - Restauracion automatica si ya hay un timer corriendo al cargar la pagina
+  - ConfirmModal para completar y descartar
+- **Slide panel "Editar tarea" / "Completar informacion"**
+  - Orden: titulo -> descripcion (siempre visible) -> alianza -> etiquetas -> [prioridad | fecha de vencimiento] en una sola fila
+  - Chips de etiquetas compactos (padding 2px / 100) para aprovechar mejor el espacio
+  - Chips de etiquetas toggleables visualmente (color primario cuando seleccionado)
+  - Creacion rapida de etiquetas desde el mismo panel (sin salir)
+  - Validacion inline por campo con mensajes especificos
+  - En modo "forceComplete" se muestra un alert warning arriba indicando los campos obligatorios
+- **Campos con foco destacado**: borde transparente por defecto (ruido visual minimo), al hacer focus el borde adopta `--app-brand` con halo suave (box-shadow 3px al 18% de opacidad)
+- **Accesibilidad**
+  - `aria-live="polite"` en el display del timer
+  - `aria-autocomplete`, `aria-controls`, `aria-expanded` en el input del autocomplete
+  - Focus management en el slide panel
+  - Tooltips en acciones de iconos
+  - Labels y descripciones ARIA en formulario
+
+### Cambiado
+- `data/stages.json` reestructurado con 9 fases. Fase 4 marcada como `in-progress` (sub-fase 4.1 completa)
+- Nueva Fase 5: `/manage-tasks` en Ajustes (import/export, cleanup, CRUD de etiquetas) para construir despues del modulo Tareas
+
+---
+
 ## [2.0.0-alpha.2] — 2026-04-18
 
 ### Agregado

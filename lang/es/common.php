@@ -109,6 +109,8 @@ return [
         'status_completed'   => 'Completado',
         'status_in_progress' => 'En progreso',
         'status_pending'     => 'Pendiente',
+        'status_deferred'    => 'Diferido',
+        'see_all_phases'     => 'Ver todas las fases',
     ],
 
     // Estados comunes

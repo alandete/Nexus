@@ -102,6 +102,8 @@ return [
         'status_completed'   => 'Completed',
         'status_in_progress' => 'In progress',
         'status_pending'     => 'Pending',
+        'status_deferred'    => 'Deferred',
+        'see_all_phases'     => 'View all phases',
     ],
 
     // Common states

@@ -61,10 +61,11 @@ if (isDBAvailable()) {
     $recentActivity = $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-// Stages progress
+// Stages progress (excluyendo 'deferred' del calculo de progreso)
 $stagesRaw = json_decode(file_get_contents(DATA_PATH . '/stages.json'), true) ?: [];
-$totalStages = count($stagesRaw);
-$completedStages = count(array_filter($stagesRaw, fn($s) => ($s['status'] ?? '') === 'completed'));
+$countedStages = array_filter($stagesRaw, fn($s) => ($s['status'] ?? '') !== 'deferred');
+$totalStages = count($countedStages);
+$completedStages = count(array_filter($countedStages, fn($s) => ($s['status'] ?? '') === 'completed'));
 $inProgressStages = array_filter($stagesRaw, fn($s) => ($s['status'] ?? '') === 'in-progress');
 $progressPct = $totalStages > 0 ? round(($completedStages / $totalStages) * 100) : 0;
 
@@ -274,7 +275,7 @@ if (!$todayFormatted) {
 
     <!-- Project Progress -->
     <div class="card">
-        <div class="card-header d-flex items-center justify-between">
+        <div class="card-header d-flex items-center justify-between flex-wrap gap-100">
             <h3 class="card-title"><?= __('dashboard.project_progress') ?></h3>
             <span class="text-sm text-subtle">
                 <?= str_replace(['{count}', '{total}'], [$completedStages, $totalStages], __('dashboard.stages_completed')) ?>
@@ -285,6 +286,8 @@ if (!$todayFormatted) {
             <div class="progress progress-brand mb-200" role="progressbar" aria-valuenow="<?= $progressPct ?>" aria-valuemin="0" aria-valuemax="100">
                 <div class="progress-bar" style="width: <?= $progressPct ?>%;"></div>
             </div>
+
+            <!-- Fases en progreso (siempre visibles) -->
             <?php if (!empty($inProgressStages)): ?>
             <div class="progress-stages">
                 <?php foreach ($inProgressStages as $stage): ?>
@@ -295,6 +298,52 @@ if (!$todayFormatted) {
                 <?php endforeach; ?>
             </div>
             <?php endif; ?>
+
+            <!-- Colapsable con todas las fases -->
+            <details class="phases-collapse">
+                <summary class="phases-collapse-summary">
+                    <i class="bi bi-list-check phases-collapse-icon" aria-hidden="true"></i>
+                    <span><?= __('dashboard.see_all_phases') ?></span>
+                    <i class="bi bi-chevron-down phases-collapse-chevron" aria-hidden="true"></i>
+                </summary>
+                <ul class="phases-list">
+                    <?php foreach ($stagesRaw as $stage):
+                        $st = $stage['status'] ?? 'pending';
+                        $lozengeClass = match($st) {
+                            'completed'   => 'lozenge-success',
+                            'in-progress' => 'lozenge-info',
+                            'deferred'    => 'lozenge-default',
+                            default       => 'lozenge-default',
+                        };
+                        $statusLabel = match($st) {
+                            'completed'   => __('dashboard.status_completed'),
+                            'in-progress' => __('dashboard.status_in_progress'),
+                            'deferred'    => __('dashboard.status_deferred'),
+                            default       => __('dashboard.status_pending'),
+                        };
+                        $iconClass = match($st) {
+                            'completed'   => 'bi-check-circle-fill',
+                            'in-progress' => 'bi-play-circle-fill',
+                            'deferred'    => 'bi-pause-circle',
+                            default       => 'bi-circle',
+                        };
+                    ?>
+                    <li class="phase-item phase-item-<?= $st ?>">
+                        <i class="bi <?= $iconClass ?> phase-item-icon" aria-hidden="true"></i>
+                        <div class="phase-item-body">
+                            <div class="phase-item-header">
+                                <?php if (!empty($stage['phase'])): ?>
+                                <span class="phase-item-number">Fase <?= (int) $stage['phase'] ?></span>
+                                <?php endif; ?>
+                                <span class="phase-item-title"><?= htmlspecialchars($stage['title'][$lang] ?? $stage['title']['es']) ?></span>
+                                <span class="lozenge <?= $lozengeClass ?>"><?= $statusLabel ?></span>
+                            </div>
+                            <p class="phase-item-desc"><?= htmlspecialchars($stage['description'][$lang] ?? $stage['description']['es']) ?></p>
+                        </div>
+                    </li>
+                    <?php endforeach; ?>
+                </ul>
+            </details>
         </div>
     </div>
 

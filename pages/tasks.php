@@ -97,47 +97,33 @@ if (isDBAvailable()) {
 <section class="tasks-list-section" aria-labelledby="tasks-list-title">
     <h2 class="visually-hidden" id="tasks-list-title"><?= __('tasks.list_title') ?></h2>
 
-    <!-- Tabs -->
-    <div class="tabs tasks-tabs" role="tablist" aria-label="<?= __('tasks.tabs_label') ?>">
-        <button type="button" class="tab active" id="tabActive" role="tab" aria-selected="true" aria-controls="panelActive" data-tab="active">
-            <?= __('tasks.tab_active') ?>
-            <span class="tab-count" id="countActive">0</span>
-        </button>
-        <button type="button" class="tab" id="tabScheduled" role="tab" aria-selected="false" aria-controls="panelScheduled" data-tab="scheduled">
-            <?= __('tasks.tab_scheduled') ?>
-            <span class="tab-count" id="countScheduled">0</span>
-        </button>
-        <button type="button" class="tab" id="tabHistory" role="tab" aria-selected="false" aria-controls="panelHistory" data-tab="history">
-            <?= __('tasks.tab_history') ?>
-            <span class="tab-count" id="countHistory">0</span>
-        </button>
-    </div>
-
-    <!-- Barra de filtros -->
+    <!-- Barra de filtros compacta -->
     <div class="filter-bar tasks-filter-bar" role="group" aria-label="<?= __('tasks.filters_label') ?>">
         <div class="filter-bar-search">
             <i class="bi bi-search filter-bar-search-icon" aria-hidden="true"></i>
-            <input type="search" id="filterSearch" class="form-control"
+            <input type="search" id="filterSearch" class="form-control form-control-sm"
                    placeholder="<?= __('tasks.filter_search_placeholder') ?>"
                    aria-label="<?= __('tasks.filter_search_label') ?>">
         </div>
 
-        <input type="date" id="filterDateFrom" class="form-control filter-bar-date"
-               aria-label="<?= __('tasks.filter_date_from') ?>"
-               title="<?= __('tasks.filter_date_from') ?>">
+        <div class="filter-bar-dates">
+            <input type="date" id="filterDateFrom" class="form-control form-control-sm filter-bar-date"
+                   aria-label="<?= __('tasks.filter_date_from') ?>"
+                   title="<?= __('tasks.filter_date_from') ?>">
+            <span class="filter-bar-dash" aria-hidden="true">—</span>
+            <input type="date" id="filterDateTo" class="form-control form-control-sm filter-bar-date"
+                   aria-label="<?= __('tasks.filter_date_to') ?>"
+                   title="<?= __('tasks.filter_date_to') ?>">
+        </div>
 
-        <input type="date" id="filterDateTo" class="form-control filter-bar-date"
-               aria-label="<?= __('tasks.filter_date_to') ?>"
-               title="<?= __('tasks.filter_date_to') ?>">
-
-        <select id="filterAlliance" class="form-control filter-bar-select" aria-label="<?= __('tasks.filter_alliance') ?>">
+        <select id="filterAlliance" class="form-control form-control-sm filter-bar-select" aria-label="<?= __('tasks.filter_alliance') ?>">
             <option value=""><?= __('tasks.filter_all_alliances') ?></option>
             <?php foreach ($activeAlliances as $a): ?>
             <option value="<?= (int) $a['id'] ?>"><?= htmlspecialchars($a['name']) ?></option>
             <?php endforeach; ?>
         </select>
 
-        <select id="filterPriority" class="form-control filter-bar-select" aria-label="<?= __('tasks.filter_priority') ?>">
+        <select id="filterPriority" class="form-control form-control-sm filter-bar-select" aria-label="<?= __('tasks.filter_priority') ?>">
             <option value=""><?= __('tasks.filter_all_priorities') ?></option>
             <option value="urgent"><?= __('tasks.priority_urgent') ?></option>
             <option value="high"><?= __('tasks.priority_high') ?></option>
@@ -145,35 +131,53 @@ if (isDBAvailable()) {
             <option value="low"><?= __('tasks.priority_low') ?></option>
         </select>
 
-        <select id="filterTag" class="form-control filter-bar-select" aria-label="<?= __('tasks.filter_tag') ?>">
+        <select id="filterTag" class="form-control form-control-sm filter-bar-select" aria-label="<?= __('tasks.filter_tag') ?>">
             <option value=""><?= __('tasks.filter_all_tags') ?></option>
             <?php foreach ($allTags as $tag): ?>
             <option value="<?= (int) $tag['id'] ?>"><?= htmlspecialchars($tag['name']) ?></option>
             <?php endforeach; ?>
         </select>
 
-        <button type="button" class="btn btn-subtle btn-sm" id="btnClearFilters"
-                data-tooltip="<?= __('tasks.filter_clear') ?>" data-tooltip-position="top">
+        <button type="button" class="btn-icon" id="btnClearFilters"
+                data-tooltip="<?= __('tasks.filter_clear') ?>" data-tooltip-position="top"
+                aria-label="<?= __('tasks.filter_clear') ?>">
             <i class="bi bi-x-circle" aria-hidden="true"></i>
-            <?= __('tasks.filter_clear') ?>
         </button>
     </div>
 
-    <!-- Panel: activas -->
-    <div class="tasks-panel" id="panelActive" role="tabpanel" aria-labelledby="tabActive">
-        <div class="tasks-panel-loading d-none" id="loadingActive">
-            <span class="spinner" aria-hidden="true"></span> <?= __('common.loading') ?>
+    <!-- Seccion: activas -->
+    <div class="tasks-section" id="sectionActive">
+        <div class="tasks-section-header">
+            <h3 class="tasks-section-title">
+                <i class="bi bi-record-circle" aria-hidden="true"></i>
+                <?= __('tasks.tab_active') ?>
+                <span class="tasks-section-count" id="countActive">0</span>
+            </h3>
         </div>
         <div class="tasks-panel-content" id="contentActive"></div>
     </div>
 
-    <!-- Panel: proximas -->
-    <div class="tasks-panel d-none" id="panelScheduled" role="tabpanel" aria-labelledby="tabScheduled" hidden>
-        <div class="tasks-panel-content" id="contentScheduled"></div>
+    <!-- Seccion: proximas (cards destacadas) -->
+    <div class="tasks-section" id="sectionScheduled">
+        <div class="tasks-section-header">
+            <h3 class="tasks-section-title">
+                <i class="bi bi-calendar-check" aria-hidden="true"></i>
+                <?= __('tasks.tab_scheduled') ?>
+                <span class="tasks-section-count" id="countScheduled">0</span>
+            </h3>
+        </div>
+        <div class="tasks-panel-content tasks-cards-grid" id="contentScheduled"></div>
     </div>
 
-    <!-- Panel: historial -->
-    <div class="tasks-panel d-none" id="panelHistory" role="tabpanel" aria-labelledby="tabHistory" hidden>
+    <!-- Seccion: historial -->
+    <div class="tasks-section" id="sectionHistory">
+        <div class="tasks-section-header">
+            <h3 class="tasks-section-title">
+                <i class="bi bi-clock-history" aria-hidden="true"></i>
+                <?= __('tasks.tab_history') ?>
+                <span class="tasks-section-count" id="countHistory">0</span>
+            </h3>
+        </div>
         <div class="tasks-panel-content" id="contentHistory"></div>
     </div>
 </section>

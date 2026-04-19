@@ -776,7 +776,6 @@
      * ======================================================== */
 
     const listState = {
-        currentTab: 'active',
         data: { active: [], scheduled: [], by_date: {}, day_totals: {} },
         filters: { search: '', alliance: '', priority: '', tag: '', dateFrom: '', dateTo: '' },
     };
@@ -795,9 +794,6 @@
     }
 
     async function loadList() {
-        const loading = document.getElementById('loadingActive');
-        if (loading) loading.classList.remove('d-none');
-
         try {
             const result = await api('list', {
                 date_from: listState.filters.dateFrom,
@@ -815,8 +811,6 @@
             }
         } catch (err) {
             console.error('List error:', err);
-        } finally {
-            if (loading) loading.classList.add('d-none');
         }
     }
 
@@ -961,36 +955,45 @@
 
         container.innerHTML = items.map(task => {
             const overdue = task.due_date && task.due_date < new Date().toISOString().slice(0, 10);
-            const dueChip = task.due_date
-                ? `<span class="tracker-meta-chip ${overdue ? 'tracker-priority-urgent' : ''}"><i class="bi bi-calendar${overdue ? '-x' : ''}" aria-hidden="true"></i>${escapeHtml(task.due_date)}</span>`
-                : '';
+            const priority = task.priority || 'medium';
+            const priorityLabels = {
+                low:    t('tasks.priority_low', 'Baja'),
+                medium: t('tasks.priority_medium', 'Media'),
+                high:   t('tasks.priority_high', 'Alta'),
+                urgent: t('tasks.priority_urgent', 'Urgente'),
+            };
+
+            const dueInfo = task.due_date ? `
+                <div class="task-card-due ${overdue ? 'is-overdue' : ''}">
+                    <i class="bi bi-calendar${overdue ? '-x-fill' : ''}" aria-hidden="true"></i>
+                    <span>${escapeHtml(task.due_date)}</span>
+                </div>` : '';
 
             return `
-                <div class="task-item task-item-scheduled ${overdue ? 'is-overdue' : ''}">
-                    <div class="task-item-main">
-                        <div class="task-item-title-row">
-                            <span class="task-item-title">${escapeHtml(task.title)}</span>
-                        </div>
-                        <div class="task-item-meta">
-                            ${allianceChip(task.alliance_name)}
-                            ${tagChipsHtml(task.tag_names)}
-                            ${priorityChip(task.priority)}
-                            ${dueChip}
-                        </div>
+                <article class="task-card task-card-priority-${priority} ${overdue ? 'is-overdue' : ''}">
+                    <header class="task-card-header">
+                        <span class="task-card-priority-label">${escapeHtml(priorityLabels[priority] || priority)}</span>
+                        ${dueInfo}
+                    </header>
+
+                    <h4 class="task-card-title">${escapeHtml(task.title)}</h4>
+
+                    <div class="task-card-meta">
+                        ${allianceChip(task.alliance_name)}
+                        ${tagChipsHtml(task.tag_names)}
                     </div>
-                    <div class="task-item-right">
-                        <div class="task-item-actions">
-                            <button type="button" class="btn-icon" data-action="resume" data-task-id="${task.id}" data-title="${escapeHtml(task.title)}"
-                                    data-tooltip="${t('tasks.btn_start', 'Iniciar')}" data-tooltip-position="top" aria-label="${t('tasks.btn_start', 'Iniciar')}">
-                                <i class="bi bi-play-fill" aria-hidden="true"></i>
-                            </button>
-                            <button type="button" class="btn-icon" data-action="edit" data-task-id="${task.id}"
-                                    data-tooltip="${t('tasks.btn_edit', 'Editar')}" data-tooltip-position="top" aria-label="${t('tasks.btn_edit', 'Editar')}">
-                                <i class="bi bi-pencil" aria-hidden="true"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
+
+                    <footer class="task-card-footer">
+                        <button type="button" class="btn btn-primary btn-sm" data-action="resume" data-task-id="${task.id}" data-title="${escapeHtml(task.title)}">
+                            <i class="bi bi-play-fill" aria-hidden="true"></i>
+                            ${t('tasks.btn_start', 'Iniciar')}
+                        </button>
+                        <button type="button" class="btn-icon" data-action="edit" data-task-id="${task.id}"
+                                data-tooltip="${t('tasks.btn_edit', 'Editar')}" data-tooltip-position="top" aria-label="${t('tasks.btn_edit', 'Editar')}">
+                            <i class="bi bi-pencil" aria-hidden="true"></i>
+                        </button>
+                    </footer>
+                </article>
             `;
         }).join('');
     }
@@ -1056,29 +1059,7 @@
         }).join('');
     }
 
-    function switchTab(tabName) {
-        listState.currentTab = tabName;
-        ['active', 'scheduled', 'history'].forEach(name => {
-            const tab = document.getElementById('tab' + name.charAt(0).toUpperCase() + name.slice(1));
-            const panel = document.getElementById('panel' + name.charAt(0).toUpperCase() + name.slice(1));
-            const isActive = name === tabName;
-            if (tab) {
-                tab.classList.toggle('active', isActive);
-                tab.setAttribute('aria-selected', String(isActive));
-            }
-            if (panel) {
-                panel.classList.toggle('d-none', !isActive);
-                panel.hidden = !isActive;
-            }
-        });
-    }
-
     function setupListBindings() {
-        // Tabs
-        document.querySelectorAll('.tasks-tabs .tab').forEach(btn => {
-            btn.addEventListener('click', () => switchTab(btn.dataset.tab));
-        });
-
         // Filtros
         const searchInput = document.getElementById('filterSearch');
         let searchDebounce = null;

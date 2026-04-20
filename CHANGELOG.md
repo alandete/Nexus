@@ -5,6 +5,15 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [2.0.0-alpha.3] — 2026-04-19 (en desarrollo)
 
+### Hito de produccion
+
+- **Fecha objetivo: 2026-04-30**. El modulo de tareas debe estar terminado antes de fin de mes para arrancar el registro de actividades desde el **2026-05-01**.
+- Debe incluir, ademas de las sub-fases, las validaciones criticas:
+  - Backend que impida solapamiento de registros de tiempo (ver deuda tecnica abajo).
+  - Backend que resetee el status al descartar un timer recien iniciado.
+  - Validacion Clockify ↔ Nexus completada y confirmada antes del cierre.
+- **Prioridad de cierre** (11 dias habiles disponibles): backend fixes → Importar/Exportar → Limpieza → Reportes → Clockify validation.
+
 ### Deuda tecnica priorizada (resolver antes de Sub-fase 4.5 Reportes)
 
 - **Backend `timer_discard` no resetea el status de la tarea**. Cuando el usuario descarta un timer recien iniciado, el entry se borra pero la tarea queda en `in_progress` sin ninguna sesion. Genera "tareas fantasma" en Activas y falsea totales en reportes futuros.
@@ -13,6 +22,23 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 - **Backend `time_entry_update` y `time_entry_create` no validan solapamientos**. Actualmente dos registros de distintas tareas pueden coincidir en el mismo rango horario. El frontend valida en `saveFormEntry` (via `findOverlappingEntry`) pero un request directo al endpoint puede saltarse la validacion.
   - Fix pendiente en backend: rechazar con 400 si el rango `[start_time, end_time]` se solapa con otro entry del mismo `user_id` en la misma fecha. Ver `includes/tasks_actions.php:551` (hay TODO inline).
+
+### Tareas semana actual
+
+- **Validacion Clockify ↔ Nexus** (esta semana): exportar time entries de Clockify del mes en curso (UI: `Reports → Detailed → Export → CSV`) y mapearlas manualmente contra los campos de la tabla `time_entries` de Nexus para verificar que los tiempos estan alineados. Hacer con cuidado: confirmar que `start_time` / `end_time` / `duration_seconds` / `task.title` coinciden para cada sesion. Esto valida si vale la pena construir la integracion automatica via API (documentada en el agente, con `X-Api-Key`, 10 req/s, endpoint `/workspaces/{ws}/user/{uid}/time-entries?hydrated=true`) como nuevo proveedor en `/integrations`.
+
+### Fase 5 — primera entrega `/manage-tasks` (CRUD de etiquetas)
+
+- **Nueva ruta** `/manage-tasks` registrada en `index.php`, sidebar de Ajustes y settings overview con icono `bi-list-check`
+- **Layout por tabs**: Etiquetas · Importar y exportar · Limpieza de datos. Las dos ultimas como placeholder "Proximamente"
+- **CRUD de etiquetas inline** (sin slide panel):
+  - Tabla con columnas `Nombre | Color | Uso | Eliminar`
+  - Nombre editable inline (bordes transparentes hasta focus, guarda al blur o Enter)
+  - Color combinado en un solo control: picker nativo + input hex, sincronizados en vivo (editas uno y el otro refleja el cambio)
+  - Fila "nueva etiqueta" siempre visible al final con fondo brand-tint y boton (+) verde. Al crear, la etiqueta salta a su posicion alfabetica y el foco vuelve al input "nueva" para agregar varias rapido
+  - Eliminar con ConfirmModal que advierte si la etiqueta esta en uso (muestra cuantas tareas)
+  - Stats: Total / En uso / Sin uso
+- **Traducciones** en `lang/{es,en}/manage_tasks.php` + claves `menu.manage_tasks`, `settings_overview.manage_tasks_desc`, `common.add`
 
 ### Iteracion continua de 4.2 (ronda 3)
 

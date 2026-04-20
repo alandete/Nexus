@@ -26,6 +26,13 @@ $settingsSections[] = [
 ];
 
 $settingsSections[] = [
+    'url'   => url('manage-tasks'),
+    'icon'  => 'bi-list-check',
+    'title' => __('menu.manage_tasks'),
+    'desc'  => __('settings_overview.manage_tasks_desc'),
+];
+
+$settingsSections[] = [
     'url'   => url('application'),
     'icon'  => 'bi-app-indicator',
     'title' => __('menu.application'),

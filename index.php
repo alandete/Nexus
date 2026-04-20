@@ -53,7 +53,7 @@ if (empty($_SESSION['lang']) && !empty($projectInfo['default_lang']) && in_array
 $page = isset($_GET['page']) ? sanitize($_GET['page']) : 'home';
 $validPages = [
     'home', 'tasks', 'alliances', 'utilities', 'documentation',
-    'settings', 'users', 'manage-alliances', 'application', 'integrations',
+    'settings', 'users', 'manage-alliances', 'manage-tasks', 'application', 'integrations',
     'snapshots', 'system', 'activity',
     'login', 'logout',
     '403', '404', '500',
@@ -238,6 +238,10 @@ if (!empty($projectInfo['maintenance_mode'])) {
 
     <?php if ($page === 'manage-alliances'): ?>
     <script src="assets/js/manage-alliances.js?v=<?= filemtime('assets/js/manage-alliances.js') ?>"></script>
+    <?php endif; ?>
+
+    <?php if ($page === 'manage-tasks'): ?>
+    <script src="assets/js/manage-tasks.js?v=<?= filemtime('assets/js/manage-tasks.js') ?>"></script>
     <?php endif; ?>
 
     <?php if ($page === 'application'): ?>

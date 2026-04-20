@@ -10,7 +10,7 @@ $currentPage = isset($_GET['page']) ? $_GET['page'] : 'home';
 $currentUser = getCurrentUser();
 
 // Determinar que secciones del sidebar estan expandidas
-$settingsPages = ['settings', 'users', 'manage-alliances', 'application', 'integrations', 'snapshots', 'system', 'activity'];
+$settingsPages = ['settings', 'users', 'manage-alliances', 'manage-tasks', 'application', 'integrations', 'snapshots', 'system', 'activity'];
 $isSettingsActive = in_array($currentPage, $settingsPages);
 ?>
 
@@ -126,6 +126,12 @@ $isSettingsActive = in_array($currentPage, $settingsPages);
                         <a class="sidebar-sublink <?= $currentPage === 'manage-alliances' ? 'active' : '' ?>" href="<?= url('manage-alliances') ?>" role="menuitem">
                             <i class="bi bi-building-gear sidebar-link-icon" aria-hidden="true"></i>
                             <span class="sidebar-link-text"><?= __('menu.manage_alliances') ?></span>
+                        </a>
+                    </li>
+                    <li role="none">
+                        <a class="sidebar-sublink <?= $currentPage === 'manage-tasks' ? 'active' : '' ?>" href="<?= url('manage-tasks') ?>" role="menuitem">
+                            <i class="bi bi-list-check sidebar-link-icon" aria-hidden="true"></i>
+                            <span class="sidebar-link-text"><?= __('menu.manage_tasks') ?></span>
                         </a>
                     </li>
                     <li role="none">

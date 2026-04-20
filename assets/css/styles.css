@@ -6653,3 +6653,228 @@ a.stat-card:hover {
         transition-duration: 0.01ms !important;
     }
 }
+
+/* ============================================
+   MANAGE TASKS (Ajustes)
+   ============================================ */
+.manage-section {
+    margin-bottom: var(--ds-space-400);
+}
+
+.manage-section:last-child {
+    margin-bottom: 0;
+}
+
+.manage-section-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--ds-space-200);
+    margin-bottom: var(--ds-space-200);
+    flex-wrap: wrap;
+}
+
+.manage-section-title {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ds-space-100);
+    margin: 0 0 var(--ds-space-050);
+    font-size: var(--ds-font-size-heading-sm);
+    font-weight: var(--ds-font-weight-semibold);
+    color: var(--ds-text);
+}
+
+.manage-section-title i {
+    color: var(--app-brand);
+    font-size: 20px;
+}
+
+.manage-section-desc {
+    margin: 0;
+    font-size: var(--ds-font-size-body-sm);
+    color: var(--ds-text-subtle);
+    max-width: 640px;
+}
+
+/* ---- Tabs de manage-tasks (reutiliza .tabs global con margen) ---- */
+.manage-tabs {
+    margin-bottom: var(--ds-space-300);
+}
+
+.manage-tabs .tab {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ds-space-075);
+}
+
+.manage-panel {
+    display: block;
+}
+
+/* ---- Grilla de etiquetas inline-editable ---- */
+.tags-grid {
+    background: var(--ds-surface-raised);
+    border: var(--ds-border-width) solid var(--ds-border);
+    border-radius: var(--ds-radius-200);
+    overflow: hidden;
+}
+
+.tag-row {
+    display: grid;
+    grid-template-columns: minmax(200px, 2.5fr) 160px minmax(90px, 1fr) 56px;
+    gap: var(--ds-space-150);
+    align-items: center;
+    padding: var(--ds-space-075) var(--ds-space-150);
+    border-bottom: var(--ds-border-width) solid var(--ds-border);
+    font-size: var(--ds-font-size-body-sm);
+    transition: background var(--ds-duration-fast);
+}
+
+.tag-row:last-child {
+    border-bottom: none;
+}
+
+.tag-row:not(.tag-row-head):hover {
+    background: var(--ds-surface-hovered, rgba(9, 30, 66, 0.03));
+}
+
+.tag-row-head {
+    font-size: 11px;
+    font-weight: var(--ds-font-weight-semibold);
+    color: var(--ds-text-subtlest);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    background: var(--ds-surface-sunken);
+    border-bottom: var(--ds-border-width-indicator) solid var(--ds-border);
+}
+
+.tag-row-new {
+    background: rgba(var(--app-brand-rgb), 0.04);
+    border-top: var(--ds-border-width-indicator) solid var(--ds-border);
+}
+
+/* Grupo combinado: color picker + input hex */
+.tag-color-field {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ds-space-050);
+    border: var(--ds-border-width) solid transparent;
+    border-radius: var(--ds-radius-100);
+    padding: 2px;
+    transition: border-color var(--ds-duration-fast), background var(--ds-duration-fast);
+}
+
+.tag-color-field:hover {
+    background: var(--ds-surface-sunken);
+}
+
+.tag-color-field:focus-within {
+    border-color: var(--app-brand);
+    background: var(--ds-surface);
+    box-shadow: 0 0 0 2px rgba(var(--app-brand-rgb), 0.18);
+}
+
+.tag-swatch-input {
+    width: 28px;
+    height: 26px;
+    padding: 2px;
+    border: var(--ds-border-width) solid var(--ds-border);
+    border-radius: var(--ds-radius-100);
+    background: var(--ds-surface);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.tag-swatch-input:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.tag-hex-input {
+    width: 90px;
+    min-width: 0;
+    border: none;
+    background: transparent;
+    padding: 2px var(--ds-space-050);
+    font-size: var(--ds-font-size-body-sm);
+    color: var(--ds-text);
+}
+
+.tag-hex-input:focus {
+    outline: none;
+}
+
+/* Input de nombre inline: sin bordes hasta focus */
+.tag-name-input {
+    border: var(--ds-border-width) solid transparent;
+    background: transparent;
+    padding: var(--ds-space-050) var(--ds-space-075);
+    min-height: 30px;
+    font-weight: var(--ds-font-weight-semibold);
+    color: var(--ds-text);
+    transition: background var(--ds-duration-fast), border-color var(--ds-duration-fast), box-shadow var(--ds-duration-fast);
+}
+
+.tag-name-input:hover:not(:read-only):not(:focus) {
+    background: var(--ds-surface-sunken);
+}
+
+.tag-name-input:focus {
+    outline: none;
+    background: var(--ds-surface);
+    border-color: var(--app-brand);
+    box-shadow: 0 0 0 2px rgba(var(--app-brand-rgb), 0.18);
+}
+
+.tag-name-input:read-only {
+    background: transparent;
+    cursor: default;
+}
+
+.tag-row-new .tag-name-input {
+    border-color: var(--ds-border);
+    background: var(--ds-surface);
+}
+
+.tag-color-code {
+    font-size: var(--ds-font-size-body-sm);
+}
+
+.tag-usage {
+    color: var(--ds-text);
+}
+
+.tag-usage.is-unused {
+    color: var(--ds-text-subtlest);
+    font-style: italic;
+}
+
+.tag-actions {
+    display: flex;
+    gap: 2px;
+    justify-content: flex-end;
+}
+
+.tag-row-empty {
+    padding: var(--ds-space-200);
+    text-align: center;
+    font-size: var(--ds-font-size-body-sm);
+    border-bottom: var(--ds-border-width) solid var(--ds-border);
+}
+
+@media (max-width: 700px) {
+    .tag-row {
+        grid-template-columns: 1fr auto;
+        grid-template-areas:
+            "name actions"
+            "color actions"
+            "usage actions";
+        gap: var(--ds-space-050) var(--ds-space-100);
+        padding: var(--ds-space-150);
+    }
+    .tag-name-input   { grid-area: name; }
+    .tag-color-field  { grid-area: color; justify-self: start; }
+    .tag-usage        { grid-area: usage; }
+    .tag-actions      { grid-area: actions; align-self: center; }
+    .tag-row-head { display: none; }
+}

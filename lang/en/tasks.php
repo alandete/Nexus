@@ -165,6 +165,8 @@ return [
         'filter_tag'               => 'Filter by tag',
         'filter_all_tags'          => 'All tags',
         'filter_clear'             => 'Clear',
+        'filter_result_one'        => '1 entry',
+        'filter_result_many'       => '{n} entries',
 
         'empty_active_title'     => 'No active tasks',
         'empty_active_desc'      => 'Active or paused tasks will appear here. Start a timer to begin.',

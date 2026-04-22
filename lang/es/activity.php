@@ -19,7 +19,7 @@ return [
         'filter_date_to'      => 'Hasta',
         'filter_user'         => 'Usuario',
         'filter_module'       => 'Modulo',
-        'filter_action'       => 'Accion',
+        'filter_action'       => 'Acción',
         'filter_all_users'    => 'Todos los usuarios',
         'filter_all_modules'  => 'Todos los modulos',
         'filter_all_actions'  => 'Todas las acciones',
@@ -28,7 +28,7 @@ return [
         'col_timestamp' => 'Fecha y hora',
         'col_user'      => 'Usuario',
         'col_module'    => 'Modulo',
-        'col_action'    => 'Accion',
+        'col_action'    => 'Acción',
         'col_detail'    => 'Detalle',
         'col_ip'        => 'IP',
 
@@ -40,15 +40,15 @@ return [
         'results_many'     => '{n} registros',
         'results_filtered' => 'Filtros aplicados',
 
-        // Paginacion
-        'pagination_label'  => 'Paginacion del registro',
+        // Paginación
+        'pagination_label'  => 'Paginación del registro',
         'pagination_prev'   => 'Anterior',
         'pagination_next'   => 'Siguiente',
-        'showing_of'        => 'Pagina {page} de {pages} — {total} registros',
+        'showing_of'        => 'Página {page} de {pages} — {total} registros',
 
         // Limpiar log
         'clear_title'   => 'Vaciar registro de actividad',
-        'clear_message' => 'Se eliminaran TODOS los registros de actividad. Esta accion no se puede deshacer.',
+        'clear_message' => 'Se eliminaran TODOS los registros de actividad. Esta acción no se puede deshacer.',
         'clear_success' => 'Registro limpiado correctamente.',
         'clear_error'   => 'No se pudo limpiar el registro.',
 
@@ -56,20 +56,20 @@ return [
         'err_generic' => 'No se pudo cargar el registro.',
 
         // Modulos (etiquetas legibles)
-        'mod_auth'             => 'Autenticacion',
+        'mod_auth'             => 'Autenticación',
         'mod_users'            => 'Usuarios',
-        'mod_manage_alliances' => 'Gestion de alianzas',
+        'mod_manage_alliances' => 'Gestión de alianzas',
         'mod_alliances'        => 'Alianzas',
         'mod_backup'           => 'Copias de seguridad',
         'mod_settings'         => 'Ajustes',
-        'mod_application'      => 'Aplicacion',
+        'mod_application'      => 'Aplicación',
         'mod_utilities'        => 'Utilidades',
         'mod_cleanup'          => 'Limpieza',
         'mod_reports'          => 'Registro',
 
         // Acciones (etiquetas legibles)
-        'act_login'       => 'Inicio de sesion',
-        'act_logout'      => 'Cierre de sesion',
+        'act_login'       => 'Inicio de sesión',
+        'act_logout'      => 'Cierre de sesión',
         'act_create'      => 'Crear',
         'act_update'      => 'Actualizar',
         'act_delete'      => 'Eliminar',
@@ -77,6 +77,6 @@ return [
         'act_process'     => 'Procesar',
         'act_clean'       => 'Limpiar',
         'act_clear'       => 'Vaciar',
-        'act_diagnostics' => 'Diagnostico',
+        'act_diagnostics' => 'Diagnóstico',
     ],
 ];

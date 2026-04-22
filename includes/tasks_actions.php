@@ -104,18 +104,16 @@ function getTask(PDO $db, int $userId): void
 
 function listTasks(PDO $db, int $userId): void
 {
+    // NOTA: el filtro de alianza y otros filtros del cliente NO se aplican en el backend.
+    // El frontend los aplica localmente solo a las secciones historicas (Ayer + Historial).
+    // Las secciones "actuales" (Proximas, Activas, Hoy) se muestran siempre completas.
     $dateFrom = $_POST['date_from'] ?? date('Y-m-d', strtotime('-7 days'));
     $dateTo   = $_POST['date_to'] ?? date('Y-m-d');
-    $allianceFilter = $_POST['alliance_id'] ?? '';
 
-    // Entradas de tiempo con info completa
+    // Entradas de tiempo con info completa (rango de fechas aplica porque determina
+    // que data cargar; la alianza/etiquetas/prioridad se filtran en cliente).
     $where = "te.user_id = ? AND DATE(te.start_time) BETWEEN ? AND ? AND te.end_time IS NOT NULL";
     $params = [$userId, $dateFrom, $dateTo];
-
-    if ($allianceFilter !== '') {
-        $where .= " AND t.alliance_id = ?";
-        $params[] = (int) $allianceFilter;
-    }
 
     $entriesStmt = $db->prepare("
         SELECT te.*, t.title AS task_title, t.description AS task_description, t.status AS task_status, t.alliance_id,
@@ -147,12 +145,9 @@ function listTasks(PDO $db, int $userId): void
     }
 
     // Tareas programadas sin entradas (pendientes, en progreso)
+    // Sin filtro de alianza: es vista "actual" y el usuario debe ver todas.
     $scheduledWhere = "t.user_id = ? AND t.status IN ('pending', 'in_progress')";
     $scheduledParams = [$userId];
-    if ($allianceFilter !== '') {
-        $scheduledWhere .= " AND t.alliance_id = ?";
-        $scheduledParams[] = (int) $allianceFilter;
-    }
 
     // Auto-urgente: actualizar prioridad de tareas vencidas
     $db->prepare("UPDATE tasks SET priority = 'urgent' WHERE user_id = ? AND due_date < CURDATE() AND status IN ('pending', 'in_progress') AND priority != 'urgent'")
@@ -202,16 +197,33 @@ function listTasks(PDO $db, int $userId): void
 
 function createTask(PDO $db, int $userId): void
 {
-    $title = trim($_POST['title'] ?? '');
+    $title     = trim($_POST['title'] ?? '');
+    $allianceId= !empty($_POST['alliance_id']) ? (int) $_POST['alliance_id'] : null;
+    $tagIdsRaw = trim($_POST['tag_ids'] ?? '');
+    $tagIds    = $tagIdsRaw !== '' ? array_filter(array_map('intval', explode(',', $tagIdsRaw))) : [];
+
     if (empty($title)) {
         echo json_encode(['success' => false, 'message' => 'El título es obligatorio']);
+        return;
+    }
+
+    // Regla: ninguna tarea programada puede crearse sin alianza + al menos una etiqueta
+    $missing = [];
+    if (!$allianceId)    $missing[] = 'alianza';
+    if (empty($tagIds))  $missing[] = 'etiqueta';
+    if (!empty($missing)) {
+        echo json_encode([
+            'success' => false,
+            'missing' => $missing,
+            'message' => 'Para programar una tarea debes indicar: ' . implode(' y ', $missing),
+        ]);
         return;
     }
 
     $stmt = $db->prepare("INSERT INTO tasks (user_id, alliance_id, title, description, due_date, priority, status) VALUES (?, ?, ?, ?, ?, ?, ?)");
     $stmt->execute([
         $userId,
-        !empty($_POST['alliance_id']) ? (int) $_POST['alliance_id'] : null,
+        $allianceId,
         $title,
         trim($_POST['description'] ?? '') ?: null,
         !empty($_POST['due_date']) ? $_POST['due_date'] : null,
@@ -220,11 +232,7 @@ function createTask(PDO $db, int $userId): void
     ]);
 
     $taskId = (int) $db->lastInsertId();
-
-    // Asignar etiquetas
-    if (!empty($_POST['tag_ids'])) {
-        assignTags($db, $taskId, $_POST['tag_ids']);
-    }
+    assignTags($db, $taskId, $tagIdsRaw);
 
     echo json_encode(['success' => true, 'message' => 'Tarea creada', 'task_id' => $taskId]);
 }
@@ -330,7 +338,8 @@ function timerStart(PDO $db, int $userId): void
         $taskId = (int) $existing->fetchColumn();
 
         if (!$taskId) {
-            $ins = $db->prepare("INSERT INTO tasks (user_id, alliance_id, title, status) VALUES (?, ?, ?, 'in_progress')");
+            // Tareas creadas desde el rastreador toman la fecha del dia como vencimiento por defecto
+            $ins = $db->prepare("INSERT INTO tasks (user_id, alliance_id, title, status, due_date) VALUES (?, ?, ?, 'in_progress', CURDATE())");
             $ins->execute([
                 $userId,
                 !empty($_POST['alliance_id']) ? (int) $_POST['alliance_id'] : null,
@@ -407,6 +416,18 @@ function timerPause(PDO $db, int $userId): void
         return;
     }
 
+    // Validar que la tarea tenga alianza y al menos una etiqueta
+    $check = validateTaskRequirements($db, (int) $active['task_id']);
+    if (!$check['valid']) {
+        echo json_encode([
+            'success' => false,
+            'requires_completion' => true,
+            'missing' => $check['missing'],
+            'message' => 'Antes de pausar debes completar: ' . implode(' y ', $check['missing']),
+        ]);
+        return;
+    }
+
     $db->prepare("UPDATE time_entries SET end_time = NOW(), duration_seconds = TIMESTAMPDIFF(SECOND, start_time, NOW()) WHERE id = ?")
        ->execute([$active['id']]);
 
@@ -426,6 +447,18 @@ function timerStop(PDO $db, int $userId): void
 
     if (!$active) {
         echo json_encode(['success' => false, 'message' => 'No hay cronómetro activo']);
+        return;
+    }
+
+    // Validar alianza + etiqueta antes de finalizar
+    $check = validateTaskRequirements($db, (int) $active['task_id']);
+    if (!$check['valid']) {
+        echo json_encode([
+            'success' => false,
+            'requires_completion' => true,
+            'missing' => $check['missing'],
+            'message' => 'Antes de finalizar debes completar: ' . implode(' y ', $check['missing']),
+        ]);
         return;
     }
 
@@ -471,12 +504,94 @@ function timerStatus(PDO $db, int $userId): void
 
 function timerDiscard(PDO $db, int $userId): void
 {
-    // TODO [prioritario, antes de reportes 4.5]: reset del status de la tarea tras descartar.
-    // Si la tarea no tiene mas entries despues del DELETE, debe volver a 'pending' para
-    // evitar tareas fantasma en el listado de Activas (status=in_progress sin sesiones).
-    // Actualmente el frontend filtra las fantasma pero esto falsea totales/reportes.
+    // Obtener el task_id y status del timer activo antes de borrarlo
+    $stmt = $db->prepare("
+        SELECT te.task_id, t.status
+        FROM time_entries te
+        JOIN tasks t ON te.task_id = t.id
+        WHERE te.user_id = ? AND te.end_time IS NULL
+        ORDER BY te.start_time DESC LIMIT 1
+    ");
+    $stmt->execute([$userId]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    $discardedTaskId = (int) ($row['task_id'] ?? 0);
+    $prevStatus = $row['status'] ?? '';
+
+    // Borrar la entrada activa
     $db->prepare("DELETE FROM time_entries WHERE user_id = ? AND end_time IS NULL")->execute([$userId]);
+
+    if ($discardedTaskId) {
+        $countStmt = $db->prepare("SELECT COUNT(*) FROM time_entries WHERE task_id = ?");
+        $countStmt->execute([$discardedTaskId]);
+        $remaining = (int) $countStmt->fetchColumn();
+
+        if ($remaining === 0) {
+            // Sin entries previas. Dos casos:
+            // - La tarea estaba 'in_progress' (timer recien arrancado): eliminarla por completo.
+            //   El usuario solo estaba probando y no quiere que quede como tarea programada.
+            // - La tarea estaba 'paused' o 'pending': resetear status a 'pending' (se conserva la tarea).
+            if ($prevStatus === 'in_progress') {
+                $db->prepare("DELETE FROM task_tags WHERE task_id = ?")->execute([$discardedTaskId]);
+                $db->prepare("DELETE FROM tasks WHERE id = ? AND user_id = ?")->execute([$discardedTaskId, $userId]);
+            } else {
+                $db->prepare("UPDATE tasks SET status = 'pending' WHERE id = ? AND user_id = ? AND status != 'cancelled'")
+                   ->execute([$discardedTaskId, $userId]);
+            }
+        }
+    }
+
     echo json_encode(['success' => true, 'message' => 'Entrada descartada']);
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// HELPERS DE VALIDACION
+// ═════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Valida que una tarea tenga alianza asignada y al menos una etiqueta.
+ * Regla de negocio: ninguna tarea se puede programar, pausar o finalizar sin estos datos.
+ * Devuelve array con 'valid' bool y 'missing' lista de campos faltantes.
+ */
+function validateTaskRequirements(PDO $db, int $taskId): array
+{
+    $stmt = $db->prepare("
+        SELECT t.alliance_id, (SELECT COUNT(*) FROM task_tags WHERE task_id = t.id) AS tag_count
+        FROM tasks t WHERE t.id = ?
+    ");
+    $stmt->execute([$taskId]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    $missing = [];
+    if (empty($row['alliance_id']))       $missing[] = 'alianza';
+    if ((int) $row['tag_count'] === 0)    $missing[] = 'etiqueta';
+
+    return ['valid' => empty($missing), 'missing' => $missing];
+}
+
+/**
+ * Busca un time_entry del usuario que se solape con el rango [start, end].
+ * Formula estandar de solapamiento: a.start < b.end AND b.start < a.end
+ * Devuelve array con datos del entry conflictivo o null si no hay.
+ */
+function findOverlappingEntry(PDO $db, int $userId, string $startTime, string $endTime, ?int $excludeEntryId = null): ?array
+{
+    $sql = "SELECT te.id, te.task_id, te.start_time, te.end_time, t.title
+            FROM time_entries te
+            JOIN tasks t ON te.task_id = t.id
+            WHERE te.user_id = ?
+              AND te.end_time IS NOT NULL
+              AND te.start_time < ?
+              AND te.end_time > ?";
+    $params = [$userId, $endTime, $startTime];
+    if ($excludeEntryId !== null) {
+        $sql .= " AND te.id != ?";
+        $params[] = $excludeEntryId;
+    }
+    $sql .= " LIMIT 1";
+    $stmt = $db->prepare($sql);
+    $stmt->execute($params);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $row ?: null;
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -504,8 +619,32 @@ function logManual(PDO $db, int $userId): void
     }
 
     $durationSeconds = (int) ($hours * 3600) + ($minutes * 60);
-    $startTime = $date . ' 09:00:00';
-    $endTime = date('Y-m-d H:i:s', strtotime($startTime) + $durationSeconds);
+
+    // Buscar la primera franja libre del dia (arrancando en la hora del ultimo entry cerrado)
+    // para evitar siempre arrancar a las 09:00 y chocar con entries previos.
+    $lastStmt = $db->prepare("
+        SELECT end_time FROM time_entries
+        WHERE user_id = ? AND DATE(start_time) = ? AND end_time IS NOT NULL
+        ORDER BY end_time DESC LIMIT 1
+    ");
+    $lastStmt->execute([$userId, $date]);
+    $lastEnd = $lastStmt->fetchColumn();
+    $baseStart = $lastEnd ?: ($date . ' 09:00:00');
+
+    $startTime = $baseStart;
+    $endTime   = date('Y-m-d H:i:s', strtotime($startTime) + $durationSeconds);
+
+    // Validar solapamiento con otros entries
+    $overlap = findOverlappingEntry($db, $userId, $startTime, $endTime);
+    if ($overlap) {
+        $oStart = date('h:i A', strtotime($overlap['start_time']));
+        $oEnd   = date('h:i A', strtotime($overlap['end_time']));
+        echo json_encode([
+            'success' => false,
+            'message' => "El horario se solapa con \"{$overlap['title']}\" ({$oStart}-{$oEnd}). Ajusta la fecha o duracion.",
+        ]);
+        return;
+    }
 
     $db->prepare("INSERT INTO time_entries (task_id, user_id, start_time, end_time, duration_seconds, notes) VALUES (?, ?, ?, ?, ?, ?)")
        ->execute([$taskId, $userId, $startTime, $endTime, $durationSeconds, $notes]);
@@ -550,9 +689,6 @@ function daySummary(PDO $db, int $userId): void
 
 function timeEntryUpdate(PDO $db, int $userId): void
 {
-    // TODO [prioritario, fase QA]: rechazar si el rango se solapa con otro entry del
-    // mismo user_id en la misma fecha. Actualmente la validacion esta solo en frontend
-    // (saveFormEntry -> findOverlappingEntry) y podria saltarse con requests directos.
     $entryId = (int) ($_POST['entry_id'] ?? 0);
 
     // Verificar propiedad
@@ -574,6 +710,18 @@ function timeEntryUpdate(PDO $db, int $userId): void
     $duration = strtotime($endTime) - strtotime($startTime);
     if ($duration <= 0) {
         echo json_encode(['success' => false, 'message' => 'La hora final debe ser posterior a la hora de inicio']);
+        return;
+    }
+
+    // Validar solapamiento con otros entries del usuario (excluyendo el actual)
+    $overlap = findOverlappingEntry($db, $userId, $startTime, $endTime, $entryId);
+    if ($overlap) {
+        $oStart = date('h:i A', strtotime($overlap['start_time']));
+        $oEnd   = date('h:i A', strtotime($overlap['end_time']));
+        echo json_encode([
+            'success' => false,
+            'message' => "Se solapa con otro registro: \"{$overlap['title']}\" ({$oStart}-{$oEnd})",
+        ]);
         return;
     }
 

@@ -6,29 +6,29 @@ defined('APP_ACCESS') or die('Acceso directo no permitido');
 
 return [
     'application' => [
-        'page_title'    => 'Aplicacion',
+        'page_title'    => 'Aplicación',
         'page_subtitle' => 'Identidad, colores de marca, zona horaria, modo mantenimiento y datos de la empresa.',
 
         // Secciones
         'sec_identity'       => 'Identidad',
-        'sec_identity_desc'  => 'Nombre, eslogan, descripcion, logo, favicon y colores de marca.',
+        'sec_identity_desc'  => 'Nombre, eslogan, descripción, logo, favicon y colores de marca.',
         'sec_company'        => 'Empresa',
-        'sec_company_desc'   => 'Datos de contacto de la organizacion.',
-        'sec_operation'      => 'Operacion',
+        'sec_company_desc'   => 'Datos de contacto de la organización.',
+        'sec_operation'      => 'Operación',
         'sec_operation_desc' => 'Zona horaria, idioma por defecto y modo mantenimiento.',
         'sec_privacy'        => 'Privacidad',
         'sec_privacy_desc'   => 'Visibilidad del sitio ante buscadores y traductores.',
 
         // Identidad
-        'field_app_name'       => 'Nombre de la aplicacion',
+        'field_app_name'       => 'Nombre de la aplicación',
         'field_tagline'        => 'Eslogan',
         'field_tagline_help'   => 'Frase corta visible en el login y metadatos.',
-        'field_description'    => 'Descripcion',
+        'field_description'    => 'Descripción',
         'field_assets'         => 'Logo y favicon',
         'field_logo'           => 'Logo',
         'field_favicon'        => 'Favicon',
         'field_colors'         => 'Colores de marca',
-        'colors_help'          => 'El color primario se usa en navegacion, marca y acciones clave. El acento se reserva para elementos puntuales.',
+        'colors_help'          => 'El color primario se usa en navegación, marca y acciones clave. El acento se reserva para elementos puntuales.',
         'logo_help'            => 'JPG, PNG o WebP. Max 2 MB. Recomendado 120x40 px.',
         'favicon_help'         => 'PNG, SVG o ICO. Max 512 KB. Recomendado cuadrado.',
         'btn_upload'           => 'Subir',
@@ -36,25 +36,25 @@ return [
 
         // Colores
         'field_brand_color'    => 'Color primario',
-        'brand_color_help'     => 'Se usa en navegacion activa, marca, foco y acentos clave.',
+        'brand_color_help'     => 'Se usa en navegación activa, marca, foco y acentos clave.',
         'field_accent_color'   => 'Color de acento',
         'accent_color_help'    => 'Color secundario para resaltar elementos puntuales.',
         'color_preview'        => 'Vista previa',
-        'preview_button'       => 'Accion principal',
+        'preview_button'       => 'Acción principal',
         'preview_lozenge'      => 'Activo',
 
         // Empresa
         'field_company_name'    => 'Nombre de la empresa',
-        'field_company_address' => 'Direccion',
+        'field_company_address' => 'Dirección',
         'field_contact_email'   => 'Correo de contacto',
-        'field_contact_phone'   => 'Telefono',
+        'field_contact_phone'   => 'Teléfono',
         'field_website'         => 'Sitio web',
 
-        // Operacion
+        // Operación
         'field_timezone'         => 'Zona horaria',
-        'field_timezone_help'    => 'Afecta fechas y horas mostradas en toda la aplicacion.',
+        'field_timezone_help'    => 'Afecta fechas y horas mostradas en toda la aplicación.',
         'field_default_lang'     => 'Idioma por defecto',
-        'field_default_lang_help'=> 'Idioma inicial para usuarios sin sesion.',
+        'field_default_lang_help'=> 'Idioma inicial para usuarios sin sesión.',
 
         // Modo mantenimiento
         'field_maintenance'               => 'Modo mantenimiento',
@@ -70,7 +70,7 @@ return [
         'field_privacy'      => 'Modo privado',
         'field_privacy_help' => 'Agrega meta tags noindex/nofollow para buscadores y desactiva traductores.',
 
-        // Pagina de mantenimiento
+        // Página de mantenimiento
         'maintenance_title'        => 'En mantenimiento',
         'maintenance_admin_access' => 'Acceso de administrador',
 
@@ -78,15 +78,15 @@ return [
         'btn_save'        => 'Guardar cambios',
 
         // Errores y exito
-        'err_app_name'     => 'El nombre de la aplicacion es obligatorio.',
+        'err_app_name'     => 'El nombre de la aplicación es obligatorio.',
         'err_brand_color'  => 'Color primario invalido. Debe ser hexadecimal (#RRGGBB).',
         'err_accent_color' => 'Color de acento invalido. Debe ser hexadecimal (#RRGGBB).',
         'err_email'        => 'Correo no valido.',
         'err_website'      => 'URL no valida. Debe empezar con http:// o https://',
         'err_timezone'     => 'Zona horaria no valida.',
-        'err_generic'      => 'No se pudo guardar la configuracion.',
+        'err_generic'      => 'No se pudo guardar la configuración.',
         'err_save'         => 'Error al guardar. Revisa los campos.',
-        'success_save'     => 'Configuracion guardada.',
+        'success_save'     => 'Configuración guardada.',
         'saved'            => 'Cambios guardados.',
     ],
 ];

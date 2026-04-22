@@ -66,6 +66,18 @@
         return div.innerHTML;
     }
 
+    // Convierte 'HH:MM' (24h) a '06:30 AM' / '02:15 PM' (12h)
+    function to12h(hm) {
+        if (!hm) return '';
+        const parts = String(hm).split(':');
+        let h = parseInt(parts[0], 10);
+        const m = (parts[1] || '00').padStart(2, '0');
+        if (isNaN(h)) return hm;
+        const period = h >= 12 ? 'PM' : 'AM';
+        h = h % 12; if (h === 0) h = 12;
+        return `${String(h).padStart(2, '0')}:${m} ${period}`;
+    }
+
     // Convierte 'YYYY-MM-DD' (o 'YYYY-MM-DD HH:MM:SS') a 'DD/MM/YYYY'
     function formatDateDMY(value) {
         if (!value) return '';
@@ -411,7 +423,7 @@
                 renderActiveCard();
                 startTicking();
                 hideAutocomplete();
-                Toast.success(t('tasks.timer_started', 'Cronometro iniciado.'));
+                Toast.success(t('tasks.timer_started', 'Cronómetro iniciado.'));
                 if (typeof loadList === 'function') loadList();
 
                 // Hidratar el state con todos los campos (timer_start no devuelve priority/due_date/description)
@@ -511,7 +523,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="fTaskDescription" class="form-label">${t('tasks.field_description', 'Descripcion')}</label>
+                    <label for="fTaskDescription" class="form-label">${t('tasks.field_description', 'Descripción')}</label>
                     <textarea id="fTaskDescription" name="description" class="form-control" rows="3"
                               placeholder="${t('tasks.description_placeholder', 'Agrega detalles, notas o contexto adicional...')}"
                     >${escapeHtml(current.description)}</textarea>
@@ -851,18 +863,22 @@
         const dueDate = form.due_date.value;
         const tagIds = Array.from(form.querySelectorAll('input[name="tag_ids[]"]:checked')).map(el => el.value);
 
+        // Alliance + al menos una etiqueta son obligatorias tanto en create como en forceComplete.
+        // Regla de negocio: ninguna tarea puede programarse, pausarse o finalizarse sin estos datos.
+        const requireMeta = opts.forceComplete === true || opts.create === true;
+
         let hasError = false;
         if (!title) {
             document.getElementById('fTaskTitle').classList.add('form-control-error');
             document.getElementById('fTaskTitleError').textContent = t('tasks.err_title', 'El titulo es obligatorio.');
             hasError = true;
         }
-        if (opts.forceComplete && !allianceId) {
+        if (requireMeta && !allianceId) {
             document.getElementById('fTaskAlliance').classList.add('form-control-error');
             document.getElementById('fTaskAllianceError').textContent = t('tasks.err_alliance', 'Selecciona una alianza.');
             hasError = true;
         }
-        if (opts.forceComplete && tagIds.length === 0) {
+        if (requireMeta && tagIds.length === 0) {
             document.getElementById('fTaskTagsError').textContent = t('tasks.err_tags', 'Selecciona al menos una etiqueta.');
             hasError = true;
         }
@@ -961,7 +977,7 @@
             const result = await api('timer_pause');
             if (result.success) {
                 Toast.success(
-                    t('tasks.timer_paused', 'Cronometro pausado ({duration})').replace('{duration}', formatDuration(result.duration || 0))
+                    t('tasks.timer_paused', 'Cronómetro pausado ({duration})').replace('{duration}', formatDuration(result.duration || 0))
                 );
                 resetState();
                 renderEmpty();
@@ -1031,7 +1047,7 @@
         try {
             const result = await api('timer_discard');
             if (result.success) {
-                Toast.info(t('tasks.timer_discarded', 'Cronometro descartado.'));
+                Toast.info(t('tasks.timer_discarded', 'Cronómetro descartado.'));
                 resetState();
                 renderEmpty();
                 if (typeof loadList === 'function') loadList();
@@ -1113,12 +1129,13 @@
     }
 
     function applyLocalFilters(items) {
-        const { search, priority, tags } = listState.filters;
+        const { search, alliance, priority, tags } = listState.filters;
         return items.filter(task => {
             if (search) {
                 const hay = (task.title || '').toLowerCase() + ' ' + (task.alliance_name || '').toLowerCase();
                 if (!hay.includes(search.toLowerCase())) return false;
             }
+            if (alliance && String(task.alliance_id || '') !== String(alliance)) return false;
             if (priority && (task.priority || 'medium') !== priority) return false;
             if (tags && tags.length > 0) {
                 // Semantica OR: la tarea pasa si tiene al menos una de las etiquetas seleccionadas
@@ -1196,11 +1213,13 @@
     function updateSectionCounts() {
         const today = todayStr();
         const yday  = yesterdayStr();
-        const active = applyLocalFilters(listState.data.active).length;
-        const scheduled = applyLocalFilters(listState.data.scheduled).length;
-        const todayTasks = applyLocalFilters(groupEntriesByTask(
+        // Secciones "vista actual" (sin filtros locales)
+        const active    = (listState.data.active    || []).length;
+        const scheduled = (listState.data.scheduled || []).length;
+        const todayTasks = groupEntriesByTask(
             (listState.data.by_date[today] || []).filter(e => !isActiveEntry(e))
-        )).length;
+        ).length;
+        // Ayer e Historial si aplican filtros locales
         const yesterdayTasks = applyLocalFilters(groupEntriesByTask(listState.data.by_date[yday] || [])).length;
         const history = Object.entries(listState.data.by_date)
             .filter(([date]) => date !== today && date !== yday)
@@ -1220,6 +1239,24 @@
         setCount('countToday', todayTasks);
         setCount('countYesterday', yesterdayTasks);
         setCount('countHistory', history);
+
+        // Contador de resultados del filtro: suma de lo que queda en las secciones
+        // afectadas por los filtros locales (Ayer + Historial).
+        const filterResultsEl = document.getElementById('filterResultsCount');
+        if (filterResultsEl) {
+            const total = yesterdayTasks + history;
+            const hasActiveFilter = !!(
+                listState.filters.search ||
+                listState.filters.alliance ||
+                listState.filters.priority ||
+                (listState.filters.tags && listState.filters.tags.length)
+            );
+            const label = total === 1
+                ? t('tasks.filter_result_one',  '1 registro')
+                : t('tasks.filter_result_many', '{n} registros').replace('{n}', total);
+            filterResultsEl.textContent = label;
+            filterResultsEl.classList.toggle('is-filtered', hasActiveFilter);
+        }
     }
 
     // En "Hoy" no queremos tareas que siguen corriendo (esas van en Activas).
@@ -1374,7 +1411,7 @@
     function cellStartTime(item) {
         const first = (item.entries && item.entries[0] && item.entries[0].start_time) || item.first_time;
         if (!first) return `<span class="text-subtle">—</span>`;
-        return `<span class="text-mono">${escapeHtml(first.slice(11, 16))}</span>`;
+        return `<span class="text-mono">${escapeHtml(to12h(first.slice(11, 16)))}</span>`;
     }
     function cellStatus(item) {
         const isCurrent = state.running && state.taskId == item.task_id;
@@ -1406,17 +1443,17 @@
         ];
     }
 
-    // Columnas para Historial: mismo schema + columna "Hora de inicio" antes de Tiempo
-    function historyTableColumns() {
+    // Columnas para secciones agrupadas por dia (Hoy, Ayer, Historial):
+    // mismo schema base + columna "Hora de inicio" antes de "Tiempo"
+    function dayGroupedTableColumns() {
         const base = taskTableColumns();
         const timeCol = {
             key: 'start_time',
             label: t('tasks.col_start_time', 'Hora'),
-            width: '55px',
+            width: '80px',
             align: 'right',
             render: cellStartTime,
         };
-        // Insertar antes de la columna 'time' (tiempo acumulado)
         const idx = base.findIndex(c => c.key === 'time');
         const out = [...base];
         if (idx >= 0) out.splice(idx, 0, timeCol);
@@ -1443,7 +1480,9 @@
         if (!container || !section) return;
 
         // Normalizar: active tasks vienen con `id` (no task_id)
-        const items = applyLocalFilters(listState.data.active).map(tk => {
+        // Activas no se ven afectadas por los filtros locales (search/priority/tag):
+        // son la "foto actual" del trabajo en curso, no una busqueda historica.
+        const items = (listState.data.active || []).map(tk => {
             const entryCount = (listState.data.by_date && Object.values(listState.data.by_date)
                 .flat().filter(e => e.task_id == tk.id).length) || 0;
             return { ...tk, task_id: tk.id, entry_count: entryCount || null };
@@ -1471,7 +1510,7 @@
             emptyState: {
                 icon:  'bi-play-circle',
                 title: t('tasks.empty_active_title', 'No hay tareas activas'),
-                desc:  t('tasks.empty_active_desc',  'Aqui apareceran las tareas en progreso o pausadas. Inicia un cronometro para comenzar.'),
+                desc:  t('tasks.empty_active_desc',  'Aquí aparecerán las tareas en progreso o pausadas. Inicia un cronómetro para comenzar.'),
             },
         });
     }
@@ -1481,9 +1520,10 @@
         const container = document.getElementById('contentToday');
         if (!container || !section) return;
 
-        // Excluir entries de tareas que aun estan en "Activas" (no duplicar)
+        // Excluir entries de tareas que aun estan en "Activas" (no duplicar).
+        // Hoy tampoco se filtra con los controles de la barra (vista "actual").
         const entries = (listState.data.by_date[todayStr()] || []).filter(e => !isActiveEntry(e));
-        const items = applyLocalFilters(groupEntriesByTask(entries));
+        const items = groupEntriesByTask(entries);
 
         if (items.length === 0) {
             section.classList.add('d-none');
@@ -1497,14 +1537,14 @@
 
         renderTaskTable({
             container,
-            columns: taskTableColumns(),
+            columns: dayGroupedTableColumns(),
             items,
             actions: taskTableActions(),
             expandable: true,
             emptyState: {
                 icon:  'bi-sun',
-                title: t('tasks.empty_today_title', 'Sin actividad hoy aun'),
-                desc:  t('tasks.empty_today_desc',  'Las tareas que completes o pauses hoy apareceran aqui.'),
+                title: t('tasks.empty_today_title', 'Sin actividad hoy aún'),
+                desc:  t('tasks.empty_today_desc',  'Las tareas que completes o pauses hoy aparecerán aquí.'),
             },
         });
     }
@@ -1529,13 +1569,14 @@
 
         renderTaskTable({
             container,
-            columns: taskTableColumns(),
+            columns: dayGroupedTableColumns(),
             items,
             actions: taskTableActions(),
+            expandable: true,
             emptyState: {
                 icon:  'bi-calendar-minus',
                 title: t('tasks.empty_yesterday_title', 'No hubo actividad ayer'),
-                desc:  t('tasks.empty_yesterday_desc',  'Aqui apareceran las tareas en las que trabajaste ayer, con total de tiempo y numero de sesiones.'),
+                desc:  t('tasks.empty_yesterday_desc',  'Aquí aparecerán las tareas en las que trabajaste ayer, con total de tiempo y número de sesiones.'),
             },
         });
     }
@@ -1569,8 +1610,9 @@
         const today = todayStr();
         const priorityOrder = { urgent: 1, high: 2, medium: 3, low: 4 };
 
+        // Proximas no se filtra con los controles de la barra (son vista "actual").
         // Orden: vencidas -> urgent -> high -> medium -> low; dentro de cada bucket, due_date asc
-        const sorted = applyLocalFilters(listState.data.scheduled).slice().sort((a, b) => {
+        const sorted = (listState.data.scheduled || []).slice().sort((a, b) => {
             const aOverdue = a.due_date && a.due_date < today ? 0 : 1;
             const bOverdue = b.due_date && b.due_date < today ? 0 : 1;
             if (aOverdue !== bOverdue) return aOverdue - bOverdue;
@@ -1582,8 +1624,8 @@
 
         if (sorted.length === 0) {
             container.innerHTML = emptyState('bi-calendar-check',
-                t('tasks.empty_scheduled_title', 'No hay tareas proximas'),
-                t('tasks.empty_scheduled_desc', 'Aqui apareceran las tareas pendientes sin tiempo registrado, ordenadas por prioridad y fecha de vencimiento.'));
+                t('tasks.empty_scheduled_title', 'No hay tareas próximas'),
+                t('tasks.empty_scheduled_desc', 'Aquí aparecerán las tareas pendientes sin tiempo registrado, ordenadas por prioridad y fecha de vencimiento.'));
             container.classList.remove('at-start', 'at-end');
             return;
         }
@@ -1695,7 +1737,7 @@
         if (datesWithTasks.length === 0) {
             container.innerHTML = emptyState('bi-clock-history',
                 t('tasks.empty_history_title', 'Sin historial en este rango'),
-                t('tasks.empty_history_desc', 'Ajusta las fechas o empieza a registrar tiempo para ver el historial aqui.'));
+                t('tasks.empty_history_desc', 'Ajusta las fechas o empieza a registrar tiempo para ver el historial aquí.'));
             return;
         }
 
@@ -1733,7 +1775,7 @@
             if (!dayContainer) return;
             renderTaskTable({
                 container: dayContainer,
-                columns: historyTableColumns(),
+                columns: dayGroupedTableColumns(),
                 items: tasks,
                 actions: taskTableActions(),
                 expandable: true,
@@ -1778,7 +1820,7 @@
 
         pag.innerHTML = `
             <div class="pagination-info text-sm text-subtle">
-                ${t('tasks.history_page_info', 'Pagina {page} de {pages}')
+                ${t('tasks.history_page_info', 'Página {page} de {pages}')
                     .replace('{page}', current).replace('{pages}', totalPages)}
             </div>
             <div class="pagination-controls">
@@ -1831,9 +1873,10 @@
             loadList();
         });
         document.getElementById('filterAlliance')?.addEventListener('change', (e) => {
+            // Alliance es filtro local (solo Ayer/Historial); no recarga backend
             listState.filters.alliance = e.target.value;
             listState.historyPage = 1;
-            loadList();
+            renderAllPanels();
         });
         document.getElementById('filterPriority')?.addEventListener('change', (e) => {
             listState.filters.priority = e.target.value;
@@ -1933,8 +1976,8 @@
         // Validar solapamiento con otros entries del mismo dia del usuario
         const overlap = findOverlappingEntry(date, startHour, endHour, entryId);
         if (overlap) {
-            const os = (overlap.start_time || '').slice(11, 16);
-            const oe = (overlap.end_time   || '').slice(11, 16);
+            const os = to12h((overlap.start_time || '').slice(11, 16));
+            const oe = to12h((overlap.end_time   || '').slice(11, 16));
             Toast.error(t('tasks.entry_err_overlap', 'Se solapa con otro registro del dia ({task}, {start}-{end})')
                 .replace('{task}',  overlap.task_title || '')
                 .replace('{start}', os)
@@ -2143,7 +2186,7 @@
                 </div>
                 <div class="task-detail-body">
                     <div class="task-detail-block">
-                        <h5 class="task-detail-label">${escapeHtml(t('tasks.field_description', 'Descripcion'))}</h5>
+                        <h5 class="task-detail-label">${escapeHtml(t('tasks.field_description', 'Descripción'))}</h5>
                         <div class="task-detail-desc">${descHtml}</div>
                     </div>
                     <div class="task-detail-block">
@@ -2156,8 +2199,8 @@
     }
 
     function renderEntryRow(e) {
-        const startHour = (e.start_time || '').slice(11, 16);
-        const endHour = e.end_time ? e.end_time.slice(11, 16) : '—';
+        const startHour = to12h((e.start_time || '').slice(11, 16));
+        const endHour = e.end_time ? to12h(e.end_time.slice(11, 16)) : '—';
         const dur = e.duration_seconds ? formatDuration(parseInt(e.duration_seconds, 10)) : '—';
         return `
             <tr class="task-detail-entry-row" data-entry-id="${e.id}">

@@ -141,19 +141,7 @@ if (isDBAvailable()) {
         <div class="tasks-panel-content tasks-grid-table" id="contentToday" role="grid"></div>
     </div>
 
-    <!-- Seccion: tareas de ayer (layout tabla) - se oculta si esta vacia -->
-    <div class="tasks-section d-none" id="sectionYesterday">
-        <div class="tasks-section-header">
-            <h3 class="tasks-section-title">
-                <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>
-                <?= __('tasks.tab_yesterday') ?>
-                <span class="tasks-section-count" id="countYesterday">0</span>
-            </h3>
-        </div>
-        <div class="tasks-panel-content tasks-grid-table" id="contentYesterday" role="grid"></div>
-    </div>
-
-    <!-- Barra de filtros compacta (aplica a historial) -->
+    <!-- Barra de filtros compacta (aplica solo a Ayer e Historial) -->
     <div class="filter-bar tasks-filter-bar" role="group" aria-label="<?= __('tasks.filters_label') ?>">
         <div class="filter-bar-search">
             <i class="bi bi-search filter-bar-search-icon" aria-hidden="true"></i>
@@ -209,11 +197,25 @@ if (isDBAvailable()) {
             </div>
         </div>
 
+        <span class="filter-results-count" id="filterResultsCount" aria-live="polite">—</span>
+
         <button type="button" class="btn-icon" id="btnClearFilters"
                 data-tooltip="<?= __('tasks.filter_clear') ?>" data-tooltip-position="top"
                 aria-label="<?= __('tasks.filter_clear') ?>">
             <i class="bi bi-x-circle" aria-hidden="true"></i>
         </button>
+    </div>
+
+    <!-- Seccion: tareas de ayer (layout tabla) - se oculta si esta vacia -->
+    <div class="tasks-section d-none" id="sectionYesterday">
+        <div class="tasks-section-header">
+            <h3 class="tasks-section-title">
+                <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>
+                <?= __('tasks.tab_yesterday') ?>
+                <span class="tasks-section-count" id="countYesterday">0</span>
+            </h3>
+        </div>
+        <div class="tasks-panel-content tasks-grid-table" id="contentYesterday" role="grid"></div>
     </div>
 
     <!-- Seccion: historial (sin header: los dias actuan como titulos) -->

@@ -7,7 +7,7 @@ defined('APP_ACCESS') or die('Acceso directo no permitido');
 return [
     'snapshots' => [
         'page_title'    => 'Copias de seguridad',
-        'page_subtitle' => 'Respaldos del sistema para proteger tus datos y configuracion.',
+        'page_subtitle' => 'Respaldos del sistema para proteger tus datos y configuración.',
 
         'btn_create'         => 'Crear copia',
         'btn_create_confirm' => 'Crear copia',
@@ -21,14 +21,14 @@ return [
         // Stats
         'stat_total'     => 'Copias',
         'stat_size'      => 'Espacio usado',
-        'stat_last'      => 'Ultima copia',
+        'stat_last'      => 'Última copia',
         'stat_favorites' => 'Favoritas',
 
-        // Rotacion
+        // Rotación
         'rotation_data'  => 'Datos',
         'rotation_full'  => 'Completas',
         'rotation_slots' => 'espacios usados',
-        'rotation_hint'  => 'Las copias favoritas no cuentan para la rotacion automatica.',
+        'rotation_hint'  => 'Las copias favoritas no cuentan para la rotación automática.',
 
         // Filtros
         'search_placeholder' => 'Buscar por nombre o nota...',
@@ -40,7 +40,7 @@ return [
 
         // Estados
         'empty_title'          => 'Sin copias de seguridad',
-        'empty_desc'           => 'Aun no hay copias guardadas. Crea la primera para proteger tu informacion.',
+        'empty_desc'           => 'Aun no hay copias guardadas. Crea la primera para proteger tu información.',
         'empty_filtered_title' => 'Sin resultados',
         'empty_filtered_desc'  => 'Ajusta los filtros para ver mas copias.',
 
@@ -48,12 +48,12 @@ return [
         'type_data'       => 'Datos',
         'type_data_desc'  => 'Archivos JSON + plantillas + base de datos. Ligero, restaurable desde la interfaz.',
         'type_full'       => 'Completa',
-        'type_full_desc'  => 'Todo el proyecto: codigo, configuracion y datos. Solo para descarga manual.',
-        'full_hint'       => 'Las copias completas solo pueden descargarse. La restauracion es manual.',
+        'type_full_desc'  => 'Todo el proyecto: código, configuración y datos. Solo para descarga manual.',
+        'full_hint'       => 'Las copias completas solo pueden descargarse. La restauración es manual.',
 
         // Protegida (favorita)
         'protected'         => 'Protegida',
-        'protected_tooltip' => 'No se elimina automaticamente por rotacion.',
+        'protected_tooltip' => 'No se elimina automaticamente por rotación.',
         'delete_locked'     => 'Quita el favorito para eliminarla',
 
         // Formulario de creacion
@@ -61,16 +61,16 @@ return [
         'field_type'             => 'Tipo de copia',
         'field_note'             => 'Nota (opcional)',
         'field_note_placeholder' => 'Ej: antes del cambio X',
-        'field_note_help'        => 'Texto breve para identificar esta copia despues.',
+        'field_note_help'        => 'Texto breve para identificar esta copia después.',
         'field_cleanup'          => 'Limpiar archivos temporales antes de crear',
         'field_cleanup_help'     => 'Elimina archivos temporales de procesamiento (/temp/) antes de crear la copia.',
-        'create_hint_data'       => 'Se guardaran los JSON, plantillas y la base de datos. Esta copia se puede restaurar desde aqui mismo.',
-        'create_hint_full'       => 'Se empaquetara todo el proyecto. Util para migracion completa. No podras restaurarla desde la interfaz, solo descargarla.',
+        'create_hint_data'       => 'Se guardaran los JSON, plantillas y la base de datos. Esta copia se puede restaurar desde aquí mismo.',
+        'create_hint_full'       => 'Se empaquetara todo el proyecto. Útil para migración completa. No podras restaurarla desde la interfaz, solo descargarla.',
         'creating'               => 'Creando...',
 
-        // Restauracion
+        // Restauración
         'restore_title'   => 'Restaurar copia',
-        'restore_message' => 'Se sobrescribiran los datos actuales con el contenido de esta copia. Esta accion no se puede deshacer.
+        'restore_message' => 'Se sobrescribiran los datos actuales con el contenido de esta copia. Esta acción no se puede deshacer.
 
 Archivo: {file}',
 

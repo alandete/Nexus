@@ -865,6 +865,12 @@ select.form-control {
     text-align: center;
 }
 
+/* Cuando el carrusel horizontal no tiene cards, centrar el empty-state */
+.tasks-cards-grid > .empty-state {
+    flex: 1 1 100%;
+    margin: 0 auto;
+}
+
 .empty-state-icon {
     font-size: 48px;
     color: var(--ds-icon-subtle);
@@ -898,7 +904,7 @@ select.form-control {
     flex-direction: column;
     gap: var(--ds-space-100);
     width: calc(100% - var(--ds-space-400));
-    max-width: 400px;
+    max-width: 560px;
     pointer-events: none;
 }
 
@@ -4188,7 +4194,21 @@ a.stat-card:hover {
 .tasks-filter-bar .btn-icon {
     width: 30px;
     height: 30px;
+}
+
+/* Contador de resultados del filtro: pegado a la derecha, antes del clear */
+.filter-results-count {
     margin-left: auto;
+    padding: 0 var(--ds-space-100);
+    font-size: var(--ds-font-size-body-sm);
+    color: var(--ds-text-subtle);
+    white-space: nowrap;
+    line-height: 30px;
+}
+
+.filter-results-count.is-filtered {
+    color: var(--app-brand);
+    font-weight: var(--ds-font-weight-semibold);
 }
 
 /* ---- Seccion ---- */

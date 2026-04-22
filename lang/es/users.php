@@ -65,7 +65,7 @@ return [
         'field_photo_change'   => 'Cambiar foto',
         'field_photo_remove'   => 'Quitar foto',
 
-        // Validacion
+        // Validación
         'err_username'         => 'Usuario inválido. Usa 3-20 letras, números o guion bajo.',
         'err_name'             => 'El nombre es obligatorio.',
         'err_email'            => 'Correo inválido.',

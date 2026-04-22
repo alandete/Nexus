@@ -10,7 +10,7 @@ return [
         'page_subtitle' => 'Gestiona las etiquetas, importa o exporta tareas y realiza mantenimiento de los datos.',
 
         // ─── Etiquetas ───
-        'tabs_label'              => 'Secciones de administracion',
+        'tabs_label'              => 'Secciones de administración',
         'tags_title'              => 'Etiquetas',
         'tags_desc'               => 'Organiza las tareas con etiquetas personalizadas. Una tarea puede tener varias etiquetas.',
         'new_tag_placeholder'     => 'Nueva etiqueta...',
@@ -36,7 +36,7 @@ return [
         'edit_tag_title'   => 'Editar etiqueta',
         'field_name'       => 'Nombre',
         'field_color'      => 'Color',
-        'field_color_hex'  => 'Codigo hex',
+        'field_color_hex'  => 'Código hex',
         'color_help'       => 'Color identificador de la etiqueta. Debe ser un hex valido (#RRGGBB).',
 
         'tag_created'  => 'Etiqueta creada.',
@@ -50,18 +50,18 @@ return [
         'delete_tag_title'     => 'Eliminar etiqueta',
         'delete_tag_message'   => 'La etiqueta "{name}" se eliminara.',
         'delete_tag_warn_usage'=> 'Esta asignada a {n} {label} — se quitara de todas ellas.',
-        'delete_tag_warn_undo' => 'Esta accion no se puede deshacer.',
+        'delete_tag_warn_undo' => 'Esta acción no se puede deshacer.',
 
         // ─── Importar / Exportar (placeholder) ───
         'io_title' => 'Importar y exportar',
         'io_desc'  => 'Transfiere tareas entre entornos, importa desde hojas de calculo o genera copias en JSON/CSV/Excel.',
-        'io_placeholder_title' => 'Proximamente',
-        'io_placeholder_desc'  => 'La importacion y exportacion de tareas se habilitara en una sub-fase proxima.',
+        'io_placeholder_title' => 'Próximamente',
+        'io_placeholder_desc'  => 'La importación y exportación de tareas se habilitara en una sub-fase próxima.',
 
         // ─── Limpieza (placeholder) ───
         'cleanup_title' => 'Limpieza de datos',
         'cleanup_desc'  => 'Elimina tareas antiguas o completadas en bloque para mantener la base de datos ligera.',
-        'cleanup_placeholder_title' => 'Proximamente',
-        'cleanup_placeholder_desc'  => 'Las operaciones de limpieza en bloque se habilitaran en una sub-fase proxima.',
+        'cleanup_placeholder_title' => 'Próximamente',
+        'cleanup_placeholder_desc'  => 'Las operaciones de limpieza en bloque se habilitaran en una sub-fase próxima.',
     ],
 ];

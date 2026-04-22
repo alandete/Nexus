@@ -14,14 +14,50 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
   - Validacion Clockify ↔ Nexus completada y confirmada antes del cierre.
 - **Prioridad de cierre** (11 dias habiles disponibles): backend fixes → Importar/Exportar → Limpieza → Reportes → Clockify validation.
 
-### Deuda tecnica priorizada (resolver antes de Sub-fase 4.5 Reportes)
+### Sesion 2026-04-21 — pulido pre-produccion
 
-- **Backend `timer_discard` no resetea el status de la tarea**. Cuando el usuario descarta un timer recien iniciado, el entry se borra pero la tarea queda en `in_progress` sin ninguna sesion. Genera "tareas fantasma" en Activas y falsea totales en reportes futuros.
-  - Workaround actual: el frontend filtra activas con `total_seconds > 0` o con al menos un entry en rango.
-  - Fix pendiente en backend: `timerDiscard` debe verificar si la tarea tenia otras entries; si no, setear status a `pending`. Ver `includes/tasks_actions.php:472` (hay TODO inline).
+**Backend**:
+- `timer_discard` ahora elimina la tarea por completo si era `in_progress` sin entries previos (evita "tareas fantasma"). Si tenia entries o estaba `paused`, vuelve a `pending`
+- Nuevo helper `validateTaskRequirements(taskId)` que verifica alianza + ≥1 etiqueta
+- `create`, `timer_pause` y `timer_stop` rechazan con `requires_completion: true` si faltan esos datos
+- `timer_start` setea `due_date = CURDATE()` al crear una tarea desde el rastreador
+- Endpoint `list` ya no filtra por `alliance_id`: siempre carga todas las tareas/entries del rango. El filtro de alianza se aplica solo en cliente sobre Ayer/Historial
+- `log_manual` arranca en el `end_time` del ultimo entry del dia (en vez de siempre a las 09:00) para evitar colisiones sistemicas
 
-- **Backend `time_entry_update` y `time_entry_create` no validan solapamientos**. Actualmente dos registros de distintas tareas pueden coincidir en el mismo rango horario. El frontend valida en `saveFormEntry` (via `findOverlappingEntry`) pero un request directo al endpoint puede saltarse la validacion.
-  - Fix pendiente en backend: rechazar con 400 si el rango `[start_time, end_time]` se solapa con otro entry del mismo `user_id` en la misma fecha. Ver `includes/tasks_actions.php:551` (hay TODO inline).
+**UX / listado**:
+- Orden de secciones ajustado: `Proximas | Activas | Hoy | Filtros | Ayer | Historial` (barra movida un paso atras)
+- Los filtros locales (busqueda, alianza, prioridad, etiquetas) solo afectan a Ayer e Historial. Proximas/Activas/Hoy son vista "actual" completa
+- Contador de registros en la barra (estilo tinte brand cuando hay filtros activos)
+- Columna "Hora" (primera sesion del dia) en Hoy y Ayer (antes solo en Historial)
+- Formato 12H (AM/PM) en todos los horarios visibles y en mensajes de solapamiento
+- Toast ampliado a `max-width: 560px` para mensajes de overlap largos
+- Empty state del carrusel de Proximas centrado horizontalmente
+- Fallbacks hardcoded del JS corregidos ortograficamente
+
+**Corrector ortografico — pase unico**:
+- 258 correcciones aplicadas en 12 archivos `lang/es/*.php` (`-cion/-sion`, `proxima/-o/-s`, `version`, `aplicacion`, `contrasena`, `imagenes`, `vacio`, `via`, `numero`, `cronometro`, `codigo`, `metodo`, `categoria`, `dia/-s`, `ultimo/-a/-s`, etc.) y en fallbacks de `assets/js/tasks.js` y `manage-tasks.js`. Keys PHP intactas
+- Agendado para Fase QA: `cspell` con `.cspell.json` + pre-commit hook
+
+**Migracion de BD**:
+- La app ya no lee de `nexusapp` (del proyecto anterior) sino de la BD nueva `nexus` con usuario MySQL dedicado
+- Se conservaron `alliances`, `tags`, `roles` y `migrations`. Usuario admin creado con password `password`
+- Backup de `nexusapp` guardado en `backups/nexusapp-dump-20260420-150928.sql` por si se necesita restaurar
+
+**Seed de prueba**:
+- 60 tareas con dates/prioridades variadas cubriendo los ultimos 2 meses
+- Cada tarea con alianza + 2-4 etiquetas; 70% con sesiones trabajadas 0/1/2/3/5/7 dias despues
+- 179 time entries sin solapamientos (el seed valida huecos libres)
+
+### Backend fixes criticos (completados 2026-04-21)
+
+- **`timer_discard` ahora resetea el status de la tarea**. Si despues de borrar la entry activa la tarea queda sin ningun entry, su status vuelve a `pending`. Elimina el caso de "tareas fantasma" en Activas.
+- **Helper `findOverlappingEntry` en backend**. Formula estandar de overlap (a.start < b.end AND b.start < a.end) que busca entries del mismo `user_id` que colisionen con un rango dado. Reutilizable.
+- **`time_entry_update` valida solapamiento** antes de aplicar el UPDATE. Rechaza con mensaje indicando la tarea conflictiva y su rango. El frontend (`saveFormEntry`) ya validaba pero ahora el endpoint es defensivo incluso ante requests directos.
+- **`log_manual` valida solapamiento** al crear entries manuales. Ademas ahora arranca en el `end_time` del ultimo entry cerrado del dia (en vez de siempre a las 09:00) para evitar colisiones sistemicas.
+
+### Tareas para fase QA (Fase 8)
+
+- **Setup de cspell (o similar) para corrector ortografico automatico**. Configurar `.cspell.json` con diccionario `es-ES` + glosario del proyecto (Atlassian, lozenge, bcrypt, nexus, etc.) y dejarlo en un pre-commit hook. Eso evita que se cuelen palabras sin tilde/acento como "Proximas" en vez de "Proximas". Complementa el pase manual unico hecho en 2026-04-21.
 
 ### Tareas semana actual
 

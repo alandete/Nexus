@@ -77,7 +77,7 @@
                 <input type="text" class="form-control form-control-sm text-mono tag-hex-input"
                        data-field="${fieldKey}-hex" value="${escapeHtml(color)}"
                        maxlength="7" pattern="#[0-9a-fA-F]{6}" ${dis}
-                       aria-label="${t('manage_tasks.field_color_hex', 'Codigo hex')}">
+                       aria-label="${t('manage_tasks.field_color_hex', 'Código hex')}">
             </div>
         `;
     }

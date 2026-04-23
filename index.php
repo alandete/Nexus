@@ -53,6 +53,7 @@ if (empty($_SESSION['lang']) && !empty($projectInfo['default_lang']) && in_array
 $page = isset($_GET['page']) ? sanitize($_GET['page']) : 'home';
 $validPages = [
     'home', 'tasks', 'alliances', 'utilities', 'documentation',
+    'reports',
     'settings', 'users', 'manage-alliances', 'manage-tasks', 'application', 'integrations',
     'snapshots', 'system', 'activity',
     'login', 'logout',
@@ -242,6 +243,14 @@ if (!empty($projectInfo['maintenance_mode'])) {
 
     <?php if ($page === 'manage-tasks'): ?>
     <script src="assets/js/manage-tasks.js?v=<?= filemtime('assets/js/manage-tasks.js') ?>"></script>
+    <?php endif; ?>
+
+    <?php if ($page === 'reports'): ?>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/litepicker@2.0.12/dist/litepicker.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/litepicker@2.0.12/dist/plugins/ranges.js"></script>
+    <script src="assets/js/reports.js?v=<?= filemtime('assets/js/reports.js') ?>"></script>
     <?php endif; ?>
 
     <?php if ($page === 'application'): ?>

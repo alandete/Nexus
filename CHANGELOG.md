@@ -14,6 +14,46 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
   - Validacion Clockify ↔ Nexus completada y confirmada antes del cierre.
 - **Prioridad de cierre** (11 dias habiles disponibles): backend fixes → Importar/Exportar → Limpieza → Reportes → Clockify validation.
 
+### Sub-fase 4.5 Reportes — 2026-04-22
+
+**Pagina `/reports`** (nueva):
+- Filtros inline en una linea: tipo (Resumido/Detallado) + rango (Ultima semana / Mes anterior / Personalizado) + selector de usuario (solo admin).
+- Auto-carga inicial con defaults (Resumido + Mes anterior + usuario logueado).
+- Header del reporte en 2 columnas: izquierda nombre de usuario + periodo, derecha tiempo total en tipografia grande.
+- Grafico doughnut con % dentro de cada segmento y leyenda abajo (Chart.js 4.4.0 + plugin custom `pctLabelsPlugin`).
+- Tabla resumen por alianza (siempre visible).
+- Modo Detallado: cards por alianza con header resumen (`N tareas · tiempo total`) + tabla de tareas adentro con zebra; card similar para "Total por etiqueta". Bordes uniformes a 1px, sin radius, padding generoso en columnas.
+
+**Calendario personalizado** (Litepicker 2.0.12 + plugin ranges):
+- Popover flotante que no empuja contenido, 2 meses visibles.
+- Presets no redundantes con los botones de rango: "La semana pasada", "Ultimos 15 dias", "Ultimos 30 dias", "Este anio".
+- Popover con sombra amplia, separado del trigger con `transform: translateY`.
+- Panel de presets con padding interno y hover en tono neutro (contraste AAA).
+
+**Exports**:
+- CSV con BOM UTF-8 + CRLF (acentos correctos en Excel).
+- XLSX via ExcelJS 4.4.0 con formato (fills brand, bordes, zebra, headers semibold, tiempo total destacado). Reemplaza a SheetJS que no soportaba estilos.
+- PDF via `window.print()` con `@media print` (oculta sidebar/filtros, aplana sombras, fuerza page-break por card). Titulo del documento cambia temporalmente para que el PDF guardado tenga nombre legible.
+- Helper `statusLabel()` que traduce los estados de tareas (pending/in_progress/paused/completed) en los exports.
+- Toast de confirmacion tras descargar CSV y Excel.
+
+**Accesibilidad**:
+- Radiogroups con `aria-labelledby`, roving tabindex, teclado completo (flechas, Home, End).
+- `aria-busy` en el contenedor durante generacion, `role="status"` en spinner de carga, `role="alert"` en errores.
+- `<h2>` semantico en header del reporte, `<th scope="col">` + `<caption class="sr-only">` en todas las tablas generadas.
+- `aria-haspopup="dialog"` en boton Personalizado.
+
+**Backend** (`includes/tasks_report_actions.php`):
+- Accion `monthly` acepta `start`/`end` en `YYYY-MM-DD`, default = mes actual.
+- Accion `users_list` para popular el select (solo admin).
+- Helper `formatRangeLabel()` genera "Marzo 2026" si el rango cubre un mes natural completo, o "01/03/2026 — 07/03/2026" en rangos arbitrarios.
+- Retorna `period`, `user`, `total_seconds`, `task_count`, `by_alliance`, y opcionalmente `tasks_by_alliance` / `by_tag` segun tipo de reporte.
+
+**UX en `/tasks`**:
+- Botones del header reordenados: Nueva tarea (primary) + Reportes (default con fondo neutro, en vez de btn-subtle transparente) para mejor jerarquia visual.
+
+**Pendiente para mañana**: pulir vista impresa del PDF.
+
 ### Sesion 2026-04-21 — pulido pre-produccion
 
 **Backend**:

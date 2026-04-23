@@ -32,6 +32,7 @@ return [
         'btn_complete_data'   => 'Complete info',
         'btn_delete'          => 'Delete',
         'btn_new_task'        => 'New task',
+        'btn_reports'         => 'Reports',
         'btn_create'          => 'Create task',
         'create_task_title'   => 'New scheduled task',
         'task_created'        => 'Task created.',

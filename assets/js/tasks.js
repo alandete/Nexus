@@ -1138,9 +1138,9 @@
             if (alliance && String(task.alliance_id || '') !== String(alliance)) return false;
             if (priority && (task.priority || 'medium') !== priority) return false;
             if (tags && tags.length > 0) {
-                // Semantica OR: la tarea pasa si tiene al menos una de las etiquetas seleccionadas
+                // Semantica AND: la tarea debe tener TODAS las etiquetas seleccionadas
                 const taskTagIds = String(task.tag_ids || '').split(',').filter(Boolean);
-                const matches = tags.some(tagId => taskTagIds.includes(String(tagId)));
+                const matches = tags.every(tagId => taskTagIds.includes(String(tagId)));
                 if (!matches) return false;
             }
             return true;
@@ -1191,7 +1191,7 @@
                     status: e.task_status,
                     total_seconds: 0,
                     entry_count: 0,
-                    priority: 'medium',
+                    priority: e.priority || 'medium',
                     entries: [],
                 };
             }
@@ -1396,8 +1396,10 @@
         return `<span class="cell-alliance-chip${hasColorCls}"${styleAttr}><i class="bi bi-building" aria-hidden="true"></i> ${escapeHtml(item.alliance_name)}</span>`;
     }
     function cellTask(item) {
-        const count = item.entry_count
-            ? `<span class="task-entry-count" title="${t('tasks.entry_count_hint', 'Registros')}">${item.entry_count}</span>`
+        // Mostrar contador solo cuando hay mas de una sesion ("2x", "3x", ...)
+        const n = parseInt(item.entry_count, 10) || 0;
+        const count = n > 1
+            ? `<span class="task-entry-count" title="${t('tasks.entry_count_hint', 'Registros')}">${n}x</span>`
             : '';
         return `
             <div class="cell-task-body">

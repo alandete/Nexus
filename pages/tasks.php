@@ -25,10 +25,16 @@ if (isDBAvailable()) {
         <h1 class="page-title"><?= __('tasks.page_title') ?></h1>
         <p class="page-description"><?= __('tasks.page_subtitle') ?></p>
     </div>
-    <button type="button" class="btn btn-primary" id="btnNewTask">
-        <i class="bi bi-plus-lg" aria-hidden="true"></i>
-        <?= __('tasks.btn_new_task') ?>
-    </button>
+    <div class="page-header-actions">
+        <button type="button" class="btn btn-primary" id="btnNewTask">
+            <i class="bi bi-plus-lg" aria-hidden="true"></i>
+            <?= __('tasks.btn_new_task') ?>
+        </button>
+        <a href="<?= url('reports') ?>" class="btn btn-default">
+            <i class="bi bi-graph-up" aria-hidden="true"></i>
+            <?= __('tasks.btn_reports') ?>
+        </a>
+    </div>
 </div>
 
 <!-- ============ TRACKER INLINE ============ -->

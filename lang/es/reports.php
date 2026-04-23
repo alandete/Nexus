@@ -1,63 +1,62 @@
 <?php
 /**
- * S4Learning - Traducciones Español (Reportes)
+ * Nexus 2.0 — Traducciones Español (Reportes — Sub-fase 4.5)
  */
 defined('APP_ACCESS') or die('Acceso directo no permitido');
 
 return [
     'reports' => [
-        'submenu_link'    => 'Registro de Actividad',
-        'page_title'      => 'Registro de Actividad',
-        'description'     => 'Historial de acciones realizadas en el sistema.',
+        'page_title'    => 'Reportes de actividades',
+        'page_subtitle' => 'Genera un resumen mensual de tus tareas y exporta en CSV, Excel o PDF.',
 
-        // Filtros
-        'filter_date_from'  => 'Desde',
-        'filter_date_to'    => 'Hasta',
-        'filter_user'       => 'Usuario',
-        'filter_module'     => 'Módulo',
-        'filter_action'     => 'Acción',
-        'filter_all'        => 'Todos',
-        'btn_filter'        => 'Filtrar',
-        'btn_clear_filters' => 'Limpiar filtros',
-        'btn_clear_log'     => 'Vaciar registro',
-        'confirm_clear'     => '¿Eliminar todas las entradas del registro de actividad? Esta acción no se puede deshacer.',
-        'success_clear'     => 'Registro de actividad vaciado correctamente.',
+        'filters_label' => 'Filtros del reporte',
+        'field_type'    => 'Tipo de reporte',
+        'field_range'   => 'Rango de fechas',
+        'field_user'    => 'Usuario',
 
-        // Tabla
-        'col_date'    => 'Fecha',
-        'col_user'    => 'Usuario',
-        'col_module'  => 'Módulo',
-        'col_action'  => 'Acción',
-        'col_detail'  => 'Detalle',
-        'col_ip'      => 'IP',
-        'empty_state' => 'No hay registros de actividad.',
-        'no_results'  => 'No se encontraron resultados con los filtros aplicados.',
+        'type_summary'  => 'Resumido',
+        'type_detailed' => 'Detallado',
 
-        // Paginación
-        'showing'   => 'Mostrando {from}-{to} de {total}',
-        'page_prev' => 'Anterior',
-        'page_next' => 'Siguiente',
+        'range_weekly'  => 'Última semana',
+        'range_monthly' => 'Mes anterior',
+        'range_custom'  => 'Personalizado',
+        'range_from'    => 'Desde',
+        'range_to'      => 'Hasta',
 
-        // Etiquetas de módulos
-        'module_auth'             => 'Autenticación',
-        'module_users'            => 'Usuarios',
-        'module_manage_alliances' => 'Gestionar Alianzas',
-        'module_alliances'        => 'Alianzas',
-        'module_backup'           => 'Copias de Seguridad',
-        'module_projectinfo'      => 'Info del Proyecto',
-        'module_reports'          => 'Reportes',
+        // Presets del date picker (solo los que no duplican los botones de rango)
+        'preset_lastweek' => 'La semana pasada',
+        'preset_last15'   => 'Últimos 15 días',
+        'preset_last30'   => 'Últimos 30 días',
+        'preset_thisyear' => 'Este año',
 
-        // Etiquetas de acciones
-        'action_login'   => 'Inicio de sesión',
-        'action_logout'  => 'Cierre de sesión',
-        'action_create'  => 'Crear',
-        'action_update'  => 'Actualizar',
-        'action_delete'  => 'Eliminar',
-        'action_restore' => 'Restaurar',
-        'action_process' => 'Procesar',
-        'action_clear'   => 'Vaciar registro',
+        'export_as'        => 'Exportar:',
+        'export_csv_done'  => 'Reporte CSV descargado.',
+        'export_xlsx_done' => 'Reporte Excel descargado.',
 
-        // Errores
-        'error_request' => 'Error al consultar el registro',
+        // Vista
+        'meta_user'   => 'Usuario',
+        'meta_period' => 'Periodo',
+        'meta_total'  => 'Tiempo total',
+        'meta_tasks'  => 'Tareas',
+        'generated_at'=> 'Generado',
+
+        'section_alliances' => 'Distribución por alianza',
+        'section_tasks'     => 'Tareas por alianza',
+        'section_tags'      => 'Total por etiqueta',
+
+        'chart_label' => 'Gráfico de distribución por alianza',
+
+        'col_alliance' => 'Alianza',
+        'col_task'     => 'Tarea',
+        'col_sessions' => 'Sesiones',
+        'col_tasks'    => 'Tareas',
+        'col_tag'      => 'Etiqueta',
+        'col_time'     => 'Tiempo',
+
+        'no_tasks' => 'Sin tareas en el periodo.',
+        'no_tags'  => 'Sin etiquetas en el periodo.',
+
+        'err_generate' => 'No se pudo generar el reporte.',
+        'err_xlsx_lib' => 'La librería de Excel no se cargó. Revisa tu conexión.',
     ],
 ];

@@ -116,9 +116,10 @@ function listTasks(PDO $db, int $userId): void
     $params = [$userId, $dateFrom, $dateTo];
 
     $entriesStmt = $db->prepare("
-        SELECT te.*, t.title AS task_title, t.description AS task_description, t.status AS task_status, t.alliance_id,
+        SELECT te.*, t.title AS task_title, t.description AS task_description, t.status AS task_status, t.alliance_id, t.priority,
                a.name AS alliance_name, a.color AS alliance_color,
-               GROUP_CONCAT(DISTINCT tg.name ORDER BY tg.name SEPARATOR ', ') AS tag_names
+               GROUP_CONCAT(DISTINCT tg.name ORDER BY tg.name SEPARATOR ', ') AS tag_names,
+               GROUP_CONCAT(DISTINCT tg.id ORDER BY tg.name SEPARATOR ',') AS tag_ids
         FROM time_entries te
         JOIN tasks t ON te.task_id = t.id
         LEFT JOIN alliances a ON t.alliance_id = a.id
@@ -174,6 +175,7 @@ function listTasks(PDO $db, int $userId): void
     $activeStmt = $db->prepare("
         SELECT t.*, a.name AS alliance_name, a.color AS alliance_color,
                GROUP_CONCAT(DISTINCT tg.name ORDER BY tg.name SEPARATOR ', ') AS tag_names,
+               GROUP_CONCAT(DISTINCT tg.id ORDER BY tg.name SEPARATOR ',') AS tag_ids,
                (SELECT SUM(duration_seconds) FROM time_entries WHERE task_id = t.id AND end_time IS NOT NULL) AS total_seconds
         FROM tasks t
         LEFT JOIN alliances a ON t.alliance_id = a.id

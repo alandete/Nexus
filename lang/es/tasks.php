@@ -32,6 +32,7 @@ return [
         'btn_complete_data'   => 'Completar información',
         'btn_delete'          => 'Eliminar',
         'btn_new_task'        => 'Nueva tarea',
+        'btn_reports'         => 'Reportes',
         'btn_create'          => 'Crear tarea',
         'create_task_title'   => 'Nueva tarea programada',
         'task_created'        => 'Tarea creada.',

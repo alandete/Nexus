@@ -6675,6 +6675,486 @@ a.stat-card:hover {
 }
 
 /* ============================================
+   REPORTES (Fase 4.5)
+   ============================================ */
+
+.page-header-actions {
+    display: flex;
+    gap: var(--ds-space-100);
+    flex-shrink: 0;
+}
+
+.report-filters {
+    background: var(--ds-surface-raised);
+    border: var(--ds-border-width) solid var(--ds-border);
+    border-radius: var(--ds-radius-200);
+    padding: var(--ds-space-100) var(--ds-space-200);
+    margin-bottom: var(--ds-space-200);
+}
+
+/* Barra de filtros: cada grupo con label inline (al lado del campo) */
+.report-filter-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--ds-space-300);
+    flex-wrap: wrap;
+}
+
+.report-filter-group {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: var(--ds-space-100);
+    min-width: 0;
+}
+
+.report-filter-label {
+    font-size: var(--ds-font-size-body-sm);
+    font-weight: var(--ds-font-weight-semibold);
+    color: var(--ds-text-subtle);
+    white-space: nowrap;
+}
+
+.report-user-select {
+    min-width: 180px;
+    max-width: 240px;
+    height: 32px;
+}
+
+/* Litepicker flotante (popover). No empuja contenido porque usa position:absolute */
+.litepicker {
+    font-family: inherit;
+    /* Separacion vertical del boton trigger: translate + margin para ganar a
+       los inline styles que Litepicker calcula en runtime al abrir el popover */
+    transform: translateY(16px) !important;
+    /* Sombra mas amplia para que el borde inferior no se confunda con el fondo */
+    box-shadow:
+        0 12px 28px rgba(9, 30, 66, 0.22),
+        0 4px 8px  rgba(9, 30, 66, 0.12),
+        0 0 0 1px  rgba(9, 30, 66, 0.08);
+    border-radius: var(--ds-radius-200);
+}
+
+.litepicker .day-item:hover {
+    background-color: rgba(var(--app-brand-rgb), 0.12);
+    color: var(--app-brand);
+}
+
+.litepicker .day-item.is-start-date,
+.litepicker .day-item.is-end-date {
+    background-color: var(--app-brand);
+    color: #fff;
+}
+
+.litepicker .day-item.is-in-range {
+    background-color: rgba(var(--app-brand-rgb), 0.15);
+    color: var(--ds-text);
+}
+
+.litepicker .day-item.is-today {
+    color: var(--app-brand);
+    font-weight: bold;
+}
+
+/* Panel de presets del plugin `ranges` */
+.litepicker .container__predefined-ranges {
+    border-right: var(--ds-border-width) solid var(--ds-border);
+    background: var(--ds-surface-sunken);
+    padding: 0.5rem;
+}
+
+.litepicker .container__predefined-ranges > button {
+    color: var(--ds-neutral-1100) !important;   /* max contraste: #091E42 */
+    font-weight: var(--ds-font-weight-medium);
+    padding: var(--ds-space-075) var(--ds-space-150);
+    font-size: var(--ds-font-size-body-sm);
+    border-radius: var(--ds-radius-100);
+}
+
+.litepicker .container__predefined-ranges > button:hover {
+    background: var(--ds-background-neutral-hovered) !important;
+    color: var(--ds-neutral-1100) !important;
+}
+
+/* ---- Grupo de botones (toggle) ---- */
+.btn-group {
+    display: inline-flex;
+    background: var(--ds-surface-sunken);
+    border: var(--ds-border-width) solid var(--ds-border);
+    border-radius: var(--ds-radius-100);
+    overflow: hidden;
+}
+
+.btn-group-item {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ds-space-050);
+    padding: var(--ds-space-075) var(--ds-space-150);
+    background: transparent;
+    border: none;
+    border-right: var(--ds-border-width) solid var(--ds-border);
+    color: var(--ds-text-subtle);
+    font-size: var(--ds-font-size-body-sm);
+    font-weight: var(--ds-font-weight-medium);
+    cursor: pointer;
+    transition: background var(--ds-duration-fast), color var(--ds-duration-fast);
+}
+
+.btn-group-item:last-child { border-right: none; }
+
+.btn-group-item:hover:not(.active) {
+    background: var(--ds-surface-hovered, rgba(9, 30, 66, 0.04));
+    color: var(--ds-text);
+}
+
+.btn-group-item.active {
+    background: var(--app-brand);
+    color: var(--ds-text-inverse);
+}
+
+/* ---- Barra de exports ---- */
+.report-export-group {
+    display: flex;
+    align-items: center;
+    gap: var(--ds-space-075);
+    margin-bottom: var(--ds-space-200);
+    padding: var(--ds-space-075) var(--ds-space-100);
+    justify-content: flex-end;
+}
+
+.report-export-label {
+    font-size: var(--ds-font-size-body-sm);
+    color: var(--ds-text-subtle);
+    margin-right: var(--ds-space-050);
+}
+
+.report-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--ds-space-100);
+    padding: var(--ds-space-400);
+    color: var(--ds-text-subtle);
+}
+
+/* ----- Vista del reporte ----- */
+.report-view {
+    background: var(--ds-surface-raised);
+    border: var(--ds-border-width) solid var(--ds-border);
+    border-radius: var(--ds-radius-200);
+    padding: var(--ds-space-300);
+}
+
+/* Header del reporte: dos columnas (user+fecha izq | total der) */
+.report-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ds-space-300);
+    padding-bottom: var(--ds-space-300);
+    margin-bottom: var(--ds-space-300);
+    border-bottom: var(--ds-border-width-indicator) solid var(--ds-border);
+    flex-wrap: wrap;
+}
+
+.report-header-left {
+    min-width: 0;
+}
+
+.report-header-right {
+    text-align: right;
+}
+
+.report-user-name {
+    font-size: var(--ds-font-size-heading-md);
+    font-weight: var(--ds-font-weight-semibold);
+    color: var(--ds-text);
+    line-height: 1.2;
+    margin-bottom: var(--ds-space-050);
+}
+
+.report-period {
+    font-size: var(--ds-font-size-body);
+    color: var(--ds-text-subtle);
+}
+
+.report-total-label {
+    font-size: 11px;
+    font-weight: var(--ds-font-weight-semibold);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--ds-text-subtle);
+    margin-bottom: var(--ds-space-050);
+}
+
+.report-total-time {
+    font-size: 2.75rem;
+    font-weight: var(--ds-font-weight-bold);
+    color: var(--app-brand);
+    line-height: 1;
+    letter-spacing: -0.02em;
+    font-family: var(--ds-font-family-mono);
+}
+
+.report-total-tasks {
+    margin-top: var(--ds-space-075);
+    font-size: var(--ds-font-size-body-sm);
+    color: var(--ds-text-subtle);
+}
+
+.report-section {
+    margin-bottom: var(--ds-space-400);
+}
+
+.report-section-title {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ds-space-100);
+    font-size: var(--ds-font-size-body);
+    font-weight: var(--ds-font-weight-semibold);
+    color: var(--ds-text);
+    margin: 0 0 var(--ds-space-150);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+
+.report-section-title i {
+    color: var(--app-brand);
+}
+
+/* Grafico + tabla en grid lado a lado */
+.report-alliance-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--ds-space-200);
+    align-items: start;
+}
+
+@media (min-width: 900px) {
+    .report-alliance-grid {
+        grid-template-columns: minmax(320px, 400px) 1fr;
+    }
+}
+
+.report-chart-wrap {
+    position: relative;
+    height: 320px;
+}
+
+.report-alliance-table .table,
+.report-group-card .table,
+.report-section > .table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--ds-font-size-body-sm);
+}
+
+.report-alliance-table th,
+.report-group-card th,
+.report-section > .table th {
+    padding: var(--ds-space-075) var(--ds-space-100);
+    font-size: 11px;
+    font-weight: var(--ds-font-weight-semibold);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--ds-text-subtle);
+    border-bottom: var(--ds-border-width) solid var(--ds-border);
+}
+
+/* Alineacion de encabezados: coincide con sus celdas */
+.report-table th.text-left  { text-align: left; }
+.report-table th.text-right { text-align: right; }
+
+.report-alliance-table td,
+.report-group-card td,
+.report-section > .table td {
+    padding: var(--ds-space-075) var(--ds-space-100);
+    border-bottom: var(--ds-border-width) solid var(--ds-border);
+}
+
+.report-alliance-table tr:last-child td,
+.report-group-card tbody tr:last-child td,
+.report-section > .table tr:last-child td {
+    border-bottom: none;
+}
+
+.report-alliance-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ds-space-075);
+}
+
+.report-alliance-chip .report-alliance-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: var(--ds-radius-full);
+    background: var(--alliance-color, var(--app-brand));
+    flex-shrink: 0;
+}
+
+.report-tag-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ds-space-050);
+}
+
+.report-tag-chip .report-tag-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: var(--ds-radius-full);
+    background: var(--tag-color, var(--app-brand));
+    flex-shrink: 0;
+}
+
+/* ----- Grupos de tareas / tags: card con header + tabla adentro ----- */
+.report-group-stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-space-200);
+}
+
+.report-group-card {
+    background: var(--ds-surface);
+    border: var(--ds-border-width) solid var(--ds-border);
+}
+
+.report-group-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: var(--ds-space-150);
+    padding: var(--ds-space-100) var(--ds-space-200);
+    background: var(--ds-background-selected);
+    border-bottom: var(--ds-border-width) solid var(--ds-border);
+}
+
+.report-group-chip {
+    font-size: var(--ds-font-size-body);
+    font-weight: var(--ds-font-weight-semibold);
+    color: var(--ds-text);
+}
+
+.report-group-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ds-space-075);
+    font-size: var(--ds-font-size-body-sm);
+    color: var(--ds-text-subtle);
+}
+
+.report-group-meta-item strong {
+    color: var(--ds-text);
+    font-weight: var(--ds-font-weight-semibold);
+}
+
+.report-group-meta-sep {
+    color: var(--ds-border);
+}
+
+/* Tabla dentro del card: sin margen, padding mas amplio alineado al header */
+.report-group-card .report-group-table {
+    margin: 0;
+    width: 100%;
+}
+
+.report-group-card .report-group-table thead th {
+    padding: var(--ds-space-050) var(--ds-space-200);
+    background: transparent;
+}
+
+.report-group-card .report-group-table tbody td {
+    padding: var(--ds-space-100) var(--ds-space-200);
+}
+
+.report-group-card .report-group-table tbody tr:nth-child(even) td {
+    background: var(--ds-background-neutral-subtle);
+}
+
+/* ----- PRINT (PDF via window.print) ----- */
+@media print {
+    /* Ocultar todo lo que no es el reporte */
+    .sidebar,
+    .topbar,
+    .page-header,
+    .breadcrumb,
+    .report-filters,
+    .report-empty,
+    .report-export-group,
+    .toast-container,
+    .app-tooltip,
+    footer { display: none !important; }
+
+    body, html {
+        background: #ffffff !important;
+        color: #000000 !important;
+        font-size: 11pt;
+    }
+
+    main, .main-content, .content-wrapper {
+        margin: 0 !important;
+        padding: 0 !important;
+        max-width: none !important;
+        width: 100% !important;
+    }
+
+    .report-view {
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        background: #ffffff !important;
+    }
+
+    .report-header {
+        border-bottom: 1px solid #000 !important;
+    }
+
+    .report-section {
+        page-break-inside: avoid;
+        margin-bottom: 1.5cm;
+    }
+
+    .report-section-title {
+        color: #000 !important;
+        border-bottom: 1px solid #000 !important;
+        padding-bottom: 0.2cm;
+    }
+
+    .report-chart-wrap {
+        height: 240px;
+        page-break-inside: avoid;
+    }
+
+    .report-section-title i,
+    .report-meta-strong {
+        color: #000 !important;
+    }
+
+    .table, .report-alliance-table table, .report-group-card table {
+        page-break-inside: auto;
+    }
+
+    .table thead { display: table-header-group; }
+    .table tr { page-break-inside: avoid; }
+
+    /* Cards de grupo: aplanar fondos para impresion nitida */
+    .report-group-card {
+        border: 1px solid #000 !important;
+        page-break-inside: avoid;
+    }
+
+    .report-group-header {
+        background: #f5f5f5 !important;
+        border-bottom: 1px solid #000 !important;
+    }
+
+    .report-group-card .report-group-table tbody tr:nth-child(even) td {
+        background: #fafafa !important;
+    }
+}
+
+/* ============================================
    MANAGE TASKS (Ajustes)
    ============================================ */
 .manage-section {

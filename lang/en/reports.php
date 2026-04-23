@@ -1,63 +1,61 @@
 <?php
 /**
- * S4Learning - English Translations (Reports)
+ * Nexus 2.0 — English Translations (Reports — Sub-phase 4.5)
  */
 defined('APP_ACCESS') or die('Direct access not allowed');
 
 return [
     'reports' => [
-        'submenu_link'    => 'Activity Log',
-        'page_title'      => 'Activity Log',
-        'description'     => 'History of actions performed in the system.',
+        'page_title'    => 'Activity reports',
+        'page_subtitle' => 'Generate a monthly summary of your tasks and export as CSV, Excel or PDF.',
 
-        // Filters
-        'filter_date_from'  => 'From',
-        'filter_date_to'    => 'To',
-        'filter_user'       => 'User',
-        'filter_module'     => 'Module',
-        'filter_action'     => 'Action',
-        'filter_all'        => 'All',
-        'btn_filter'        => 'Filter',
-        'btn_clear_filters' => 'Clear filters',
-        'btn_clear_log'     => 'Clear log',
-        'confirm_clear'     => 'Delete all entries from the activity log? This action cannot be undone.',
-        'success_clear'     => 'Activity log cleared successfully.',
+        'filters_label' => 'Report filters',
+        'field_type'    => 'Report type',
+        'field_range'   => 'Date range',
+        'field_user'    => 'User',
 
-        // Table
-        'col_date'    => 'Date',
-        'col_user'    => 'User',
-        'col_module'  => 'Module',
-        'col_action'  => 'Action',
-        'col_detail'  => 'Detail',
-        'col_ip'      => 'IP',
-        'empty_state' => 'No activity records.',
-        'no_results'  => 'No results found with the applied filters.',
+        'type_summary'  => 'Summary',
+        'type_detailed' => 'Detailed',
 
-        // Pagination
-        'showing'   => 'Showing {from}-{to} of {total}',
-        'page_prev' => 'Previous',
-        'page_next' => 'Next',
+        'range_weekly'  => 'Last week',
+        'range_monthly' => 'Previous month',
+        'range_custom'  => 'Custom',
+        'range_from'    => 'From',
+        'range_to'      => 'To',
 
-        // Module labels
-        'module_auth'             => 'Authentication',
-        'module_users'            => 'Users',
-        'module_manage_alliances' => 'Manage Alliances',
-        'module_alliances'        => 'Alliances',
-        'module_backup'           => 'Backups',
-        'module_projectinfo'      => 'Project Info',
-        'module_reports'          => 'Reports',
+        // Presets (only those not duplicated by top-level range buttons)
+        'preset_lastweek' => 'Last week',
+        'preset_last15'   => 'Last 15 days',
+        'preset_last30'   => 'Last 30 days',
+        'preset_thisyear' => 'This year',
 
-        // Action labels
-        'action_login'   => 'Login',
-        'action_logout'  => 'Logout',
-        'action_create'  => 'Create',
-        'action_update'  => 'Update',
-        'action_delete'  => 'Delete',
-        'action_restore' => 'Restore',
-        'action_process' => 'Process',
-        'action_clear'   => 'Clear log',
+        'export_as'        => 'Export:',
+        'export_csv_done'  => 'CSV report downloaded.',
+        'export_xlsx_done' => 'Excel report downloaded.',
 
-        // Errors
-        'error_request' => 'Error querying the log',
+        'meta_user'   => 'User',
+        'meta_period' => 'Period',
+        'meta_total'  => 'Total time',
+        'meta_tasks'  => 'Tasks',
+        'generated_at'=> 'Generated',
+
+        'section_alliances' => 'Breakdown by alliance',
+        'section_tasks'     => 'Tasks by alliance',
+        'section_tags'      => 'Totals by tag',
+
+        'chart_label' => 'Alliance breakdown chart',
+
+        'col_alliance' => 'Alliance',
+        'col_task'     => 'Task',
+        'col_sessions' => 'Sessions',
+        'col_tasks'    => 'Tasks',
+        'col_tag'      => 'Tag',
+        'col_time'     => 'Time',
+
+        'no_tasks' => 'No tasks in the period.',
+        'no_tags'  => 'No tags in the period.',
+
+        'err_generate' => 'Could not generate the report.',
+        'err_xlsx_lib' => 'Excel library failed to load. Check your connection.',
     ],
 ];

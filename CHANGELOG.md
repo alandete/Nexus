@@ -14,6 +14,31 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
   - Validacion Clockify ↔ Nexus completada y confirmada antes del cierre.
 - **Prioridad de cierre** (11 dias habiles disponibles): backend fixes → Importar/Exportar → Limpieza → Reportes → Clockify validation.
 
+### Fase 5 — Importar / Exportar en `/manage-tasks` — 2026-04-24
+
+**Tab Exportar**:
+- Selector de rango: Hoy / Esta semana / Mes actual / Mes anterior / Personalizado (mismos rangos que `/tasks`).
+- Selector de formato: Nexus CSV (para reimportar) o Clockify CSV (replica exacta de columnas del export de Clockify).
+- Descarga via GET a `includes/io_actions.php?action=export`. CSV con BOM UTF-8 para compatibilidad con Excel.
+- Clockify CSV incluye: Proyecto, Cliente, Descripcion, Usuario, Etiquetas, Fecha/Hora inicio, Fecha/Hora fin (formato 12h AM/PM), Duracion (h:mm y decimal).
+
+**Tab Importar**:
+- Selector de formato de entrada: Nexus CSV o Clockify CSV.
+- Drop zone drag & drop + seleccion de archivo.
+- Parseo 100% en cliente (FileReader + parseador RFC 4180 manual).
+- Deteccion automatica de alianzas y etiquetas desconocidas:
+  - Alianzas: selector con alianzas existentes + opcion "Descartar entradas".
+  - Etiquetas: selector con etiquetas existentes + opcion "Crear nueva" (por defecto).
+- Vista previa de las primeras 10 filas parseadas.
+- Contador de entradas activas (excluye las descartadas) en el boton de confirmar.
+- Backend (`includes/io_actions.php` accion `import`):
+  - Crea tags nuevas si corresponde.
+  - Busca o crea tarea por (titulo + alianza + usuario); status `completed`.
+  - INSERT IGNORE en `task_tags` para no duplicar vinculos.
+  - Salta duplicados exactos (mismo task_id + start_time).
+  - Salta solapamientos con otros entries del usuario.
+  - Todo dentro de una transaccion; retorna conteo de insertados, duplicados y solapados.
+
 ### Sub-fase 4.5 Reportes — 2026-04-22
 
 **Pagina `/reports`** (nueva):

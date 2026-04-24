@@ -7529,6 +7529,181 @@ a.stat-card:hover {
     display: block;
 }
 
+/* ============================================
+   IMPORT / EXPORT (panel IO)
+   ============================================ */
+
+.io-export-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--ds-space-200);
+}
+
+.io-custom-range {
+    display: flex;
+    align-items: center;
+    gap: var(--ds-space-100);
+}
+
+.io-date-label {
+    font-size: var(--ds-font-size-body-sm);
+    color: var(--ds-text-subtle);
+    white-space: nowrap;
+}
+
+/* Drop zone */
+.io-dropzone {
+    border: 2px dashed var(--ds-border-color, #ccc);
+    border-radius: var(--ds-radius-200);
+    padding: var(--ds-space-400) var(--ds-space-300);
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    margin-top: var(--ds-space-200);
+    background: var(--ds-surface-sunken, #f7f8f9);
+}
+
+.io-dropzone:hover,
+.io-dropzone.is-over {
+    border-color: var(--app-brand);
+    background: color-mix(in srgb, var(--app-brand) 6%, transparent);
+}
+
+.io-dropzone.has-file {
+    border-color: var(--ds-color-green-500, #36b37e);
+    background: color-mix(in srgb, var(--ds-color-green-500, #36b37e) 6%, transparent);
+}
+
+.io-dropzone-icon {
+    font-size: 2rem;
+    color: var(--ds-text-subtlest);
+    display: block;
+    margin-bottom: var(--ds-space-100);
+}
+
+.io-dropzone.has-file .io-dropzone-icon { color: var(--ds-color-green-500, #36b37e); }
+
+.io-dropzone-text {
+    font-size: var(--ds-font-size-body);
+    color: var(--ds-text);
+    margin: 0 0 var(--ds-space-050) 0;
+}
+
+.io-dropzone-hint {
+    font-size: var(--ds-font-size-body-sm);
+    color: var(--ds-text-subtlest);
+    margin: 0;
+}
+
+.io-dropzone input[type="file"] { display: none; }
+
+/* Stats chips post-parseo */
+.io-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ds-space-150);
+    margin: var(--ds-space-250) 0 var(--ds-space-200) 0;
+}
+
+.io-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 72px;
+    padding: var(--ds-space-100) var(--ds-space-200);
+    background: var(--ds-surface-raised);
+    border: var(--ds-border-width) solid var(--ds-border);
+    border-radius: var(--ds-radius-200);
+}
+
+.io-stat-value {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--app-brand);
+    line-height: 1;
+}
+
+.io-stat-label {
+    font-size: var(--ds-font-size-body-sm);
+    color: var(--ds-text-subtlest);
+    margin-top: var(--ds-space-025);
+}
+
+/* Mapping sections */
+.io-mapping-section {
+    margin-top: var(--ds-space-250);
+    padding: var(--ds-space-200);
+    background: var(--ds-surface-raised);
+    border: var(--ds-border-width) solid var(--ds-border);
+    border-radius: var(--ds-radius-200);
+}
+
+.io-mapping-title {
+    font-size: var(--ds-font-size-body);
+    font-weight: 600;
+    color: var(--ds-text);
+    margin: var(--ds-space-250) 0 var(--ds-space-100) 0;
+    display: flex;
+    align-items: center;
+    gap: var(--ds-space-075);
+}
+
+.io-mapping-title:first-child { margin-top: 0; }
+
+.io-mapping-section .io-mapping-title { margin-top: 0; }
+
+.io-mapping-desc {
+    font-size: var(--ds-font-size-body-sm);
+    color: var(--ds-text-subtle);
+    margin: 0 0 var(--ds-space-150) 0;
+}
+
+.io-mapping-row {
+    display: flex;
+    align-items: center;
+    gap: var(--ds-space-150);
+    padding: var(--ds-space-075) 0;
+    border-top: var(--ds-border-width) solid var(--ds-border);
+}
+
+.io-mapping-row:first-child { border-top: none; }
+
+.io-mapping-unknown {
+    flex: 0 0 auto;
+    min-width: 160px;
+    font-size: var(--ds-font-size-body-sm);
+    font-weight: 600;
+    color: var(--ds-text);
+    background: var(--ds-background-neutral-subtle);
+    padding: 2px var(--ds-space-075);
+    border-radius: var(--ds-radius-100);
+}
+
+.io-mapping-arrow {
+    color: var(--ds-text-subtlest);
+    flex-shrink: 0;
+}
+
+.io-mapping-row .form-control { flex: 1; max-width: 280px; }
+
+/* Preview table */
+.io-preview-wrap {
+    margin-top: var(--ds-space-100);
+    overflow-x: auto;
+    border: var(--ds-border-width) solid var(--ds-border);
+    border-radius: var(--ds-radius-200);
+}
+
+.io-preview-wrap .table { margin: 0; font-size: var(--ds-font-size-body-sm); }
+
+/* Import actions */
+.io-import-actions {
+    display: flex;
+    gap: var(--ds-space-150);
+    margin-top: var(--ds-space-250);
+}
+
 /* ---- Grilla de etiquetas inline-editable ---- */
 .tags-grid {
     background: var(--ds-surface-raised);

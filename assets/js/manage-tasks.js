@@ -295,12 +295,520 @@
      * Bindings
      * ======================================================== */
 
+    /* ========================================================
+     * Import / Export
+     * ======================================================== */
+
+    const alliances = Array.isArray(data.alliances) ? data.alliances : [];
+
+    // Estado del módulo IO
+    let parsedEntries  = [];   // { allianceName, taskTitle, tags:[], startTime, endTime, durationSeconds }
+    let allianceMap    = {};   // allianceName.lower → id | null (null = descartar)
+    let tagMap         = {};   // tagName.lower → { action:'create'|'map', tagId?:number, display:string }
+    let exportRange    = 'week';
+    let exportFormat   = 'nexus';
+    let importFormat   = 'clockify';
+
+    // ── Utilidades CSV ──────────────────────────────────────────
+
+    function parseCSVText(text) {
+        // Normalizar saltos de linea y strip BOM
+        if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+        text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+        const lines = text.split('\n');
+        const result = [];
+        for (const line of lines) {
+            if (!line.trim()) continue;
+            result.push(parseCSVRow(line));
+        }
+        return result;
+    }
+
+    function parseCSVRow(line) {
+        const fields = [];
+        let i = 0;
+        while (i < line.length) {
+            if (line[i] === '"') {
+                i++;
+                let val = '';
+                while (i < line.length) {
+                    if (line[i] === '"' && line[i + 1] === '"') { val += '"'; i += 2; }
+                    else if (line[i] === '"') { i++; break; }
+                    else val += line[i++];
+                }
+                fields.push(val);
+                if (line[i] === ',') i++;
+            } else {
+                let val = '';
+                while (i < line.length && line[i] !== ',') val += line[i++];
+                fields.push(val.trim());
+                if (line[i] === ',') i++;
+            }
+        }
+        return fields;
+    }
+
+    // Convierte "22/04/2026" + "4:30 PM" → "2026-04-22 16:30:00"
+    function parseClockifyDateTime(dateStr, timeStr) {
+        const dp = dateStr.split('/');
+        if (dp.length !== 3) return null;
+        const datePart = `${dp[2]}-${dp[1].padStart(2,'0')}-${dp[0].padStart(2,'0')}`;
+        const tm = timeStr.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+        if (!tm) return null;
+        let h = parseInt(tm[1], 10);
+        const m = tm[2];
+        const ampm = tm[3].toUpperCase();
+        if (ampm === 'PM' && h !== 12) h += 12;
+        if (ampm === 'AM' && h === 12) h = 0;
+        return `${datePart} ${String(h).padStart(2,'0')}:${m}:00`;
+    }
+
+    // Convierte "YYYY-MM-DD" + "HH:MM" → "YYYY-MM-DD HH:MM:00"
+    function parseNexusDateTime(dateStr, timeStr) {
+        if (!dateStr || !timeStr) return null;
+        return `${dateStr} ${timeStr}:00`;
+    }
+
+    function durationSeconds(start, end) {
+        return Math.max(0, Math.round((new Date(start.replace(' ', 'T')) - new Date(end.replace(' ', 'T'))) / -1000));
+    }
+
+    // ── Parseo por formato ──────────────────────────────────────
+
+    function parseClockify(rows) {
+        // Columnas: 0=Proyecto 2=Descripcion 7=Etiquetas 8=FechaIni 9=HoraIni 10=FechaFin 11=HoraFin
+        const entries = [];
+        for (let i = 1; i < rows.length; i++) {
+            const r = rows[i];
+            if (r.length < 12) continue;
+            const startTime = parseClockifyDateTime(r[8], r[9]);
+            const endTime   = parseClockifyDateTime(r[10], r[11]);
+            if (!startTime || !endTime) continue;
+            const rawTags = r[7] ? r[7].split(',').map(s => s.trim()).filter(Boolean) : [];
+            entries.push({
+                allianceName:    r[0].trim(),
+                taskTitle:       r[2].trim(),
+                tags:            rawTags,
+                startTime,
+                endTime,
+                durationSeconds: durationSeconds(startTime, endTime),
+            });
+        }
+        return entries;
+    }
+
+    function parseNexus(rows) {
+        // Columnas: 0=Alianza 1=Tarea 2=Etiquetas 3=FechaIni 4=HoraIni 5=FechaFin 6=HoraFin
+        const entries = [];
+        for (let i = 1; i < rows.length; i++) {
+            const r = rows[i];
+            if (r.length < 7) continue;
+            const startTime = parseNexusDateTime(r[3], r[4]);
+            const endTime   = parseNexusDateTime(r[5], r[6]);
+            if (!startTime || !endTime) continue;
+            const rawTags = r[2] ? r[2].split(',').map(s => s.trim()).filter(Boolean) : [];
+            entries.push({
+                allianceName:    r[0].trim(),
+                taskTitle:       r[1].trim(),
+                tags:            rawTags,
+                startTime,
+                endTime,
+                durationSeconds: durationSeconds(startTime, endTime),
+            });
+        }
+        return entries;
+    }
+
+    // ── Mapping helpers ─────────────────────────────────────────
+
+    function buildMappings(entries) {
+        const allianceNames = [...new Set(entries.map(e => e.allianceName).filter(Boolean))];
+        const tagNames      = [...new Set(entries.flatMap(e => e.tags).filter(Boolean))];
+
+        allianceMap = {};
+        for (const name of allianceNames) {
+            const found = alliances.find(a => a.name.toLowerCase() === name.toLowerCase());
+            allianceMap[name.toLowerCase()] = found ? found.id : null;
+        }
+
+        tagMap = {};
+        for (const name of tagNames) {
+            const found = tags.find(tg => tg.name.toLowerCase() === name.toLowerCase());
+            tagMap[name.toLowerCase()] = found
+                ? { action: 'map', tagId: found.id, display: name }
+                : { action: 'create', display: name };
+        }
+    }
+
+    function unknownAlliances() {
+        return Object.entries(allianceMap)
+            .filter(([, v]) => v === null)
+            .map(([k]) => parsedEntries.find(e => e.allianceName.toLowerCase() === k)?.allianceName || k);
+    }
+
+    function unknownTags() {
+        return Object.entries(tagMap)
+            .filter(([, v]) => v.action === 'create')
+            .map(([, v]) => v.display);
+    }
+
+    // ── Render UI ───────────────────────────────────────────────
+
+    function renderIoStats() {
+        const el = document.getElementById('ioStats');
+        if (!el) return;
+        const uniqueTasks     = new Set(parsedEntries.map(e => `${e.allianceName}::${e.taskTitle}`)).size;
+        const uniqueAlliances = new Set(parsedEntries.map(e => e.allianceName)).size;
+        const uniqueTags      = new Set(parsedEntries.flatMap(e => e.tags)).size;
+        el.innerHTML = `
+            <div class="io-stat"><span class="io-stat-value">${parsedEntries.length}</span><span class="io-stat-label">${t('manage_tasks.import_stat_entries','entradas')}</span></div>
+            <div class="io-stat"><span class="io-stat-value">${uniqueTasks}</span><span class="io-stat-label">${t('manage_tasks.import_stat_tasks','tareas')}</span></div>
+            <div class="io-stat"><span class="io-stat-value">${uniqueAlliances}</span><span class="io-stat-label">${t('manage_tasks.import_stat_alliances','alianzas')}</span></div>
+            <div class="io-stat"><span class="io-stat-value">${uniqueTags}</span><span class="io-stat-label">${t('manage_tasks.import_stat_tags','etiquetas')}</span></div>
+        `;
+    }
+
+    function allianceSelectHtml(unknownName) {
+        const opts = alliances.map(a =>
+            `<option value="${a.id}">${escapeHtml(a.name)}</option>`
+        ).join('');
+        return `
+            <div class="io-mapping-row" data-unknown="${escapeHtml(unknownName)}">
+                <span class="io-mapping-unknown">${escapeHtml(unknownName)}</span>
+                <i class="bi bi-arrow-right io-mapping-arrow" aria-hidden="true"></i>
+                <select class="form-control form-control-sm io-alliance-select" data-key="${escapeHtml(unknownName.toLowerCase())}">
+                    <option value="">${t('manage_tasks.import_map_discard','Descartar entradas')}</option>
+                    ${opts}
+                </select>
+            </div>`;
+    }
+
+    function tagSelectHtml(unknownName) {
+        const opts = tags.map(tg =>
+            `<option value="${tg.id}">${escapeHtml(tg.name)}</option>`
+        ).join('');
+        return `
+            <div class="io-mapping-row" data-unknown="${escapeHtml(unknownName)}">
+                <span class="io-mapping-unknown">${escapeHtml(unknownName)}</span>
+                <i class="bi bi-arrow-right io-mapping-arrow" aria-hidden="true"></i>
+                <select class="form-control form-control-sm io-tag-select" data-key="${escapeHtml(unknownName.toLowerCase())}">
+                    <option value="__new__">${t('manage_tasks.import_map_create','✨ Crear nueva')}</option>
+                    ${opts}
+                </select>
+            </div>`;
+    }
+
+    function renderAllianceMapping() {
+        const section = document.getElementById('ioAllianceMapping');
+        const container = document.getElementById('ioAllianceMappingRows');
+        if (!section || !container) return;
+        const unknown = unknownAlliances();
+        if (!unknown.length) { section.classList.add('d-none'); return; }
+        section.classList.remove('d-none');
+        container.innerHTML = unknown.map(allianceSelectHtml).join('');
+    }
+
+    function renderTagMapping() {
+        const section = document.getElementById('ioTagMapping');
+        const container = document.getElementById('ioTagMappingRows');
+        if (!section || !container) return;
+        const unknown = unknownTags();
+        if (!unknown.length) { section.classList.add('d-none'); return; }
+        section.classList.remove('d-none');
+        container.innerHTML = unknown.map(tagSelectHtml).join('');
+    }
+
+    function renderPreviewTable() {
+        const wrap = document.getElementById('ioPreviewWrap');
+        if (!wrap) return;
+        const preview = parsedEntries.slice(0, 10);
+        const rows = preview.map(e => `
+            <tr>
+                <td>${escapeHtml(e.allianceName)}</td>
+                <td>${escapeHtml(e.taskTitle)}</td>
+                <td>${escapeHtml(e.tags.join(', '))}</td>
+                <td class="text-mono">${e.startTime.slice(0,16).replace('T',' ')}</td>
+                <td class="text-mono">${formatDurPreview(e.durationSeconds)}</td>
+            </tr>`).join('');
+        wrap.innerHTML = `
+            <table class="table table-sm">
+                <thead><tr>
+                    <th>Alianza</th><th>Tarea</th><th>Etiquetas</th><th>Inicio</th><th>Duración</th>
+                </tr></thead>
+                <tbody>${rows}</tbody>
+            </table>`;
+    }
+
+    function formatDurPreview(s) {
+        const h = Math.floor(s / 3600);
+        const m = Math.floor((s % 3600) / 60);
+        return `${h}:${String(m).padStart(2,'0')}`;
+    }
+
+    function updateImportBtn() {
+        const lbl = document.getElementById('ioImportLabel');
+        if (!lbl) return;
+        // Contar entradas que no estarán descartadas
+        const active = parsedEntries.filter(e => {
+            const v = allianceMap[e.allianceName.toLowerCase()];
+            return v !== null && v !== undefined && v !== '';
+        }).length;
+        lbl.textContent = `${t('manage_tasks.import_btn','Importar entradas')} (${active})`;
+    }
+
+    function showParseResult() {
+        renderIoStats();
+        renderAllianceMapping();
+        renderTagMapping();
+        renderPreviewTable();
+        updateImportBtn();
+        const result = document.getElementById('ioParseResult');
+        if (result) result.classList.remove('d-none');
+    }
+
+    function resetImport() {
+        parsedEntries = [];
+        allianceMap = {};
+        tagMap = {};
+        const result = document.getElementById('ioParseResult');
+        if (result) result.classList.add('d-none');
+        const dz = document.getElementById('ioDropzone');
+        if (dz) dz.classList.remove('has-file');
+        const fi = document.getElementById('ioFileInput');
+        if (fi) fi.value = '';
+    }
+
+    // ── Leer y procesar archivo ──────────────────────────────────
+
+    function processFile(file) {
+        if (!file || !file.name.endsWith('.csv')) {
+            Toast.error(t('manage_tasks.import_err_parse', 'Archivo CSV inválido.'));
+            return;
+        }
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+            const rows = parseCSVText(ev.target.result);
+            parsedEntries = importFormat === 'clockify'
+                ? parseClockify(rows)
+                : parseNexus(rows);
+            if (!parsedEntries.length) {
+                Toast.error(t('manage_tasks.import_err_empty', 'El archivo no contiene entradas válidas.'));
+                return;
+            }
+            buildMappings(parsedEntries);
+            showParseResult();
+            const dz = document.getElementById('ioDropzone');
+            if (dz) dz.classList.add('has-file');
+        };
+        reader.onerror = () => Toast.error(t('manage_tasks.import_err_parse', 'No se pudo leer el archivo.'));
+        reader.readAsText(file, 'UTF-8');
+    }
+
+    // ── Export ───────────────────────────────────────────────────
+
+    function getRangeDates() {
+        const today = new Date();
+        const pad = n => String(n).padStart(2, '0');
+        const fmt = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+        if (exportRange === 'today') {
+            return { start: fmt(today), end: fmt(today) };
+        }
+        if (exportRange === 'week') {
+            const mon = new Date(today);
+            mon.setDate(today.getDate() - ((today.getDay() + 6) % 7));
+            return { start: fmt(mon), end: fmt(today) };
+        }
+        if (exportRange === 'month') {
+            const s = new Date(today.getFullYear(), today.getMonth(), 1);
+            return { start: fmt(s), end: fmt(today) };
+        }
+        if (exportRange === 'last_month') {
+            const s = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+            const e = new Date(today.getFullYear(), today.getMonth(), 0);
+            return { start: fmt(s), end: fmt(e) };
+        }
+        // custom
+        const s = document.getElementById('ioCustomStart')?.value;
+        const e = document.getElementById('ioCustomEnd')?.value;
+        return { start: s || fmt(today), end: e || fmt(today) };
+    }
+
+    function doExport() {
+        const { start, end } = getRangeDates();
+        const url = `includes/io_actions.php?action=export&format=${exportFormat}&start=${start}&end=${end}`;
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = '';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+    }
+
+    // ── Import confirm ───────────────────────────────────────────
+
+    async function doImport() {
+        // Leer mappings actuales del DOM
+        document.querySelectorAll('.io-alliance-select').forEach(sel => {
+            const key = sel.dataset.key;
+            allianceMap[key] = sel.value ? parseInt(sel.value, 10) : null;
+        });
+        document.querySelectorAll('.io-tag-select').forEach(sel => {
+            const key = sel.dataset.key;
+            if (sel.value === '__new__') {
+                tagMap[key] = { action: 'create', display: tagMap[key]?.display || key };
+            } else {
+                tagMap[key] = { action: 'map', tagId: parseInt(sel.value, 10) };
+            }
+        });
+
+        // Construir array de entries resueltas
+        const resolved = [];
+        for (const e of parsedEntries) {
+            const allianceId = allianceMap[e.allianceName.toLowerCase()] ?? null;
+            if (allianceId === null) continue; // descartado
+
+            const tagIds  = [];
+            const newTags = [];
+            for (const tagName of e.tags) {
+                const m = tagMap[tagName.toLowerCase()];
+                if (!m) continue;
+                if (m.action === 'map' && m.tagId) tagIds.push(m.tagId);
+                else newTags.push(tagName);
+            }
+
+            resolved.push({
+                alliance_id:      allianceId,
+                task_title:       e.taskTitle,
+                tag_ids:          tagIds,
+                new_tags:         newTags,
+                start_time:       e.startTime,
+                end_time:         e.endTime,
+                duration_seconds: e.durationSeconds,
+            });
+        }
+
+        if (!resolved.length) {
+            Toast.error('No hay entradas para importar (todas descartadas).');
+            return;
+        }
+
+        const btn = document.getElementById('btnImport');
+        if (btn) { btn.disabled = true; btn.classList.add('is-loading'); }
+
+        try {
+            const fd = new FormData();
+            fd.append('action', 'import');
+            fd.append('entries', JSON.stringify(resolved));
+            const res = await fetch('includes/io_actions.php', {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': csrfToken },
+                body: fd,
+            });
+            const result = await res.json();
+            if (result.success) {
+                Toast.success(result.message);
+                resetImport();
+            } else {
+                Toast.error(result.message || 'Error al importar.');
+            }
+        } catch {
+            Toast.error(t('common.err_network', 'Error de red.'));
+        } finally {
+            if (btn) { btn.disabled = false; btn.classList.remove('is-loading'); }
+        }
+    }
+
+    // ── Init IO tab ──────────────────────────────────────────────
+
+    let ioInitialized = false;
+    function initIo() {
+        if (ioInitialized) return;
+        ioInitialized = true;
+        // Range selector export
+        document.getElementById('ioRangeGroup')?.addEventListener('click', e => {
+            const btn = e.target.closest('[data-range]');
+            if (!btn) return;
+            exportRange = btn.dataset.range;
+            document.querySelectorAll('#ioRangeGroup .btn-group-item').forEach(b => {
+                const active = b === btn;
+                b.classList.toggle('active', active);
+                b.setAttribute('aria-checked', String(active));
+            });
+            const custom = document.getElementById('ioCustomRange');
+            if (custom) custom.classList.toggle('d-none', exportRange !== 'custom');
+        });
+
+        // Format export
+        document.getElementById('ioExportFormatGroup')?.addEventListener('click', e => {
+            const btn = e.target.closest('[data-format]');
+            if (!btn) return;
+            exportFormat = btn.dataset.format;
+            document.querySelectorAll('#ioExportFormatGroup .btn-group-item').forEach(b => {
+                const active = b === btn;
+                b.classList.toggle('active', active);
+                b.setAttribute('aria-checked', String(active));
+            });
+        });
+
+        // Export button
+        document.getElementById('btnExport')?.addEventListener('click', doExport);
+
+        // Format import selector
+        document.getElementById('ioImportFormatGroup')?.addEventListener('click', e => {
+            const btn = e.target.closest('[data-format]');
+            if (!btn) return;
+            importFormat = btn.dataset.format;
+            document.querySelectorAll('#ioImportFormatGroup .btn-group-item').forEach(b => {
+                const active = b === btn;
+                b.classList.toggle('active', active);
+                b.setAttribute('aria-checked', String(active));
+            });
+            const hint = document.getElementById('ioDropzoneHint');
+            if (hint) hint.textContent = importFormat === 'clockify'
+                ? t('manage_tasks.import_drop_hint_clockify', 'Clockify: Reports → Detailed → Export CSV')
+                : t('manage_tasks.import_drop_hint_nexus', 'Formato: Alianza, Tarea, Etiquetas, Fecha inicio, Hora inicio, Fecha fin, Hora fin');
+            resetImport();
+        });
+
+        // Dropzone click
+        const dz  = document.getElementById('ioDropzone');
+        const fIn = document.getElementById('ioFileInput');
+        dz?.addEventListener('click', () => fIn?.click());
+        dz?.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fIn?.click(); } });
+
+        // Drag & drop
+        dz?.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('is-over'); });
+        dz?.addEventListener('dragleave', () => dz.classList.remove('is-over'));
+        dz?.addEventListener('drop', e => {
+            e.preventDefault();
+            dz.classList.remove('is-over');
+            processFile(e.dataTransfer.files[0]);
+        });
+
+        // File input
+        fIn?.addEventListener('change', () => processFile(fIn.files[0]));
+
+        // Alliance select change → recount
+        document.getElementById('ioAllianceMappingRows')?.addEventListener('change', e => {
+            if (!e.target.matches('.io-alliance-select')) return;
+            allianceMap[e.target.dataset.key] = e.target.value ? parseInt(e.target.value, 10) : null;
+            updateImportBtn();
+        });
+
+        // Import / cancel
+        document.getElementById('btnImport')?.addEventListener('click', doImport);
+        document.getElementById('btnImportCancel')?.addEventListener('click', resetImport);
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         refreshAll();
 
         // Tabs
         document.querySelectorAll('.manage-tabs .tab').forEach(btn => {
-            btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+            btn.addEventListener('click', () => {
+                switchTab(btn.dataset.tab);
+                if (btn.dataset.tab === 'io') initIo();
+            });
         });
 
         const grid = document.getElementById('tagsGrid');

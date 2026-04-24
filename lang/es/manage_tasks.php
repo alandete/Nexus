@@ -52,11 +52,57 @@ return [
         'delete_tag_warn_usage'=> 'Esta asignada a {n} {label} — se quitara de todas ellas.',
         'delete_tag_warn_undo' => 'Esta acción no se puede deshacer.',
 
-        // ─── Importar / Exportar (placeholder) ───
+        // ─── Importar / Exportar ───
         'io_title' => 'Importar y exportar',
-        'io_desc'  => 'Transfiere tareas entre entornos, importa desde hojas de calculo o genera copias en JSON/CSV/Excel.',
-        'io_placeholder_title' => 'Próximamente',
-        'io_placeholder_desc'  => 'La importación y exportación de tareas se habilitara en una sub-fase próxima.',
+        'io_desc'  => 'Transfiere entradas de tiempo entre entornos o importa desde Clockify.',
+
+        // Exportar
+        'export_title'        => 'Exportar',
+        'export_desc'         => 'Descarga las entradas de tiempo en formato Nexus (para reimportar) o Clockify (para cargar en Clockify).',
+        'export_range_label'  => 'Rango',
+        'export_format_label' => 'Formato',
+        'export_btn'          => 'Descargar',
+
+        // Rangos (compartidos export/import)
+        'range_today'     => 'Hoy',
+        'range_week'      => 'Esta semana',
+        'range_month'     => 'Mes actual',
+        'range_last_month'=> 'Mes anterior',
+        'range_custom'    => 'Personalizado',
+        'range_from'      => 'Desde',
+        'range_to'        => 'Hasta',
+
+        // Importar
+        'import_title'       => 'Importar',
+        'import_desc'        => 'Sube un archivo CSV en formato Nexus o Clockify (Reports → Detailed → Export CSV).',
+        'import_format_label'=> 'Formato del archivo',
+
+        'import_drop_aria'          => 'Zona de carga de archivo CSV',
+        'import_drop_text'          => 'Arrastra un archivo CSV aquí o haz clic para seleccionar',
+        'import_drop_hint_nexus'    => 'Formato: Alianza, Tarea, Etiquetas, Fecha inicio, Hora inicio, Fecha fin, Hora fin',
+        'import_drop_hint_clockify' => 'Clockify: Reports → Detailed → Export CSV',
+
+        'import_unknown_alliances'      => 'Alianzas no reconocidas',
+        'import_unknown_alliances_desc' => 'Selecciona una alianza existente o descarta las entradas de esa alianza.',
+        'import_unknown_tags'           => 'Etiquetas no reconocidas',
+        'import_unknown_tags_desc'      => 'Selecciona una etiqueta existente o crea una nueva.',
+
+        'import_preview_title' => 'Vista previa',
+
+        'import_btn'         => 'Importar entradas',
+        'import_map_discard' => 'Descartar entradas',
+        'import_map_create'  => 'Crear nueva',
+
+        'import_stat_entries'   => 'entradas',
+        'import_stat_tasks'     => 'tareas',
+        'import_stat_alliances' => 'alianzas',
+        'import_stat_tags'      => 'etiquetas',
+
+        'import_success'       => '{n} entradas importadas.',
+        'import_success_skip_dup'  => '{n} duplicadas omitidas.',
+        'import_success_skip_over' => '{n} con solapamiento omitidas.',
+        'import_err_parse'     => 'No se pudo leer el archivo. Verifica que sea un CSV válido.',
+        'import_err_empty'     => 'El archivo no contiene entradas válidas.',
 
         // ─── Limpieza (placeholder) ───
         'cleanup_title' => 'Limpieza de datos',

@@ -735,7 +735,7 @@
                 b.setAttribute('aria-checked', String(active));
             });
             const custom = document.getElementById('ioCustomRange');
-            if (custom) custom.classList.toggle('d-none', exportRange !== 'custom');
+            if (custom) custom.classList.toggle('is-hidden', exportRange !== 'custom');
         });
 
         // Format export
@@ -800,6 +800,157 @@
         document.getElementById('btnImportCancel')?.addEventListener('click', resetImport);
     }
 
+    // ── Init Cleanup tab ────────────────────────────────────────
+
+    let cleanupInitialized = false;
+    function initCleanup() {
+        if (cleanupInitialized) return;
+        cleanupInitialized = true;
+
+        let previewDone = false;
+
+        async function apiCleanup(action, payload = {}) {
+            const fd = new FormData();
+            fd.append('action', action);
+            Object.keys(payload).forEach(k => fd.append(k, payload[k]));
+            const res = await fetch('includes/tasks_cleanup_actions.php', {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': csrfToken },
+                body: fd,
+            });
+            return res.json();
+        }
+
+        function getFilters() {
+            return {
+                alliance_id: document.getElementById('cleanupAlliance')?.value || '0',
+                statuses:    [...document.querySelectorAll('.cleanup-status-cb:checked')].map(cb => cb.value).join(','),
+                before_date: document.getElementById('cleanupBeforeDate')?.value || '',
+            };
+        }
+
+        function setCounters(tasks, entries) {
+            const t1 = document.getElementById('cleanupCountTasks');
+            const t2 = document.getElementById('cleanupCountEntries');
+            if (t1) t1.textContent = tasks;
+            if (t2) t2.textContent = entries;
+        }
+
+        function resetPreview() {
+            previewDone = false;
+            setCounters(0, 0);
+            const execBtn = document.getElementById('btnCleanupExecute');
+            if (execBtn) execBtn.disabled = true;
+        }
+
+        document.getElementById('cleanupAlliance')?.addEventListener('change', resetPreview);
+        document.getElementById('cleanupBeforeDate')?.addEventListener('change', resetPreview);
+        document.querySelectorAll('.cleanup-status-cb').forEach(cb => cb.addEventListener('change', resetPreview));
+
+        document.getElementById('btnCleanupPreview')?.addEventListener('click', async () => {
+            const { alliance_id, statuses, before_date } = getFilters();
+            if (!statuses) {
+                Toast.error(t('manage_tasks.cleanup_err_no_status', 'Selecciona al menos un estado.'));
+                return;
+            }
+            const btn = document.getElementById('btnCleanupPreview');
+            btn.disabled = true;
+            btn.classList.add('is-loading');
+            try {
+                const result = await apiCleanup('preview', { alliance_id, statuses, before_date });
+                if (result.success) {
+                    setCounters(result.task_count, result.entry_count);
+                    const execBtn = document.getElementById('btnCleanupExecute');
+                    if (execBtn) execBtn.disabled = result.task_count === 0;
+                    previewDone = true;
+                } else {
+                    Toast.error(result.message || 'Error al calcular.');
+                }
+            } catch {
+                Toast.error(t('common.err_network', 'Error de red.'));
+            } finally {
+                btn.disabled = false;
+                btn.classList.remove('is-loading');
+            }
+        });
+
+        document.getElementById('btnCleanupExecute')?.addEventListener('click', async () => {
+            const { alliance_id, statuses, before_date } = getFilters();
+            const nTasks   = document.getElementById('cleanupCountTasks')?.textContent   || '0';
+            const nEntries = document.getElementById('cleanupCountEntries')?.textContent || '0';
+            const summary  = t('manage_tasks.cleanup_preview_result', '{tasks} tareas y {entries} entradas serán eliminadas.')
+                .replace('{tasks}', nTasks).replace('{entries}', nEntries);
+            const confirmed = await ConfirmModal.show({
+                title:         t('manage_tasks.cleanup_confirm_title', 'Confirmar limpieza'),
+                message:       summary + ' ' + t('manage_tasks.cleanup_confirm_undo', 'Esta acción no se puede deshacer.'),
+                acceptText:    t('manage_tasks.cleanup_btn_execute', 'Eliminar selección'),
+                acceptVariant: 'danger',
+                icon:          'bi-trash',
+                variant:       'danger',
+            });
+            if (!confirmed) return;
+
+            const btn = document.getElementById('btnCleanupExecute');
+            btn.disabled = true;
+            btn.classList.add('is-loading');
+            try {
+                const result = await apiCleanup('execute', { alliance_id, statuses, before_date });
+                if (result.success) {
+                    const msg = t('manage_tasks.cleanup_success', '{n} tareas eliminadas.').replace('{n}', result.deleted);
+                    Toast.success(msg);
+                    resetPreview();
+                } else {
+                    Toast.error(result.message || 'Error al eliminar.');
+                }
+            } catch {
+                Toast.error(t('common.err_network', 'Error de red.'));
+            } finally {
+                btn.disabled = false;
+                btn.classList.remove('is-loading');
+            }
+        });
+
+        document.getElementById('btnCleanupNuke')?.addEventListener('click', async () => {
+            const first = await ConfirmModal.show({
+                title:         t('manage_tasks.cleanup_nuke_confirm_title', '¿Eliminar todas las tareas?'),
+                message:       t('manage_tasks.cleanup_nuke_confirm_msg', 'Se eliminarán TODAS las tareas y entradas de tiempo. No hay vuelta atrás.'),
+                acceptText:    t('manage_tasks.cleanup_nuke_confirm_btn', 'Sí, eliminar todo'),
+                acceptVariant: 'danger',
+                icon:          'bi-exclamation-triangle-fill',
+                variant:       'danger',
+            });
+            if (!first) return;
+
+            const second = await ConfirmModal.show({
+                title:         t('manage_tasks.cleanup_nuke_confirm2_title', '¿Estás completamente seguro?'),
+                message:       t('manage_tasks.cleanup_nuke_confirm2_msg', 'Esta es la confirmación final. No podrás recuperar ningún dato.'),
+                acceptText:    t('manage_tasks.cleanup_nuke_confirm2_btn', 'Eliminar permanentemente'),
+                acceptVariant: 'danger',
+                icon:          'bi-exclamation-octagon-fill',
+                variant:       'danger',
+            });
+            if (!second) return;
+
+            const btn = document.getElementById('btnCleanupNuke');
+            btn.disabled = true;
+            btn.classList.add('is-loading');
+            try {
+                const result = await apiCleanup('nuke');
+                if (result.success) {
+                    const msg = t('manage_tasks.cleanup_success', '{n} tareas eliminadas.').replace('{n}', result.deleted);
+                    Toast.success(msg);
+                } else {
+                    Toast.error(result.message || 'Error.');
+                }
+            } catch {
+                Toast.error(t('common.err_network', 'Error de red.'));
+            } finally {
+                btn.disabled = false;
+                btn.classList.remove('is-loading');
+            }
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         refreshAll();
 
@@ -807,7 +958,8 @@
         document.querySelectorAll('.manage-tabs .tab').forEach(btn => {
             btn.addEventListener('click', () => {
                 switchTab(btn.dataset.tab);
-                if (btn.dataset.tab === 'io') initIo();
+                if (btn.dataset.tab === 'io')      initIo();
+                if (btn.dataset.tab === 'cleanup') initCleanup();
             });
         });
 

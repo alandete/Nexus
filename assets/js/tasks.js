@@ -1223,12 +1223,7 @@
         const yesterdayTasks = applyLocalFilters(groupEntriesByTask(listState.data.by_date[yday] || [])).length;
         const history = Object.entries(listState.data.by_date)
             .filter(([date]) => date !== today && date !== yday)
-            .reduce((acc, [, arr]) => acc + applyLocalFilters(arr.map(e => ({
-                title: e.task_title,
-                alliance_name: e.alliance_name,
-                priority: 'medium',
-                tag_ids: '',
-            }))).length, 0);
+            .reduce((acc, [, arr]) => acc + applyLocalFilters(groupEntriesByTask(arr)).length, 0);
 
         const setCount = (id, val) => {
             const el = document.getElementById(id);
@@ -2229,6 +2224,10 @@
             const result = await api('delete', { task_id: taskId });
             if (result.success) {
                 Toast.success(t('tasks.task_deleted', 'Tarea eliminada.'));
+                if (state.running && state.taskId == taskId) {
+                    resetState();
+                    renderEmpty();
+                }
                 loadList();
             } else {
                 Toast.error(result.message || t('tasks.err_delete', 'No se pudo eliminar la tarea.'));

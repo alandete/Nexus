@@ -58,10 +58,47 @@ return [
         'io_placeholder_title' => 'Coming soon',
         'io_placeholder_desc'  => 'Task import and export will be enabled in an upcoming sub-phase.',
 
-        // ─── Cleanup (placeholder) ───
+        // ─── Cleanup ───
         'cleanup_title' => 'Data cleanup',
         'cleanup_desc'  => 'Bulk delete old or completed tasks to keep the database lightweight.',
-        'cleanup_placeholder_title' => 'Coming soon',
-        'cleanup_placeholder_desc'  => 'Bulk cleanup operations will be enabled in an upcoming sub-phase.',
+
+        'cleanup_selective_title' => 'Selective cleanup',
+        'cleanup_selective_desc'  => 'Apply filters to select which tasks to delete. Use Preview to confirm the count before deleting.',
+
+        'cleanup_filter_alliance'    => 'Alliance',
+        'cleanup_all_alliances'      => 'All alliances',
+        'cleanup_filter_status'      => 'Status',
+        'cleanup_status_in_progress' => 'In progress',
+        'cleanup_status_paused'      => 'Paused',
+        'cleanup_status_completed'   => 'Completed',
+        'cleanup_status_cancelled'   => 'Cancelled',
+        'cleanup_status_no_activity' => 'Pending with no activity',
+        'cleanup_filter_date'        => 'Before',
+        'cleanup_filter_date_hint'   => 'Filters by date of last recorded activity.',
+
+        'cleanup_count_tasks'   => 'tasks',
+        'cleanup_count_entries' => 'entries',
+
+        'cleanup_btn_preview' => 'Calculate',
+        'cleanup_btn_execute' => 'Delete selection',
+
+        'cleanup_preview_result' => '{tasks} tasks and {entries} entries will be deleted.',
+        'cleanup_preview_empty'  => 'No tasks match the selected filters.',
+
+        'cleanup_confirm_title'  => 'Confirm cleanup',
+        'cleanup_confirm_undo'   => 'This action cannot be undone.',
+        'cleanup_err_no_status'  => 'Select at least one status.',
+        'cleanup_success'        => '{n} tasks deleted.',
+
+        'cleanup_nuke_title' => 'Delete everything',
+        'cleanup_nuke_desc'  => 'Permanently deletes all tasks and time entries in your account. This operation is irreversible.',
+        'cleanup_nuke_btn'   => 'Delete everything',
+
+        'cleanup_nuke_confirm_title'  => 'Delete all tasks?',
+        'cleanup_nuke_confirm_msg'    => 'ALL tasks and time entries will be deleted. There is no undo.',
+        'cleanup_nuke_confirm2_title' => 'Are you completely sure?',
+        'cleanup_nuke_confirm2_msg'   => 'This is the final confirmation. You will not be able to recover any data.',
+        'cleanup_nuke_confirm_btn'    => 'Yes, delete everything',
+        'cleanup_nuke_confirm2_btn'   => 'Delete permanently',
     ],
 ];

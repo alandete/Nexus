@@ -104,10 +104,47 @@ return [
         'import_err_parse'     => 'No se pudo leer el archivo. Verifica que sea un CSV válido.',
         'import_err_empty'     => 'El archivo no contiene entradas válidas.',
 
-        // ─── Limpieza (placeholder) ───
+        // ─── Limpieza ───
         'cleanup_title' => 'Limpieza de datos',
         'cleanup_desc'  => 'Elimina tareas antiguas o completadas en bloque para mantener la base de datos ligera.',
-        'cleanup_placeholder_title' => 'Próximamente',
-        'cleanup_placeholder_desc'  => 'Las operaciones de limpieza en bloque se habilitaran en una sub-fase próxima.',
+
+        'cleanup_selective_title' => 'Limpieza selectiva',
+        'cleanup_selective_desc'  => 'Aplica filtros para seleccionar qué tareas eliminar. Usa Vista previa para confirmar la cantidad antes de borrar.',
+
+        'cleanup_filter_alliance'   => 'Alianza',
+        'cleanup_all_alliances'     => 'Todas las alianzas',
+        'cleanup_filter_status'     => 'Estado',
+        'cleanup_status_in_progress' => 'En progreso',
+        'cleanup_status_paused'      => 'Pausadas',
+        'cleanup_status_completed'   => 'Completadas',
+        'cleanup_status_cancelled'   => 'Canceladas',
+        'cleanup_status_no_activity' => 'Pendientes sin actividad',
+        'cleanup_filter_date'       => 'Anterior a',
+        'cleanup_filter_date_hint'  => 'Filtra por fecha de la última actividad registrada.',
+
+        'cleanup_count_tasks'   => 'tareas',
+        'cleanup_count_entries' => 'entradas',
+
+        'cleanup_btn_preview' => 'Calcular',
+        'cleanup_btn_execute' => 'Eliminar selección',
+
+        'cleanup_preview_result' => '{tasks} tareas y {entries} entradas serán eliminadas.',
+        'cleanup_preview_empty'  => 'Ninguna tarea coincide con los filtros seleccionados.',
+
+        'cleanup_confirm_title'  => 'Confirmar limpieza',
+        'cleanup_confirm_undo'   => 'Esta acción no se puede deshacer.',
+        'cleanup_err_no_status'  => 'Selecciona al menos un estado.',
+        'cleanup_success'        => '{n} tareas eliminadas.',
+
+        'cleanup_nuke_title' => 'Eliminar todo',
+        'cleanup_nuke_desc'  => 'Elimina absolutamente todas las tareas y entradas de tiempo de tu cuenta. Esta operacion es irreversible.',
+        'cleanup_nuke_btn'   => 'Eliminar todo',
+
+        'cleanup_nuke_confirm_title'  => '¿Eliminar todas las tareas?',
+        'cleanup_nuke_confirm_msg'    => 'Se eliminarán TODAS las tareas y entradas de tiempo. No hay vuelta atrás.',
+        'cleanup_nuke_confirm2_title' => '¿Estás completamente seguro?',
+        'cleanup_nuke_confirm2_msg'   => 'Esta es la confirmación final. No podrás recuperar ningún dato.',
+        'cleanup_nuke_confirm_btn'    => 'Sí, eliminar todo',
+        'cleanup_nuke_confirm2_btn'   => 'Eliminar permanentemente',
     ],
 ];

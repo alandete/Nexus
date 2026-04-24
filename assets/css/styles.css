@@ -4890,9 +4890,8 @@ a.stat-card:hover {
     justify-content: space-between;
     align-items: center;
     gap: var(--ds-space-200);
-    padding-top: var(--ds-space-200);
-    margin-top: var(--ds-space-200);
-    border-top: var(--ds-border-width) solid var(--ds-border);
+    padding: var(--ds-space-100);
+    margin: var(--ds-space-100) 0;
     flex-wrap: wrap;
 }
 
@@ -7533,10 +7532,28 @@ a.stat-card:hover {
    IMPORT / EXPORT (panel IO)
    ============================================ */
 
-.io-export-bar {
+.io-card {
+    background: var(--ds-surface-raised);
+    border: var(--ds-border-width) solid var(--ds-border);
+    border-radius: var(--ds-radius-200);
+    padding: var(--ds-space-250) var(--ds-space-300);
+    margin-bottom: var(--ds-space-250);
+}
+
+.io-card .manage-section-desc {
+    margin-bottom: var(--ds-space-250);
+}
+
+.io-export-controls {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-space-200);
+}
+
+.io-control-row {
     display: flex;
     flex-wrap: wrap;
-    align-items: flex-end;
+    align-items: center;
     gap: var(--ds-space-200);
 }
 
@@ -7544,6 +7561,12 @@ a.stat-card:hover {
     display: flex;
     align-items: center;
     gap: var(--ds-space-100);
+}
+
+.io-custom-range.is-hidden {
+    visibility: hidden;
+    opacity: 0;
+    pointer-events: none;
 }
 
 .io-date-label {
@@ -7556,8 +7579,10 @@ a.stat-card:hover {
 .io-dropzone {
     border: 2px dashed var(--ds-border-color, #ccc);
     border-radius: var(--ds-radius-200);
-    padding: var(--ds-space-400) var(--ds-space-300);
-    text-align: center;
+    padding: var(--ds-space-200) var(--ds-space-300);
+    display: flex;
+    align-items: center;
+    gap: var(--ds-space-200);
     cursor: pointer;
     transition: border-color 0.15s, background 0.15s;
     margin-top: var(--ds-space-200);
@@ -7578,16 +7603,21 @@ a.stat-card:hover {
 .io-dropzone-icon {
     font-size: 2rem;
     color: var(--ds-text-subtlest);
-    display: block;
-    margin-bottom: var(--ds-space-100);
+    flex-shrink: 0;
 }
 
 .io-dropzone.has-file .io-dropzone-icon { color: var(--ds-color-green-500, #36b37e); }
 
+.io-dropzone-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-space-025);
+}
+
 .io-dropzone-text {
     font-size: var(--ds-font-size-body);
     color: var(--ds-text);
-    margin: 0 0 var(--ds-space-050) 0;
+    margin: 0;
 }
 
 .io-dropzone-hint {
@@ -7702,6 +7732,89 @@ a.stat-card:hover {
     display: flex;
     gap: var(--ds-space-150);
     margin-top: var(--ds-space-250);
+}
+
+/* ---- Cleanup panel ---- */
+.cleanup-body {
+    display: flex;
+    gap: var(--ds-space-400);
+    margin-bottom: var(--ds-space-250);
+}
+
+.cleanup-filters {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-space-200);
+}
+
+.cleanup-filter-row {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--ds-space-150);
+}
+
+.cleanup-filter-label {
+    flex: 0 0 120px;
+    font-size: var(--ds-font-size-body-sm);
+    color: var(--ds-text-subtle);
+    padding-top: 6px;
+    white-space: nowrap;
+}
+
+.cleanup-checkboxes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ds-space-100) var(--ds-space-300);
+    padding-top: 4px;
+}
+
+.cleanup-date-hint {
+    font-size: var(--ds-font-size-body-sm);
+    color: var(--ds-text-subtlest);
+    padding-top: 6px;
+}
+
+.cleanup-sidebar {
+    flex: 0 0 160px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--ds-space-200);
+}
+
+.cleanup-counts {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-space-075);
+}
+
+.cleanup-count-item {
+    display: flex;
+    align-items: baseline;
+    gap: var(--ds-space-075);
+}
+
+.cleanup-count-value {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--app-brand);
+    line-height: 1;
+}
+
+.cleanup-count-label {
+    font-size: var(--ds-font-size-body-sm);
+    color: var(--ds-text-subtle);
+}
+
+.cleanup-nuke-card {
+    border-color: var(--ds-color-red-200, #ffbdad);
+    background: color-mix(in srgb, var(--ds-color-red-50, #fff3f0) 60%, var(--ds-surface-raised));
+}
+
+.cleanup-nuke-title {
+    color: var(--ds-color-red-700, #de350b);
 }
 
 /* ---- Grilla de etiquetas inline-editable ---- */

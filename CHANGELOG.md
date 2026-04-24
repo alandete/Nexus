@@ -52,7 +52,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 **UX en `/tasks`**:
 - Botones del header reordenados: Nueva tarea (primary) + Reportes (default con fondo neutro, en vez de btn-subtle transparente) para mejor jerarquia visual.
 
-**Pendiente para mañana**: pulir vista impresa del PDF.
+**Pulido vista impresa PDF — 2026-04-23**:
+- Encabezado: logo+app a la izquierda; tipo de informe+usuario a la derecha con `flex:1; min-width:0` (elimina el `max-width:50%` que recortaba el texto).
+- Gráfico: `margin-top: 0.7cm` y `margin-bottom: 1cm` para más aire respecto al encabezado y la tabla de alianzas.
+- Paginación y footer: número de página y fecha de generación via `@page @bottom-right` / `@bottom-center` (CSS Paged Media), con inyección dinámica de la fecha en `exportPDF()`.
+- Gráfico en impresión: `chartInstance.resize(302, 302)` con `responsive: false` antes de `window.print()`; restaura tamaño y leyenda en el `setTimeout` post-print.
+- Tablas: cambio a `border-collapse: separate; border-spacing: 0` con borde exterior en el elemento wrapper (`<div>` / `<article>`), no en `<table>`. Bordes interiores solo en los lados internos de cada celda. Diseño de tabla abierto (sin bordes laterales) para evitar el bug de Chrome que recorta el borde derecho al 100% del ancho de página.
 
 ### Sesion 2026-04-21 — pulido pre-produccion
 

@@ -6937,9 +6937,23 @@ a.stat-card:hover {
     }
 }
 
+/* Contenedores de grafico: transparentes en pantalla */
+.report-chart-row,
+.report-chart-col {
+    display: block;
+}
+
 .report-chart-wrap {
     position: relative;
     height: 320px;
+}
+
+/* Elementos exclusivos de impresion: ocultos en pantalla */
+.print-doc-header,
+.print-page-footer,
+.report-print-legend,
+.print-chart-info {
+    display: none;
 }
 
 .report-alliance-table .table,
@@ -7072,9 +7086,34 @@ a.stat-card:hover {
     background: var(--ds-background-neutral-subtle);
 }
 
-/* ----- PRINT (PDF via window.print) ----- */
+/* ----- PRINT (PDF via window.print) — Formato carta vertical ----- */
+
+@page {
+    size: letter portrait;
+    margin: 1.4cm 1.5cm 1.6cm 1.5cm;
+}
+
+/* Numero de pagina en el margen inferior derecho (CSS Paged Media, funciona en Chrome/Edge) */
+@page {
+    @bottom-left {
+        content: "Nexus";
+        font-size: 7pt;
+        font-weight: 700;
+        color: #666;
+        font-family: system-ui, -apple-system, sans-serif;
+        vertical-align: top;
+    }
+    @bottom-right {
+        content: "Página " counter(page);
+        font-size: 7pt;
+        color: #888;
+        font-family: system-ui, -apple-system, sans-serif;
+        vertical-align: top;
+    }
+}
+
 @media print {
-    /* Ocultar todo lo que no es el reporte */
+    /* ---- Ocultar UI de la aplicacion ---- */
     .sidebar,
     .topbar,
     .page-header,
@@ -7086,50 +7125,310 @@ a.stat-card:hover {
     .app-tooltip,
     footer { display: none !important; }
 
+    /* Header de pantalla se oculta; se usa print-doc-header */
+    .report-header { display: none !important; }
+
+    /* ---- Reset base ---- */
+    *,
+    *::before,
+    *::after { box-shadow: none !important; }
+
     body, html {
         background: #ffffff !important;
         color: #000000 !important;
-        font-size: 11pt;
+        font-size: 10pt;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
     }
 
-    main, .main-content, .content-wrapper {
+    /* Neutralizar layout de la app shell */
+    main, .main-content, .content-wrapper, .page-content {
+        display: block !important;
         margin: 0 !important;
         padding: 0 !important;
         max-width: none !important;
         width: 100% !important;
+        left: 0 !important;
+        position: static !important;
+        overflow: visible !important;
     }
 
-    .report-view {
+    /* Asegurar que todos los contenedores ocupen el ancho completo de la pagina */
+    .report-view,
+    .report-content {
+        display: block !important;
+        width: 100% !important;
+        max-width: 100% !important;
         border: none !important;
-        box-shadow: none !important;
         padding: 0 !important;
         background: #ffffff !important;
+        overflow: visible !important;
+        box-sizing: border-box !important;
     }
 
-    .report-header {
-        border-bottom: 1px solid #000 !important;
+    /* ---- Cabecera: logo+app izq | tipo+usuario der ---- */
+    .print-doc-header {
+        display: flex !important;
+        align-items: center;
+        justify-content: space-between;
+        padding-bottom: 0.3cm;
+        margin-bottom: 0.4cm;
+        border-bottom: 2px solid #222;
     }
 
+    .print-doc-branding {
+        display: flex;
+        align-items: center;
+        gap: 0.2cm;
+        flex-shrink: 0;
+    }
+
+    .print-doc-logo {
+        width: 28pt;
+        height: 28pt;
+        flex-shrink: 0;
+    }
+
+    .print-doc-app-name {
+        font-size: 17pt;
+        font-weight: 700;
+        color: #000;
+        letter-spacing: -0.02em;
+        line-height: 1;
+    }
+
+    .print-doc-meta {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 0.05cm;
+        text-align: right;
+        flex: 1;
+        min-width: 0;
+        padding-left: 0.4cm;
+    }
+
+    .print-doc-report-type {
+        font-size: 7.5pt;
+        color: #777;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        font-weight: 600;
+    }
+
+    .print-doc-username {
+        font-size: 13pt;
+        font-weight: 700;
+        color: #000;
+        line-height: 1.2;
+        word-break: break-word;
+    }
+
+    /* ---- Seccion de alianzas ---- */
+    /* Grafico + leyenda (izq) / Periodo + total (der): flex 2 columnas */
+    .report-chart-row {
+        display: flex !important;
+        align-items: flex-start;
+        gap: 0.8cm;
+        page-break-inside: avoid;
+        margin-top: 0.7cm;
+        margin-bottom: 1cm;
+    }
+
+    /* Columna izquierda: chart arriba, leyenda abajo */
+    .report-chart-col {
+        display: flex !important;
+        flex-direction: column;
+        flex-shrink: 0;
+        width: 8cm;
+    }
+
+    /* Chart-wrap: 8cm×8cm cuadrado. El canvas es redimensionado a 302×302px via
+       chartInstance.resize() en exportPDF() antes de llamar window.print(). */
+    .report-chart-wrap {
+        width: 8cm !important;
+        height: 8cm !important;
+        min-height: 0 !important;
+        position: relative !important;
+        flex-shrink: 0;
+        overflow: hidden !important;
+    }
+
+    /* Canvas visible en impresion (redimensionado a 302×302 en JS antes de imprimir) */
+    .report-chart-wrap canvas {
+        display: block !important;
+        width: 100% !important;
+        height: 100% !important;
+    }
+
+    /* Leyenda: oculta en impresion (sin leyenda bajo el grafico por solicitud) */
+    .report-print-legend {
+        display: none !important;
+    }
+
+    .print-legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.18cm;
+        padding: 0.1cm 0;
+        font-size: 8.5pt;
+        border-bottom: 0.5px solid #eee;
+    }
+
+    .print-legend-item:last-child { border-bottom: none; }
+
+    .print-legend-dot {
+        width: 9pt;
+        height: 9pt;
+        border-radius: 50%;
+        flex-shrink: 0;
+        background: #8795a8;
+    }
+
+    .print-legend-name {
+        font-weight: 500;
+        color: #111;
+        word-break: break-word;
+    }
+
+    /* Columna derecha: periodo y tiempo total grande */
+    .print-chart-info {
+        display: flex !important;
+        flex-direction: column;
+        justify-content: center;
+        flex: 1;
+        padding-left: 0.7cm;
+        border-left: 1px solid #ddd;
+        align-self: stretch;
+    }
+
+    .print-chart-period {
+        font-size: 12pt;
+        color: #444;
+        margin-bottom: 0.3cm;
+        font-weight: 500;
+    }
+
+    .print-chart-total {
+        font-size: 34pt;
+        font-weight: 700;
+        color: #000;
+        font-family: 'Courier New', Courier, monospace;
+        line-height: 1;
+        letter-spacing: -0.02em;
+    }
+
+    .print-chart-tasks {
+        font-size: 11pt;
+        color: #555;
+        margin-top: 0.2cm;
+    }
+
+    /* Tabla de alianzas: solo bordes horizontales — el borde derecho cae en el limite
+       del margen de impresion de Chrome y se recorta; diseño abierto es mas limpio */
+    .report-alliance-table {
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow: visible !important;
+        box-sizing: border-box !important;
+        border: none !important;
+        border-top: 1px solid #999 !important;
+        border-bottom: 1px solid #999 !important;
+    }
+
+    /* ---- Secciones ---- */
     .report-section {
         page-break-inside: avoid;
-        margin-bottom: 1.5cm;
+        margin-bottom: 0.6cm;
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow: visible !important;
+        box-sizing: border-box !important;
     }
 
     .report-section-title {
         color: #000 !important;
-        border-bottom: 1px solid #000 !important;
-        padding-bottom: 0.2cm;
-    }
-
-    .report-chart-wrap {
-        height: 240px;
-        page-break-inside: avoid;
+        border-bottom: 1.5px solid #444 !important;
+        padding-bottom: 0.1cm;
+        margin-bottom: 0.2cm;
+        font-size: 8pt;
     }
 
     .report-section-title i,
-    .report-meta-strong {
-        color: #000 !important;
+    .report-meta-strong { color: #000 !important; }
+
+    /* ---- Tablas: borde exterior en wrapper, celdas solo bordes internos ---- */
+    .report-alliance-table .table,
+    .report-group-card .table,
+    .report-section > .table {
+        width: 100% !important;
+        max-width: 100% !important;
+        border-collapse: separate !important;
+        border-spacing: 0 !important;
+        border: none !important;
+        font-size: 9pt;
+        table-layout: auto;
+        box-sizing: border-box !important;
     }
+
+    /* Cabeceras: solo borde inferior (separador header/body) y derecho (separador columnas) */
+    .report-alliance-table th,
+    .report-group-card th,
+    .report-section > .table th {
+        background: #efefef !important;
+        color: #222 !important;
+        border-top: none !important;
+        border-left: none !important;
+        border-right: 1px solid #aaa !important;
+        border-bottom: 1px solid #aaa !important;
+        padding: 3.5pt 6pt !important;
+        font-size: 8pt;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        white-space: nowrap;
+    }
+
+    /* Celdas: solo borde inferior (separador filas) y derecho (separador columnas) */
+    .report-alliance-table td,
+    .report-group-card td,
+    .report-section > .table td {
+        padding: 3.5pt 6pt !important;
+        border-top: none !important;
+        border-left: none !important;
+        border-right: 1px solid #ccc !important;
+        border-bottom: 1px solid #ccc !important;
+        overflow-wrap: break-word;
+        word-break: break-word;
+    }
+
+    /* Ultima fila: sin borde inferior (el wrapper lo provee con border-bottom) */
+    .report-alliance-table tbody tr:last-child td,
+    .report-group-card tbody tr:last-child td {
+        border-bottom: none !important;
+    }
+
+
+    /* Columna alianza: mas ancha; columnas numericas: centradas */
+    .report-alliance-table th:first-child,
+    .report-alliance-table td:first-child { width: 52%; }
+    .report-alliance-table th:nth-child(2),
+    .report-alliance-table td:nth-child(2),
+    .report-alliance-table th:nth-child(3),
+    .report-alliance-table td:nth-child(3),
+    .report-alliance-table th:nth-child(4),
+    .report-alliance-table td:nth-child(4) {
+        text-align: center !important;
+        white-space: nowrap;
+    }
+
+    /* Tabla de tareas/etiquetas: columna nombre mucho mas ancha */
+    .report-group-table th:first-child,
+    .report-group-table td:first-child { width: 70%; }
+    .report-group-table th:nth-child(2),
+    .report-group-table td:nth-child(2) { width: 13%; text-align: center !important; white-space: nowrap; }
+    .report-group-table th:nth-child(3),
+    .report-group-table td:nth-child(3) { width: 17%; text-align: center !important; white-space: nowrap; }
 
     .table, .report-alliance-table table, .report-group-card table {
         page-break-inside: auto;
@@ -7138,20 +7437,39 @@ a.stat-card:hover {
     .table thead { display: table-header-group; }
     .table tr { page-break-inside: avoid; }
 
-    /* Cards de grupo: aplanar fondos para impresion nitida */
+    /* Cards de grupo (informe detallado) */
+    .report-group-stack {
+        display: block !important;
+        width: 100% !important;
+        overflow: visible !important;
+    }
+
     .report-group-card {
-        border: 1px solid #000 !important;
+        display: block !important;
+        width: 100% !important;
+        border: none !important;
+        border-top: 1px solid #999 !important;
+        border-bottom: 1px solid #999 !important;
         page-break-inside: avoid;
+        margin-bottom: 0.35cm;
+        overflow: visible !important;
+        box-sizing: border-box !important;
     }
 
     .report-group-header {
-        background: #f5f5f5 !important;
-        border-bottom: 1px solid #000 !important;
+        background: #f0f0f0 !important;
+        border-bottom: 1px solid #bbb !important;
     }
 
     .report-group-card .report-group-table tbody tr:nth-child(even) td {
-        background: #fafafa !important;
+        background: #f9f9f9 !important;
     }
+
+    /* ---- Footer de pagina ----
+       Nexus (@bottom-left), fecha generada (@bottom-center, inyectada dinamicamente
+       en exportPDF) y numero de pagina (@bottom-right) gestionados por @page.
+       El elemento HTML del footer queda oculto en impresion. */
+    .print-page-footer { display: none !important; }
 }
 
 /* ============================================

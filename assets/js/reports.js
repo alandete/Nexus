@@ -162,10 +162,11 @@
 
         const user = data.user || {};
         const period = data.period || {};
+        const typeLabel = state.type === 'detailed'
+            ? t('reports.type_detailed', 'Detallado')
+            : t('reports.type_summary', 'Resumido');
 
-        // Header del reporte: 2 columnas
-        // Izquierda: nombre del usuario + periodo
-        // Derecha: tiempo total en grande
+        // Header de pantalla: 2 columnas (user+fecha izq | total der)
         const header = `
             <header class="report-header">
                 <div class="report-header-left">
@@ -180,11 +181,44 @@
             </header>
         `;
 
+        // Cabecera de impresion: izq logo+app | der tipo de informe + nombre usuario
+        const printHeader = `
+            <div class="print-doc-header" aria-hidden="true">
+                <div class="print-doc-branding">
+                    <img src="assets/img/favicon.svg" class="print-doc-logo" alt="Nexus">
+                    <span class="print-doc-app-name">Nexus</span>
+                </div>
+                <div class="print-doc-meta">
+                    <div class="print-doc-report-type">Informe ${escapeHtml(typeLabel)} de actividades</div>
+                    <div class="print-doc-username">${escapeHtml(user.name || user.username || '')}</div>
+                </div>
+            </div>
+        `;
+
+        // Fecha de generacion para el footer
+        let genDateStr = '';
+        if (data.generated_at) {
+            try {
+                const d = new Date(data.generated_at.replace(' ', 'T'));
+                genDateStr = d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })
+                    + ' ' + d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+            } catch (_) { genDateStr = data.generated_at; }
+        }
+
+        // Footer de pagina: fijo al fondo en cada pagina impresa, invisible en pantalla
+        const printFooter = `
+            <div class="print-page-footer" aria-hidden="true">
+                <span class="print-footer-brand">Nexus</span>
+                <span class="print-footer-generated">${genDateStr ? 'Generado: ' + escapeHtml(genDateStr) : ''}</span>
+                <span class="print-footer-page"></span>
+            </div>
+        `;
+
         const allianceSection = renderAllianceSection(data);
         const tasksSection = data.tasks_by_alliance ? renderTasksSection(data.tasks_by_alliance) : '';
         const tagsSection  = data.by_tag ? renderTagsSection(data.by_tag) : '';
 
-        container.innerHTML = header + allianceSection + tasksSection + tagsSection;
+        container.innerHTML = printHeader + header + allianceSection + tasksSection + tagsSection + printFooter;
         setTimeout(() => drawChart(data.by_alliance || []), 50);
     }
 
@@ -208,26 +242,51 @@
             `;
         }).join('');
 
+        // Leyenda HTML para impresion: solo color+nombre (los datos estan en la tabla de abajo)
+        const legendItems = (data.by_alliance || []).map(a => {
+            const dotStyle = a.color ? `style="background:${escapeHtml(a.color)};"` : '';
+            return `
+                <div class="print-legend-item">
+                    <span class="print-legend-dot" ${dotStyle}></span>
+                    <span class="print-legend-name">${escapeHtml(a.name)}</span>
+                </div>
+            `;
+        }).join('');
+
+        const period = data.period || {};
+
         return `
             <section class="report-section">
-                <div class="report-alliance-grid">
-                    <div class="report-chart-wrap">
-                        <canvas id="reportChart" aria-label="${escapeHtml(t('reports.chart_label', 'Gráfico de distribución por alianza'))}"></canvas>
+                <!-- Fila superior: grafico+leyenda izq | periodo+total der -->
+                <div class="report-chart-row">
+                    <div class="report-chart-col">
+                        <div class="report-chart-wrap">
+                            <canvas id="reportChart" aria-label="${escapeHtml(t('reports.chart_label', 'Gráfico de distribución por alianza'))}"></canvas>
+                        </div>
+                        <div class="report-print-legend" aria-hidden="true">
+                            ${legendItems}
+                        </div>
                     </div>
-                    <div class="report-alliance-table">
-                        <table class="table report-table">
-                            <caption class="sr-only">${escapeHtml(t('reports.section_alliances', 'Distribución por alianza'))}</caption>
-                            <thead>
-                                <tr>
-                                    <th scope="col" class="text-left">${escapeHtml(t('reports.col_alliance', 'Alianza'))}</th>
-                                    <th scope="col" class="text-right">${escapeHtml(t('reports.col_tasks', 'Tareas'))}</th>
-                                    <th scope="col" class="text-right">${escapeHtml(t('reports.col_time', 'Tiempo'))}</th>
-                                    <th scope="col" class="text-right">%</th>
-                                </tr>
-                            </thead>
-                            <tbody>${rows}</tbody>
-                        </table>
+                    <div class="print-chart-info" aria-hidden="true">
+                        <div class="print-chart-period">${escapeHtml(period.label || '')}</div>
+                        <div class="print-chart-total">${escapeHtml(formatDuration(data.total_seconds))}</div>
+                        <div class="print-chart-tasks">${data.task_count || 0} ${escapeHtml(t('reports.meta_tasks', 'tareas'))}</div>
                     </div>
+                </div>
+                <!-- Tabla de alianzas: ancho completo debajo -->
+                <div class="report-alliance-table">
+                    <table class="table report-table">
+                        <caption class="sr-only">${escapeHtml(t('reports.section_alliances', 'Distribución por alianza'))}</caption>
+                        <thead>
+                            <tr>
+                                <th scope="col" class="text-left">${escapeHtml(t('reports.col_alliance', 'Alianza'))}</th>
+                                <th scope="col" class="text-right">${escapeHtml(t('reports.col_tasks', 'Tareas'))}</th>
+                                <th scope="col" class="text-right">${escapeHtml(t('reports.col_time', 'Tiempo'))}</th>
+                                <th scope="col" class="text-right">%</th>
+                            </tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                    </table>
                 </div>
             </section>
         `;
@@ -625,19 +684,50 @@
 
     function exportPDF() {
         if (!lastReport) return;
-        // Cambiar el document.title temporalmente para que el PDF (guardado desde
-        // el dialogo de impresion del navegador) tenga un nombre legible.
         const originalTitle = document.title;
         const u = lastReport.user.username || lastReport.user.name || 'user';
         const p = lastReport.period;
         document.title = `Reporte ${u} ${p.start} a ${p.end}`;
 
+        // Redimensionar el grafico a las proporciones de impresion (8cm ≈ 302px a 96dpi)
+        // y ocultar la leyenda Chart.js. Quitar responsive para que el resize persista.
+        if (chartInstance) {
+            chartInstance.options.responsive = false;
+            chartInstance.options.plugins.legend.display = false;
+            chartInstance.resize(302, 302);
+        }
+
+        // Inyectar la fecha de generacion en @page @bottom-center via estilo dinamico
+        let genDateStr = '';
+        if (lastReport.generated_at) {
+            try {
+                const d = new Date(lastReport.generated_at.replace(' ', 'T'));
+                genDateStr = d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            } catch (_) {}
+        }
+        const printDateStyle = document.createElement('style');
+        printDateStyle.id = '__nexus_print_date__';
+        if (genDateStr) {
+            printDateStyle.textContent = `@page { @bottom-center { content: "Generado: ${genDateStr}"; font-size: 7pt; color: #888; font-family: system-ui,-apple-system,sans-serif; vertical-align: top; } }`;
+        }
+        document.head.appendChild(printDateStyle);
+
         document.body.classList.add('is-printing-report');
-        window.print();
-        setTimeout(() => {
-            document.body.classList.remove('is-printing-report');
-            document.title = originalTitle;
-        }, 500);
+
+        // requestAnimationFrame garantiza que el resize se haya pintado antes de imprimir
+        requestAnimationFrame(() => {
+            window.print();
+            setTimeout(() => {
+                document.body.classList.remove('is-printing-report');
+                document.title = originalTitle;
+                printDateStyle.remove();
+                if (chartInstance) {
+                    chartInstance.options.responsive = true;
+                    chartInstance.options.plugins.legend.display = true;
+                    chartInstance.resize();
+                }
+            }, 500);
+        });
     }
 
     /* ========================================================

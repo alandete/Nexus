@@ -14,6 +14,19 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
   - Validacion Clockify ↔ Nexus completada y confirmada antes del cierre.
 - **Prioridad de cierre** (11 dias habiles disponibles): backend fixes → Importar/Exportar → Limpieza → Reportes → Clockify validation.
 
+### Fase 5 — Limpieza selectiva en `/manage-tasks` — 2026-04-24
+
+**Tab Limpieza**:
+- Filtros: alianza, estado (En progreso, Pausadas, Completadas, Canceladas, Pendientes sin actividad) y fecha anterior a.
+- Vista previa calcula tareas y entradas afectadas antes de borrar. Botón "Eliminar selección" deshabilitado hasta confirmar preview.
+- Doble confirmación modal antes de ejecutar.
+- Opción "Eliminar todo" con doble confirmación reforzada para borrado total de tareas y entradas.
+- Backend: `includes/tasks_cleanup_actions.php` con acciones `preview`, `execute` y `nuke`.
+
+**Correcciones**:
+- Contador de filtros en `/tasks` usaba objetos con `priority` y `tag_ids` hardcodeados; ahora usa `groupEntriesByTask` y refleja alianza, prioridad y etiquetas correctamente.
+- Al eliminar la tarea activa desde el panel, el tracker se resetea en lugar de quedar en estado huérfano.
+
 ### Fase 5 — Importar / Exportar en `/manage-tasks` — 2026-04-24
 
 **Tab Exportar**:

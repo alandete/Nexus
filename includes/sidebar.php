@@ -10,8 +10,10 @@ $currentPage = isset($_GET['page']) ? $_GET['page'] : 'home';
 $currentUser = getCurrentUser();
 
 // Determinar que secciones del sidebar estan expandidas
-$settingsPages = ['settings', 'users', 'manage-alliances', 'manage-tasks', 'application', 'integrations', 'snapshots', 'system', 'activity'];
-$isSettingsActive = in_array($currentPage, $settingsPages);
+$settingsPages  = ['settings', 'users', 'manage-alliances', 'manage-tasks', 'application', 'integrations', 'snapshots', 'system', 'activity'];
+$isSettingsActive  = in_array($currentPage, $settingsPages);
+$utilitiesPages = ['utilities-images', 'utilities-pdf', 'utilities-gift'];
+$isUtilitiesActive = in_array($currentPage, $utilitiesPages);
 ?>
 
 <aside class="sidebar" id="sidebar" role="navigation" aria-label="<?= __('menu.main_nav') ?>">
@@ -69,29 +71,29 @@ $isSettingsActive = in_array($currentPage, $settingsPages);
 
             <!-- Utilidades (con sub-items) -->
             <li class="sidebar-item sidebar-group" role="none">
-                <button class="sidebar-link sidebar-group-toggle <?= $currentPage === 'utilities' ? 'active' : '' ?>"
-                        type="button" aria-expanded="<?= $currentPage === 'utilities' ? 'true' : 'false' ?>"
+                <button class="sidebar-link sidebar-group-toggle <?= $isUtilitiesActive ? 'active' : '' ?>"
+                        type="button" aria-expanded="<?= $isUtilitiesActive ? 'true' : 'false' ?>"
                         aria-controls="sidebar-sub-utilities"
                         data-tooltip="<?= __('menu.utilities') ?>">
                     <i class="bi bi-tools sidebar-link-icon" aria-hidden="true"></i>
                     <span class="sidebar-link-text"><?= __('menu.utilities') ?></span>
                     <i class="bi bi-chevron-down sidebar-chevron" aria-hidden="true"></i>
                 </button>
-                <ul class="sidebar-submenu <?= $currentPage === 'utilities' ? 'show' : '' ?>" id="sidebar-sub-utilities" role="menu">
+                <ul class="sidebar-submenu <?= $isUtilitiesActive ? 'show' : '' ?>" id="sidebar-sub-utilities" role="menu">
                     <li role="none">
-                        <a class="sidebar-sublink" href="<?= url('utilities') ?>#preguntas" role="menuitem">
+                        <a class="sidebar-sublink <?= $currentPage === 'utilities-gift' ? 'active' : '' ?>" href="<?= url('utilities-gift') ?>" role="menuitem">
                             <i class="bi bi-file-earmark-text sidebar-link-icon" aria-hidden="true"></i>
                             <span class="sidebar-link-text"><?= __('menu.questions') ?></span>
                         </a>
                     </li>
                     <li role="none">
-                        <a class="sidebar-sublink" href="<?= url('utilities') ?>#pdf" role="menuitem">
+                        <a class="sidebar-sublink <?= $currentPage === 'utilities-pdf' ? 'active' : '' ?>" href="<?= url('utilities-pdf') ?>" role="menuitem">
                             <i class="bi bi-file-earmark-pdf sidebar-link-icon" aria-hidden="true"></i>
                             <span class="sidebar-link-text"><?= __('menu.pdf_optimizer') ?></span>
                         </a>
                     </li>
                     <li role="none">
-                        <a class="sidebar-sublink" href="<?= url('utilities') ?>#imagenes" role="menuitem">
+                        <a class="sidebar-sublink <?= $currentPage === 'utilities-images' ? 'active' : '' ?>" href="<?= url('utilities-images') ?>" role="menuitem">
                             <i class="bi bi-image sidebar-link-icon" aria-hidden="true"></i>
                             <span class="sidebar-link-text"><?= __('menu.image_optimizer') ?></span>
                         </a>

@@ -44,6 +44,16 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 - Toast de advertencia cuando se importa un archivo sin entradas nuevas (todas duplicadas).
 - Descripción de la sección actualizada para informar al usuario del comportamiento de deduplicación sin necesidad de ejecutar el proceso.
 
+### Módulo Utilidades — 2026-04-24
+
+**Optimizar Imágenes** (nueva página `/utilities-images`):
+- Panel Comprimir: layout 2 columnas (opciones 30% / dropzone 70%), tarjetas de método con icono de color, guía tooltip, límite 20 MB (ImageMagick) / 5 MB (API). Cola resumida en una línea (N archivos · X MB). Botón de descarga con estado "descargado" en verde.
+- Panel Redimensionar: layout 3 columnas (dropzone / preview / opciones). Columnas 2 y 3 bloqueadas hasta subir imagen. Modo porcentaje con 3 botones preset (30/50/70%) que muestran dimensiones calculadas. Modo personalizado con ancho y alto en la misma línea.
+- Panel Convertir: mismo layout 2 columnas que Comprimir. Límite 20 MB. Campo de calidad JPEG alineado.
+- Responsive: iconos de sub-tabs ocultos en móvil; layout Comprimir 50/50 en tablet, 30/70 en desktop; layout Redimensionar dropzone arriba + 2 columnas en tablet, 3 columnas en desktop.
+
+**Arquitectura**: cada utilidad tiene su propia página (`/utilities-images`, `/utilities-pdf`, `/utilities-gift`). El sidebar navega directamente a cada página con estado activo correcto. JS se carga solo en la página que lo necesita.
+
 ### Documentación — 2026-04-24
 
 - Nueva sección "Tareas" en `/documentation` con 5 artículos: Rastreador de tiempo, Estados de tarea, Filtros y búsqueda, Reportes, Administrar tareas.

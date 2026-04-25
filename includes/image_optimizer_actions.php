@@ -59,9 +59,10 @@ function imgHandleStatus(): void
 // ═════════════════════════════════════════════════════════════════════════════
 function imgHandleCompress(): void
 {
-    $file   = imgValidateUpload();
-    $method = $_POST['method']  ?? 'gd';
+    $method = $_POST['method']  ?? 'imagick';
     $level  = $_POST['quality'] ?? 'medium'; // high | medium | low
+
+    $file   = imgValidateUpload($method === 'api' ? 5 : 20);
 
     $qualityMap = ['high' => 85, 'medium' => 70, 'low' => 50];
     $quality    = $qualityMap[$level] ?? 70;
@@ -238,7 +239,7 @@ function imgHandleResize(): void
 // ═════════════════════════════════════════════════════════════════════════════
 function imgHandleConvert(): void
 {
-    $file    = imgValidateUpload();
+    $file    = imgValidateUpload(20);
     $format  = strtolower($_POST['format']  ?? 'webp');
     $quality = (int)($_POST['quality']      ?? 85);
     $quality = max(30, min(100, $quality));
@@ -390,7 +391,7 @@ function imgExtractFromZip(string $data, string $originalName): string
 // ═════════════════════════════════════════════════════════════════════════════
 // UTILIDADES COMUNES
 // ═════════════════════════════════════════════════════════════════════════════
-function imgValidateUpload(): array
+function imgValidateUpload(int $maxMB = 5): array
 {
     $f = $_FILES['image'] ?? null;
     if (!$f || $f['error'] !== UPLOAD_ERR_OK) {
@@ -402,8 +403,8 @@ function imgValidateUpload(): array
         imgOut(['success' => false, 'message' => "Formato no permitido: {$f['name']}"]);
     }
 
-    if ($f['size'] > 5 * 1024 * 1024) {
-        imgOut(['success' => false, 'message' => "{$f['name']} supera el límite de 5 MB"]);
+    if ($f['size'] > $maxMB * 1024 * 1024) {
+        imgOut(['success' => false, 'message' => "{$f['name']} supera el límite de {$maxMB} MB"]);
     }
 
     return $f;

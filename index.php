@@ -52,7 +52,8 @@ if (empty($_SESSION['lang']) && !empty($projectInfo['default_lang']) && in_array
 // Routing
 $page = isset($_GET['page']) ? sanitize($_GET['page']) : 'home';
 $validPages = [
-    'home', 'tasks', 'alliances', 'utilities', 'documentation',
+    'home', 'tasks', 'alliances', 'documentation',
+    'utilities-images', 'utilities-pdf', 'utilities-gift',
     'reports',
     'settings', 'users', 'manage-alliances', 'manage-tasks', 'application', 'integrations',
     'snapshots', 'system', 'activity',
@@ -274,10 +275,16 @@ if (!empty($projectInfo['maintenance_mode'])) {
     <script src="assets/js/tasks.js?v=<?= filemtime('assets/js/tasks.js') ?>"></script>
     <?php endif; ?>
 
-    <?php if ($page === 'utilities'): ?>
-    <script src="assets/js/gift.js?v=<?= filemtime('assets/js/gift.js') ?>"></script>
-    <script src="assets/js/pdf-optimizer.js?v=<?= filemtime('assets/js/pdf-optimizer.js') ?>"></script>
+    <?php if ($page === 'utilities-images'): ?>
     <script src="assets/js/image-optimizer.js?v=<?= filemtime('assets/js/image-optimizer.js') ?>"></script>
+    <?php endif; ?>
+
+    <?php if ($page === 'utilities-gift'): ?>
+    <script src="assets/js/gift.js?v=<?= filemtime('assets/js/gift.js') ?>"></script>
+    <?php endif; ?>
+
+    <?php if ($page === 'utilities-pdf'): ?>
+    <script src="assets/js/pdf-optimizer.js?v=<?= filemtime('assets/js/pdf-optimizer.js') ?>"></script>
     <?php endif; ?>
 
     <?php if ($page === 'integrations'): ?>

@@ -143,6 +143,7 @@ if (isDBAvailable()) {
                 <?= __('tasks.tab_today') ?>
                 <span class="tasks-section-count" id="countToday">0</span>
             </h3>
+            <span class="tasks-section-time text-subtle text-sm" id="timeToday"></span>
         </div>
         <div class="tasks-panel-content tasks-grid-table" id="contentToday" role="grid"></div>
     </div>
@@ -220,6 +221,7 @@ if (isDBAvailable()) {
                 <?= __('tasks.tab_yesterday') ?>
                 <span class="tasks-section-count" id="countYesterday">0</span>
             </h3>
+            <span class="tasks-section-time text-subtle text-sm" id="timeYesterday"></span>
         </div>
         <div class="tasks-panel-content tasks-grid-table" id="contentYesterday" role="grid"></div>
     </div>

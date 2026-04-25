@@ -23,6 +23,15 @@ if ($hour < 12) {
 $taskStats = ['pending' => 0, 'in_progress' => 0, 'overdue' => 0];
 $upcomingTasks = [];
 $recentActivity = [];
+$topTags   = [];
+$w0        = ['tasks' => 0, 'total_secs' => 0];
+$w1        = ['tasks' => 0, 'total_secs' => 0];
+
+// Rangos semanales (lunes a lunes)
+$dayOfWeek  = (int)(new DateTime())->format('N');
+$weekStart0 = date('Y-m-d', strtotime('-' . ($dayOfWeek - 1) . ' days'));
+$weekEnd0   = date('Y-m-d', strtotime($weekStart0 . ' +7 days'));
+$weekStart1 = date('Y-m-d', strtotime($weekStart0 . ' -7 days'));
 
 if (isDBAvailable()) {
     $db = getDB();
@@ -55,10 +64,57 @@ if (isDBAvailable()) {
     $stmt->execute([$userId]);
     $upcomingTasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+    // Tareas completadas este mes por alianza (para el gráfico)
+    $tasksByAlliance = [];
+    $stmt = $db->prepare("
+        SELECT a.name, a.color, COUNT(t.id) AS cnt
+        FROM tasks t
+        JOIN alliances a ON t.alliance_id = a.id
+        WHERE t.user_id = ?
+          AND t.status = 'completed'
+          AND YEAR(t.updated_at) = YEAR(CURDATE())
+          AND MONTH(t.updated_at) = MONTH(CURDATE())
+        GROUP BY a.id
+        ORDER BY cnt DESC
+    ");
+    $stmt->execute([$userId]);
+    $tasksByAlliance = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
     // Recent activity (last 5)
     $stmt = $db->prepare("SELECT timestamp, user, module, action, detail FROM activity_log ORDER BY timestamp DESC LIMIT 5");
     $stmt->execute();
     $recentActivity = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Top 3 etiquetas del mes
+    $stmt = $db->prepare("
+        SELECT tg.name, tg.color, COUNT(tt.task_id) AS cnt
+        FROM task_tags tt
+        JOIN tags tg ON tt.tag_id = tg.id
+        JOIN tasks t  ON tt.task_id = t.id
+        WHERE t.user_id = ?
+          AND YEAR(t.created_at)  = YEAR(CURDATE())
+          AND MONTH(t.created_at) = MONTH(CURDATE())
+        GROUP BY tg.id
+        ORDER BY cnt DESC
+        LIMIT 3
+    ");
+    $stmt->execute([$userId]);
+    $topTags = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Comparación semanal
+    $stmtW = $db->prepare("
+        SELECT COUNT(DISTINCT te.task_id)           AS tasks,
+               COALESCE(SUM(te.duration_seconds), 0) AS total_secs
+        FROM time_entries te
+        JOIN tasks t ON te.task_id = t.id
+        WHERE t.user_id = ?
+          AND te.start_time >= ? AND te.start_time < ?
+          AND te.duration_seconds IS NOT NULL
+    ");
+    $stmtW->execute([$userId, $weekStart0, $weekEnd0]);
+    $w0 = $stmtW->fetch(PDO::FETCH_ASSOC);
+    $stmtW->execute([$userId, $weekStart1, $weekStart0]);
+    $w1 = $stmtW->fetch(PDO::FETCH_ASSOC);
 }
 
 // Stages progress (excluyendo 'deferred' del calculo de progreso)
@@ -84,6 +140,20 @@ if (class_exists('IntlDateFormatter')) {
 if (!$todayFormatted) {
     $todayFormatted = date(__('dashboard.date_format'));
 }
+
+$fmtMins = function(int $secs): string {
+    if ($secs <= 0) return '—';
+    $h = intdiv($secs, 3600);
+    $m = intdiv($secs % 3600, 60);
+    if ($h > 0 && $m > 0) return $h . 'h ' . $m . 'min';
+    if ($h > 0) return $h . 'h';
+    return $m . ' min';
+};
+$w0Tasks   = (int)($w0['tasks']      ?? 0);
+$w1Tasks   = (int)($w1['tasks']      ?? 0);
+$w0Avg     = $w0Tasks > 0 ? intdiv((int)($w0['total_secs'] ?? 0), $w0Tasks) : 0;
+$w1Avg     = $w1Tasks > 0 ? intdiv((int)($w1['total_secs'] ?? 0), $w1Tasks) : 0;
+$weekDelta = $w0Tasks - $w1Tasks;
 ?>
 
 <div class="dashboard">
@@ -91,7 +161,8 @@ if (!$todayFormatted) {
     <!-- Header -->
     <div class="dashboard-header">
         <div>
-            <h1 class="dashboard-greeting"><?= $greeting ?>, <?= htmlspecialchars($currentUser['name'] ?? '') ?></h1>
+            <?php $firstName = explode(' ', trim($currentUser['name'] ?? ''))[0]; ?>
+        <h1 class="dashboard-greeting"><?= $greeting ?>, <?= htmlspecialchars($firstName) ?></h1>
             <p class="dashboard-date"><?= ucfirst($todayFormatted) ?></p>
         </div>
     </div>
@@ -159,8 +230,80 @@ if (!$todayFormatted) {
         </a>
     </div>
 
-    <!-- Two-column grid: Upcoming Tasks + Activity -->
-    <div class="dashboard-grid-2">
+    <!-- Fila de insights: top etiquetas + comparación semanal -->
+    <div class="dashboard-insights-row">
+
+        <!-- Top 3 etiquetas del mes -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title"><?= __('dashboard.insights_top_tags') ?></h3>
+            </div>
+            <div class="card-body">
+                <?php if (empty($topTags)): ?>
+                <p class="text-subtle text-sm"><?= __('dashboard.insights_no_tags') ?></p>
+                <?php else: ?>
+                <ol class="insight-tags-list">
+                    <?php foreach ($topTags as $i => $tag): ?>
+                    <li class="insight-tag-item">
+                        <span class="insight-tag-rank text-subtle text-sm">#<?= $i + 1 ?></span>
+                        <span class="insight-tag-chip<?= $tag['color'] ? ' has-tag-color' : '' ?>"
+                              <?= $tag['color'] ? 'style="--tag-color: ' . htmlspecialchars($tag['color']) . ';"' : '' ?>>
+                            <?= htmlspecialchars($tag['name']) ?>
+                        </span>
+                        <span class="insight-tag-count text-subtle text-sm"><?= $tag['cnt'] ?> <?= __('dashboard.insights_tasks') ?></span>
+                    </li>
+                    <?php endforeach; ?>
+                </ol>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <!-- Comparación semanal -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title"><?= __('dashboard.insights_weekly') ?></h3>
+            </div>
+            <div class="card-body">
+                <div class="insight-weekly">
+                    <div class="insight-week-col">
+                        <span class="insight-week-label"><?= __('dashboard.insights_this_week') ?></span>
+                        <span class="insight-week-value"><?= $w0Tasks ?> <?= __('dashboard.insights_tasks') ?></span>
+                        <span class="insight-week-avg"><?= $fmtMins($w0Avg) ?> <?= __('dashboard.insights_avg_time') ?></span>
+                    </div>
+                    <div class="insight-week-delta <?= $weekDelta > 0 ? 'delta-up' : ($weekDelta < 0 ? 'delta-down' : 'delta-equal') ?>">
+                        <?php if ($weekDelta > 0): ?>
+                        <i class="bi bi-arrow-up" aria-hidden="true"></i><?= abs($weekDelta) ?> <?= __('dashboard.insights_delta_more') ?>
+                        <?php elseif ($weekDelta < 0): ?>
+                        <i class="bi bi-arrow-down" aria-hidden="true"></i><?= abs($weekDelta) ?> <?= __('dashboard.insights_delta_less') ?>
+                        <?php else: ?>
+                        <i class="bi bi-dash" aria-hidden="true"></i><?= __('dashboard.insights_delta_equal') ?>
+                        <?php endif; ?>
+                    </div>
+                    <div class="insight-week-col insight-week-col-right">
+                        <span class="insight-week-label"><?= __('dashboard.insights_prev_week') ?></span>
+                        <span class="insight-week-value"><?= $w1Tasks ?> <?= __('dashboard.insights_tasks') ?></span>
+                        <span class="insight-week-avg"><?= $fmtMins($w1Avg) ?> <?= __('dashboard.insights_avg_time') ?></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /.dashboard-insights-row -->
+
+    <!-- Fila tareas: gráfico (40%) + próximas (60%) -->
+    <div class="dashboard-tasks-row">
+        <!-- Gráfico por prioridad -->
+        <div class="dashboard-chart-col">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h3 class="card-title"><?= __('dashboard.chart_title') ?></h3>
+                </div>
+                <div class="card-body dashboard-chart-body">
+                    <canvas id="dashChart" aria-label="<?= __('dashboard.chart_label') ?>"></canvas>
+                </div>
+            </div>
+        </div>
+
         <!-- Upcoming Tasks -->
         <div class="card">
             <div class="card-header d-flex items-center justify-between">
@@ -195,25 +338,16 @@ if (!$todayFormatted) {
                             $dueClass = 'lozenge-default';
                         }
 
-                        $priorityColors = [
-                            'urgent' => 'var(--ds-red-500)',
-                            'high'   => 'var(--ds-orange-500)',
-                            'medium' => 'var(--ds-blue-500)',
-                            'low'    => 'var(--ds-neutral-400)',
-                        ];
-                        $dotColor = $priorityColors[$task['priority']] ?? 'var(--ds-neutral-400)';
                     ?>
                     <div class="task-row">
-                        <span class="task-priority-dot" style="background: <?= $dotColor ?>;"></span>
-                        <div class="task-row-body">
-                            <span class="task-row-title"><?= htmlspecialchars($task['title']) ?></span>
-                            <?php if ($task['alliance_name']): ?>
-                            <span class="task-row-alliance" <?= $task['alliance_color'] ? 'style="color: ' . htmlspecialchars($task['alliance_color']) . ';"' : '' ?>>
-                                <?= htmlspecialchars($task['alliance_name']) ?>
-                            </span>
-                            <?php endif; ?>
-                        </div>
-                        <span class="lozenge <?= $dueClass ?>"><?= $dueLabel ?></span>
+                        <span class="task-row-title"><?= htmlspecialchars($task['title']) ?></span>
+                        <?php if ($task['alliance_name']): ?>
+                        <span class="task-row-alliance<?= $task['alliance_color'] ? ' has-alliance-color' : '' ?>"<?= $task['alliance_color'] ? ' style="--alliance-color: ' . htmlspecialchars($task['alliance_color']) . ';"' : '' ?>>
+                            <i class="bi bi-building" aria-hidden="true"></i>
+                            <?= htmlspecialchars($task['alliance_name']) ?>
+                        </span>
+                        <?php endif; ?>
+                        <span class="lozenge <?= $dueClass ?> flex-shrink-0"><?= $dueLabel ?></span>
                     </div>
                     <?php endforeach; ?>
                 </div>
@@ -221,7 +355,10 @@ if (!$todayFormatted) {
             </div>
         </div>
 
-        <!-- Recent Activity -->
+    </div><!-- /.dashboard-tasks-row -->
+
+    <!-- Fila actividad reciente -->
+    <div class="dashboard-activity-row">
         <div class="card">
             <div class="card-header d-flex items-center justify-between">
                 <h3 class="card-title"><?= __('dashboard.recent_activity') ?></h3>
@@ -348,3 +485,9 @@ if (!$todayFormatted) {
     </div>
 
 </div>
+
+<script>
+window.__DASHBOARD__ = {
+    chartData: <?= json_encode($tasksByAlliance) ?>,
+};
+</script>

@@ -706,7 +706,11 @@
             });
             const result = await res.json();
             if (result.success) {
-                Toast.success(result.message);
+                if (result.inserted === 0) {
+                    Toast.warning(result.message);
+                } else {
+                    Toast.success(result.message);
+                }
                 resetImport();
             } else {
                 Toast.error(result.message || 'Error al importar.');
@@ -946,6 +950,69 @@
                 Toast.error(t('common.err_network', 'Error de red.'));
             } finally {
                 btn.disabled = false;
+                btn.classList.remove('is-loading');
+            }
+        });
+
+        // ── Duplicados ──────────────────────────────────────────
+        let dupesCount = 0;
+
+        document.getElementById('btnDupesDetect')?.addEventListener('click', async () => {
+            const btn = document.getElementById('btnDupesDetect');
+            const resultEl = document.getElementById('dupesResult');
+            const fixBtn = document.getElementById('btnDupesFix');
+            btn.disabled = true;
+            btn.classList.add('is-loading');
+            try {
+                const result = await apiCleanup('detect_dupes');
+                if (result.success) {
+                    dupesCount = result.surplus;
+                    if (dupesCount === 0) {
+                        resultEl.textContent = t('manage_tasks.cleanup_dupes_none', 'No se encontraron duplicados.');
+                        if (fixBtn) fixBtn.disabled = true;
+                    } else {
+                        resultEl.textContent = t('manage_tasks.cleanup_dupes_found', '{n} entradas duplicadas encontradas.').replace('{n}', dupesCount);
+                        if (fixBtn) fixBtn.disabled = false;
+                    }
+                } else {
+                    Toast.error(result.message || 'Error al detectar duplicados.');
+                }
+            } catch {
+                Toast.error(t('common.err_network', 'Error de red.'));
+            } finally {
+                btn.disabled = false;
+                btn.classList.remove('is-loading');
+            }
+        });
+
+        document.getElementById('btnDupesFix')?.addEventListener('click', async () => {
+            const confirmed = await ConfirmModal.show({
+                title:         t('manage_tasks.cleanup_confirm_title', 'Confirmar limpieza'),
+                message:       t('manage_tasks.cleanup_dupes_confirm', '¿Eliminar {n} entradas duplicadas? Se conservará la entrada más antigua de cada grupo.').replace('{n}', dupesCount),
+                acceptText:    t('manage_tasks.cleanup_dupes_btn_fix', 'Eliminar duplicados'),
+                acceptVariant: 'danger',
+                icon:          'bi-trash',
+                variant:       'danger',
+            });
+            if (!confirmed) return;
+
+            const btn = document.getElementById('btnDupesFix');
+            btn.disabled = true;
+            btn.classList.add('is-loading');
+            try {
+                const result = await apiCleanup('fix_dupes');
+                if (result.success) {
+                    Toast.success(t('manage_tasks.cleanup_dupes_success', '{n} entradas duplicadas eliminadas.').replace('{n}', result.deleted));
+                    document.getElementById('dupesResult').textContent = '';
+                    dupesCount = 0;
+                } else {
+                    Toast.error(result.message || 'Error al eliminar duplicados.');
+                    btn.disabled = false;
+                }
+            } catch {
+                Toast.error(t('common.err_network', 'Error de red.'));
+                btn.disabled = false;
+            } finally {
                 btn.classList.remove('is-loading');
             }
         });

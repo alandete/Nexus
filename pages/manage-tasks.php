@@ -265,6 +265,21 @@ if (isDBAvailable()) {
         </div>
     </div>
 
+    <!-- ── DUPLICADOS ── -->
+    <div class="manage-section io-card">
+        <h3 class="manage-section-title"><?= __('manage_tasks.cleanup_dupes_title') ?></h3>
+        <p class="manage-section-desc"><?= __('manage_tasks.cleanup_dupes_desc') ?></p>
+        <div class="cleanup-dupes-bar">
+            <button type="button" class="btn btn-default" id="btnDupesDetect">
+                <i class="bi bi-search" aria-hidden="true"></i> <?= __('manage_tasks.cleanup_dupes_btn_detect') ?>
+            </button>
+            <span class="cleanup-dupes-result text-subtle text-sm" id="dupesResult" aria-live="polite"></span>
+            <button type="button" class="btn btn-danger" id="btnDupesFix" disabled>
+                <i class="bi bi-trash" aria-hidden="true"></i> <?= __('manage_tasks.cleanup_dupes_btn_fix') ?>
+            </button>
+        </div>
+    </div>
+
     <!-- ── ELIMINAR TODO ── -->
     <div class="manage-section io-card cleanup-nuke-card">
         <h3 class="manage-section-title cleanup-nuke-title"><i class="bi bi-exclamation-octagon" aria-hidden="true"></i> <?= __('manage_tasks.cleanup_nuke_title') ?></h3>

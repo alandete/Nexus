@@ -51,9 +51,75 @@
             });
     }
 
+    function drawDashChart() {
+        var el = document.getElementById('dashChart');
+        if (!el || typeof Chart === 'undefined') return;
+
+        var rows = ((window.__DASHBOARD__ || {}).chartData) || [];
+        if (!rows.length) return;
+
+        var labels = rows.map(function(r) { return r.name; });
+        var values = rows.map(function(r) { return parseInt(r.cnt, 10); });
+        var colors = rows.map(function(r) { return r.color || '#8795a8'; });
+
+        var pctPlugin = {
+            id: 'dashPct',
+            afterDatasetsDraw: function(chart) {
+                var ctx = chart.ctx;
+                var ds  = chart.data.datasets[0];
+                var total = ds.data.reduce(function(a, b) { return a + b; }, 0);
+                if (!total) return;
+                ctx.save();
+                ctx.font = 'bold 12px system-ui, sans-serif';
+                ctx.fillStyle = '#ffffff';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                chart.getDatasetMeta(0).data.forEach(function(arc, i) {
+                    var pct = Math.round((ds.data[i] / total) * 100);
+                    if (pct < 5) return;
+                    var pos = arc.tooltipPosition();
+                    ctx.fillText(pct + '%', pos.x, pos.y);
+                });
+                ctx.restore();
+            }
+        };
+
+        new Chart(el, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: values,
+                    backgroundColor: colors,
+                    borderWidth: 2,
+                    borderColor: '#ffffff',
+                }],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                layout: { padding: 8 },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(ctx) {
+                                var total = ctx.dataset.data.reduce(function(a, b) { return a + b; }, 0);
+                                var pct = total ? Math.round((ctx.parsed / total) * 100) : 0;
+                                return ctx.label + ': ' + ctx.parsed + ' (' + pct + '%)';
+                            },
+                        },
+                    },
+                },
+            },
+            plugins: [pctPlugin],
+        });
+    }
+
     // Init
     document.addEventListener('DOMContentLoaded', function() {
         loadTodayTime();
+        drawDashChart();
     });
 
 })();

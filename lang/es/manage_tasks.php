@@ -74,7 +74,7 @@ return [
 
         // Importar
         'import_title'       => 'Importar',
-        'import_desc'        => 'Sube un archivo CSV en formato Nexus o Clockify (Reports → Detailed → Export CSV).',
+        'import_desc'        => 'Sube un archivo CSV en formato Nexus o Clockify (Reports → Detailed → Export CSV). Las entradas con el mismo inicio para la misma tarea se omiten automáticamente para evitar duplicados.',
         'import_format_label'=> 'Formato del archivo',
 
         'import_drop_aria'          => 'Zona de carga de archivo CSV',
@@ -135,6 +135,15 @@ return [
         'cleanup_confirm_undo'   => 'Esta acción no se puede deshacer.',
         'cleanup_err_no_status'  => 'Selecciona al menos un estado.',
         'cleanup_success'        => '{n} tareas eliminadas.',
+
+        'cleanup_dupes_title'      => 'Entradas duplicadas',
+        'cleanup_dupes_desc'       => 'Detecta entradas de tiempo con el mismo inicio para la misma tarea, generadas por importaciones repetidas.',
+        'cleanup_dupes_btn_detect' => 'Detectar duplicados',
+        'cleanup_dupes_btn_fix'    => 'Eliminar duplicados',
+        'cleanup_dupes_none'       => 'No se encontraron duplicados.',
+        'cleanup_dupes_found'      => '{n} entradas duplicadas encontradas.',
+        'cleanup_dupes_confirm'    => '¿Eliminar {n} entradas duplicadas? Se conservará la entrada más antigua de cada grupo.',
+        'cleanup_dupes_success'    => '{n} entradas duplicadas eliminadas.',
 
         'cleanup_nuke_title' => 'Eliminar todo',
         'cleanup_nuke_desc'  => 'Elimina absolutamente todas las tareas y entradas de tiempo de tu cuenta. Esta operacion es irreversible.',

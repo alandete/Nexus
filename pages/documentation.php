@@ -38,6 +38,17 @@ $docSections = [
             'utilities-images'    => __('docs.utilities_images'),
         ],
     ],
+    'tasks' => [
+        'icon' => 'bi-stopwatch',
+        'title' => __('docs.nav_tasks'),
+        'subs' => [
+            'tasks-tracker'  => __('docs.tasks_tracker'),
+            'tasks-statuses' => __('docs.tasks_statuses'),
+            'tasks-filters'  => __('docs.tasks_filters'),
+            'tasks-reports'  => __('docs.tasks_reports'),
+            'tasks-manage'   => __('docs.tasks_manage'),
+        ],
+    ],
     'settings' => [
         'icon' => 'bi-gear',
         'title' => __('docs.nav_settings'),
@@ -368,6 +379,107 @@ Retro incorrecta: La respuesta correcta es Paris.</code></pre>
                         <tr><td><?= __('docs.img_convert') ?></td><td><?= __('docs.img_convert_desc') ?></td><td>JPEG, PNG, WebP</td></tr>
                     </tbody>
                 </table>
+            </article>
+        </section>
+
+        <!-- ═══════════════ TASKS ═══════════════ -->
+        <section id="tasks" class="docs-section">
+            <h2 class="docs-section-title"><?= __('docs.nav_tasks') ?></h2>
+            <p class="docs-section-desc"><?= __('docs.tasks_desc') ?></p>
+
+            <article id="tasks-tracker" class="docs-article">
+                <h3><?= __('docs.tasks_tracker') ?></h3>
+                <p><?= __('docs.tasks_tracker_desc') ?></p>
+                <ol class="docs-list docs-steps">
+                    <li><?= __('docs.tasks_tracker_step1') ?></li>
+                    <li><?= __('docs.tasks_tracker_step2') ?></li>
+                    <li><?= __('docs.tasks_tracker_step3') ?></li>
+                    <li><?= __('docs.tasks_tracker_step4') ?></li>
+                </ol>
+                <table class="table table-compact mt-200">
+                    <thead><tr><th><?= __('docs.col_section') ?></th><th><?= __('docs.col_description') ?></th></tr></thead>
+                    <tbody>
+                        <tr><td><?= __('docs.tasks_sec_active') ?></td><td><?= __('docs.tasks_sec_active_desc') ?></td></tr>
+                        <tr><td><?= __('docs.tasks_sec_scheduled') ?></td><td><?= __('docs.tasks_sec_scheduled_desc') ?></td></tr>
+                        <tr><td><?= __('docs.tasks_sec_today') ?></td><td><?= __('docs.tasks_sec_today_desc') ?></td></tr>
+                        <tr><td><?= __('docs.tasks_sec_yesterday') ?></td><td><?= __('docs.tasks_sec_yesterday_desc') ?></td></tr>
+                        <tr><td><?= __('docs.tasks_sec_history') ?></td><td><?= __('docs.tasks_sec_history_desc') ?></td></tr>
+                    </tbody>
+                </table>
+            </article>
+
+            <article id="tasks-statuses" class="docs-article">
+                <h3><?= __('docs.tasks_statuses') ?></h3>
+                <table class="table table-compact">
+                    <thead><tr><th><?= __('docs.col_status') ?></th><th><?= __('docs.col_description') ?></th><th><?= __('docs.col_notes') ?></th></tr></thead>
+                    <tbody>
+                        <tr><td><span class="lozenge lozenge-default"><?= __('docs.status_pending') ?></span></td><td><?= __('docs.status_pending_desc') ?></td><td><?= __('docs.status_pending_note') ?></td></tr>
+                        <tr><td><span class="lozenge lozenge-info"><?= __('docs.status_in_progress') ?></span></td><td><?= __('docs.status_in_progress_desc') ?></td><td><?= __('docs.status_in_progress_note') ?></td></tr>
+                        <tr><td><span class="lozenge lozenge-warning"><?= __('docs.status_paused') ?></span></td><td><?= __('docs.status_paused_desc') ?></td><td><?= __('docs.status_paused_note') ?></td></tr>
+                        <tr><td><span class="lozenge lozenge-success"><?= __('docs.status_completed') ?></span></td><td><?= __('docs.status_completed_desc') ?></td><td><?= __('docs.status_completed_note') ?></td></tr>
+                        <tr><td><span class="lozenge lozenge-danger"><?= __('docs.status_cancelled') ?></span></td><td><?= __('docs.status_cancelled_desc') ?></td><td><?= __('docs.status_cancelled_note') ?></td></tr>
+                    </tbody>
+                </table>
+            </article>
+
+            <article id="tasks-filters" class="docs-article">
+                <h3><?= __('docs.tasks_filters') ?></h3>
+                <p><?= __('docs.tasks_filters_desc') ?></p>
+                <table class="table table-compact">
+                    <thead><tr><th><?= __('docs.col_filter') ?></th><th><?= __('docs.col_scope') ?></th><th><?= __('docs.col_description') ?></th></tr></thead>
+                    <tbody>
+                        <tr><td><?= __('docs.filter_date') ?></td><td><?= __('docs.filter_server') ?></td><td><?= __('docs.filter_date_desc') ?></td></tr>
+                        <tr><td><?= __('docs.filter_alliance') ?></td><td><?= __('docs.filter_server') ?></td><td><?= __('docs.filter_alliance_desc') ?></td></tr>
+                        <tr><td><?= __('docs.filter_priority') ?></td><td><?= __('docs.filter_client') ?></td><td><?= __('docs.filter_priority_desc') ?></td></tr>
+                        <tr><td><?= __('docs.filter_tags') ?></td><td><?= __('docs.filter_client') ?></td><td><?= __('docs.filter_tags_desc') ?></td></tr>
+                        <tr><td><?= __('docs.filter_search') ?></td><td><?= __('docs.filter_client') ?></td><td><?= __('docs.filter_search_desc') ?></td></tr>
+                    </tbody>
+                </table>
+                <div class="alert alert-info mt-200">
+                    <i class="bi bi-info-circle alert-icon" aria-hidden="true"></i>
+                    <span class="alert-content"><?= __('docs.tasks_filters_hint') ?></span>
+                </div>
+            </article>
+
+            <article id="tasks-reports" class="docs-article">
+                <h3><?= __('docs.tasks_reports') ?></h3>
+                <p><?= __('docs.tasks_reports_desc') ?></p>
+                <table class="table table-compact">
+                    <thead><tr><th><?= __('docs.col_element') ?></th><th><?= __('docs.col_description') ?></th></tr></thead>
+                    <tbody>
+                        <tr><td><?= __('docs.report_chart') ?></td><td><?= __('docs.report_chart_desc') ?></td></tr>
+                        <tr><td><?= __('docs.report_cards') ?></td><td><?= __('docs.report_cards_desc') ?></td></tr>
+                        <tr><td><?= __('docs.report_export_csv') ?></td><td><?= __('docs.report_export_csv_desc') ?></td></tr>
+                        <tr><td><?= __('docs.report_export_excel') ?></td><td><?= __('docs.report_export_excel_desc') ?></td></tr>
+                        <tr><td><?= __('docs.report_export_pdf') ?></td><td><?= __('docs.report_export_pdf_desc') ?></td></tr>
+                    </tbody>
+                </table>
+            </article>
+
+            <article id="tasks-manage" class="docs-article">
+                <h3><?= __('docs.tasks_manage') ?></h3>
+                <p><?= __('docs.tasks_manage_desc') ?></p>
+                <table class="table table-compact">
+                    <thead><tr><th><?= __('docs.col_tab') ?></th><th><?= __('docs.col_description') ?></th></tr></thead>
+                    <tbody>
+                        <tr>
+                            <td><?= __('docs.manage_tab_tags') ?></td>
+                            <td><?= __('docs.manage_tab_tags_desc') ?></td>
+                        </tr>
+                        <tr>
+                            <td><?= __('docs.manage_tab_io') ?></td>
+                            <td><?= __('docs.manage_tab_io_desc') ?></td>
+                        </tr>
+                        <tr>
+                            <td><?= __('docs.manage_tab_cleanup') ?></td>
+                            <td><?= __('docs.manage_tab_cleanup_desc') ?></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div class="alert alert-warning mt-200">
+                    <i class="bi bi-exclamation-triangle alert-icon" aria-hidden="true"></i>
+                    <span class="alert-content"><?= __('docs.manage_cleanup_warning') ?></span>
+                </div>
             </article>
         </section>
 

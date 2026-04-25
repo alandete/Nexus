@@ -48,9 +48,11 @@ if (!$userId) {
 $action = $_POST['action'] ?? '';
 
 switch ($action) {
-    case 'preview': cleanupPreview($db, $userId); break;
-    case 'execute': cleanupExecute($db, $userId); break;
-    case 'nuke':    cleanupNuke($db, $userId);    break;
+    case 'preview':       cleanupPreview($db, $userId);      break;
+    case 'execute':       cleanupExecute($db, $userId);      break;
+    case 'nuke':          cleanupNuke($db, $userId);         break;
+    case 'detect_dupes':  cleanupDetectDupes($db, $userId);  break;
+    case 'fix_dupes':     cleanupFixDupes($db, $userId);     break;
     default:
         echo json_encode(['success' => false, 'message' => 'Acción inválida']);
 }
@@ -155,6 +157,61 @@ function cleanupExecute(PDO $db, int $userId): void {
         'deleted' => count($taskIds),
         'message' => count($taskIds) . ' tareas eliminadas.',
     ]);
+}
+
+function cleanupDetectDupes(PDO $db, int $userId): void {
+    $stmt = $db->prepare("
+        SELECT COALESCE(SUM(cnt - 1), 0) AS surplus
+        FROM (
+            SELECT COUNT(*) AS cnt
+            FROM time_entries
+            WHERE user_id = :userId
+            GROUP BY task_id, start_time
+            HAVING cnt > 1
+        ) dupes
+    ");
+    $stmt->execute(['userId' => $userId]);
+    $surplus = (int) $stmt->fetchColumn();
+
+    echo json_encode(['success' => true, 'surplus' => $surplus]);
+}
+
+function cleanupFixDupes(PDO $db, int $userId): void {
+    // Cuenta antes de borrar
+    $stmt = $db->prepare("
+        SELECT COALESCE(SUM(cnt - 1), 0) AS surplus
+        FROM (
+            SELECT COUNT(*) AS cnt
+            FROM time_entries
+            WHERE user_id = :userId
+            GROUP BY task_id, start_time
+            HAVING cnt > 1
+        ) dupes
+    ");
+    $stmt->execute(['userId' => $userId]);
+    $surplus = (int) $stmt->fetchColumn();
+
+    if ($surplus === 0) {
+        echo json_encode(['success' => true, 'deleted' => 0]);
+        return;
+    }
+
+    // Elimina los duplicados conservando el entry con el id más bajo
+    $db->prepare("
+        DELETE te FROM time_entries te
+        INNER JOIN (
+            SELECT MIN(id) AS keep_id, task_id, start_time
+            FROM time_entries
+            WHERE user_id = :userId
+            GROUP BY task_id, start_time
+            HAVING COUNT(*) > 1
+        ) keep ON te.task_id = keep.task_id AND te.start_time = keep.start_time
+        WHERE te.user_id = :userId AND te.id <> keep.keep_id
+    ")->execute(['userId' => $userId]);
+
+    logActivity('tasks', 'fix_dupes', $surplus . ' entradas duplicadas eliminadas');
+
+    echo json_encode(['success' => true, 'deleted' => $surplus]);
 }
 
 function cleanupNuke(PDO $db, int $userId): void {

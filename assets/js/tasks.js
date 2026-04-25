@@ -1216,11 +1216,15 @@
         // Secciones "vista actual" (sin filtros locales)
         const active    = (listState.data.active    || []).length;
         const scheduled = (listState.data.scheduled || []).length;
-        const todayTasks = groupEntriesByTask(
+        const todayItems = groupEntriesByTask(
             (listState.data.by_date[today] || []).filter(e => !isActiveEntry(e))
-        ).length;
+        );
+        const todayTasks = todayItems.length;
+        const todaySecs  = todayItems.reduce((s, t) => s + (parseInt(t.total_seconds, 10) || 0), 0);
         // Ayer e Historial si aplican filtros locales
-        const yesterdayTasks = applyLocalFilters(groupEntriesByTask(listState.data.by_date[yday] || [])).length;
+        const yesterdayItems = applyLocalFilters(groupEntriesByTask(listState.data.by_date[yday] || []));
+        const yesterdayTasks = yesterdayItems.length;
+        const yesterdaySecs  = yesterdayItems.reduce((s, t) => s + (parseInt(t.total_seconds, 10) || 0), 0);
         const history = Object.entries(listState.data.by_date)
             .filter(([date]) => date !== today && date !== yday)
             .reduce((acc, [, arr]) => acc + applyLocalFilters(groupEntriesByTask(arr)).length, 0);
@@ -1234,6 +1238,16 @@
         setCount('countToday', todayTasks);
         setCount('countYesterday', yesterdayTasks);
         setCount('countHistory', history);
+
+        const setTime = (id, secs) => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            el.innerHTML = secs > 0
+                ? `<i class="bi bi-clock" aria-hidden="true"></i> ${formatDuration(secs)}`
+                : '';
+        };
+        setTime('timeToday',     todaySecs);
+        setTime('timeYesterday', yesterdaySecs);
 
         // Contador de resultados del filtro: suma de lo que queda en las secciones
         // afectadas por los filtros locales (Ayer + Historial).
@@ -1521,6 +1535,11 @@
         // Hoy tampoco se filtra con los controles de la barra (vista "actual").
         const entries = (listState.data.by_date[todayStr()] || []).filter(e => !isActiveEntry(e));
         const items = groupEntriesByTask(entries);
+        items.sort((a, b) => {
+            const ta = a.entries && a.entries.length ? a.entries[a.entries.length - 1].start_time : '';
+            const tb = b.entries && b.entries.length ? b.entries[b.entries.length - 1].start_time : '';
+            return tb.localeCompare(ta);
+        });
 
         if (items.length === 0) {
             section.classList.add('d-none');
@@ -1553,6 +1572,11 @@
 
         const entries = listState.data.by_date[yesterdayStr()] || [];
         const items = applyLocalFilters(groupEntriesByTask(entries));
+        items.sort((a, b) => {
+            const ta = a.entries && a.entries.length ? a.entries[a.entries.length - 1].start_time : '';
+            const tb = b.entries && b.entries.length ? b.entries[b.entries.length - 1].start_time : '';
+            return tb.localeCompare(ta);
+        });
 
         // Ocultar la seccion si no hay contenido
         if (items.length === 0) {

@@ -226,6 +226,7 @@ if (!empty($projectInfo['maintenance_mode'])) {
     <script src="assets/js/scripts.js?v=<?= filemtime('assets/js/scripts.js') ?>"></script>
 
     <?php if ($page === 'home'): ?>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script src="assets/js/dashboard.js?v=<?= filemtime('assets/js/dashboard.js') ?>"></script>
     <?php endif; ?>
 

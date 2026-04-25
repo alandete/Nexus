@@ -5,6 +5,49 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [2.0.0-alpha.3] — 2026-04-19 (en desarrollo)
 
+### Dashboard rediseñado — 2026-04-24
+
+**Encabezado y estadísticas**:
+- Saludo muestra solo el primer nombre del usuario.
+- Etiquetas de las 4 tarjetas de stats con contexto completo: "Tareas pendientes", "Tareas en progreso", "Tiempo dedicado hoy", "Tareas vencidas".
+
+**Gráfico de alianzas**:
+- Nuevo gráfico doughnut (Chart.js 4.4.0) con tareas completadas el mes en curso agrupadas por alianza. Sin leyenda, % dentro de cada segmento.
+- Título actualizado a "Tareas completadas este mes".
+
+**Próximas tareas**:
+- Alianza con chip de color institucional (patrón `cell-alliance-chip` / `has-alliance-color`).
+- Nombre, alianza y vencimiento en una misma línea; texto de vencimiento sin mayúsculas.
+- Se eliminó el punto/circulo de prioridad.
+
+**Fila de insights** (nueva sección):
+- "Top etiquetas del mes": top 3 etiquetas con más tareas creadas en el mes, con chip de color y conteo.
+- "Actividad semanal": tareas atendidas esta semana vs. semana anterior con badge delta (↑ verde / ↓ rojo / = gris) y tiempo promedio por tarea en cada columna.
+
+### Módulo Tareas — correcciones y mejoras — 2026-04-24
+
+**Correcciones**:
+- Contador de filtros no reflejaba alianza, prioridad ni etiquetas al filtrar; corregido usando `groupEntriesByTask` en `updateSectionCounts`.
+- Al eliminar la tarea activa desde el panel el tracker queda en estado huérfano; ahora se resetea.
+- Orden de tareas en secciones Hoy/Ayer no era descendente de forma fiable; se añadió sort explícito por `start_time` del último entry.
+
+**Encabezados de sección**:
+- Las secciones Hoy y Ayer muestran el tiempo total acumulado (`font-weight: 500`) junto al conteo de tareas.
+
+### Gestión de tareas — mejoras — 2026-04-24
+
+**Limpieza selectiva**:
+- Se añaden los estados En progreso y Pausadas al filtro de limpieza (antes solo Completadas, Canceladas, Pendientes sin actividad).
+- Nueva sección "Entradas duplicadas": botón Detectar muestra cuántas hay; botón Corregir las elimina con confirmación.
+
+**Importación**:
+- Toast de advertencia cuando se importa un archivo sin entradas nuevas (todas duplicadas).
+- Descripción de la sección actualizada para informar al usuario del comportamiento de deduplicación sin necesidad de ejecutar el proceso.
+
+### Documentación — 2026-04-24
+
+- Nueva sección "Tareas" en `/documentation` con 5 artículos: Rastreador de tiempo, Estados de tarea, Filtros y búsqueda, Reportes, Administrar tareas.
+
 ### Hito de produccion
 
 - **Fecha objetivo: 2026-04-30**. El modulo de tareas debe estar terminado antes de fin de mes para arrancar el registro de actividades desde el **2026-05-01**.

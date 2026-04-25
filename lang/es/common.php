@@ -82,10 +82,10 @@ return [
         'timer_pause'        => 'Pausar',
         'timer_stop'         => 'Detener',
         // Stats
-        'stats_pending'      => 'Pendientes',
-        'stats_in_progress'  => 'En progreso',
-        'stats_today_time'   => 'Tiempo hoy',
-        'stats_overdue'      => 'Vencidas',
+        'stats_pending'      => 'Tareas pendientes',
+        'stats_in_progress'  => 'Tareas en progreso',
+        'stats_today_time'   => 'Tiempo dedicado hoy',
+        'stats_overdue'      => 'Tareas vencidas',
         // Próximas tareas
         'upcoming_tasks'     => 'Próximas tareas',
         'no_upcoming'        => 'No hay tareas programadas',
@@ -100,6 +100,20 @@ return [
         'quick_questions'    => 'Convertir preguntas',
         'quick_pdf'          => 'Optimizar PDF',
         'quick_alliances'    => 'Alianzas',
+        // Gráfico de tareas
+        'chart_title' => 'Tareas completadas este mes',
+        'chart_label' => 'Distribución de tareas completadas este mes por alianza',
+        // Insights
+        'insights_top_tags'    => 'Top etiquetas del mes',
+        'insights_weekly'      => 'Actividad semanal',
+        'insights_this_week'   => 'Esta semana',
+        'insights_prev_week'   => 'Semana anterior',
+        'insights_tasks'       => 'tareas',
+        'insights_avg_time'    => 'promedio/tarea',
+        'insights_delta_more'  => 'más',
+        'insights_delta_less'  => 'menos',
+        'insights_delta_equal' => 'igual que la semana anterior',
+        'insights_no_tags'     => 'Sin actividad este mes',
         // Actividad reciente
         'recent_activity'    => 'Actividad reciente',
         'no_activity'        => 'Sin actividad reciente',

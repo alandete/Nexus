@@ -2328,12 +2328,145 @@ a.stat-card:hover {
     margin-top: var(--ds-space-025);
 }
 
-/* Two-column grid */
+/* Two-column grid (legacy, kept for compatibility) */
 .dashboard-grid-2 {
     display: grid;
     grid-template-columns: 1fr;
     gap: var(--ds-space-300);
 }
+
+/* Fila gráfico + próximas tareas */
+.dashboard-tasks-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--ds-space-300);
+}
+
+.dashboard-chart-col {
+    display: flex;
+    flex-direction: column;
+}
+
+.dashboard-chart-body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    padding: var(--ds-space-200);
+    min-height: 260px;
+}
+
+.dashboard-chart-body canvas {
+    max-width: 100%;
+}
+
+/* Fila actividad reciente */
+.dashboard-activity-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--ds-space-300);
+}
+
+/* Fila de insights */
+.dashboard-insights-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--ds-space-300);
+}
+
+.insight-tags-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-space-150);
+}
+
+.insight-tag-item {
+    display: flex;
+    align-items: center;
+    gap: var(--ds-space-100);
+}
+
+.insight-tag-rank {
+    width: 22px;
+    flex-shrink: 0;
+    text-align: right;
+}
+
+.insight-tag-chip {
+    flex: 1;
+    min-width: 0;
+    padding: 2px var(--ds-space-100);
+    background: rgba(var(--app-brand-rgb), 0.08);
+    border-radius: var(--ds-radius-full);
+    font-size: var(--ds-font-size-body-sm);
+    font-weight: 500;
+    color: var(--ds-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.insight-tag-chip.has-tag-color {
+    background: color-mix(in srgb, var(--tag-color) 15%, transparent);
+}
+
+.insight-tag-count {
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.insight-weekly {
+    display: flex;
+    align-items: center;
+    gap: var(--ds-space-150);
+}
+
+.insight-week-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.insight-week-col-right {
+    text-align: right;
+}
+
+.insight-week-label {
+    font-size: var(--ds-font-size-body-sm);
+    color: var(--ds-text-subtle);
+}
+
+.insight-week-value {
+    font-size: var(--ds-font-size-body-lg);
+    font-weight: var(--ds-font-weight-semibold);
+    color: var(--ds-text);
+    line-height: 1.2;
+}
+
+.insight-week-avg {
+    font-size: var(--ds-font-size-body-sm);
+    color: var(--ds-text-subtle);
+}
+
+.insight-week-delta {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    font-size: var(--ds-font-size-body-sm);
+    font-weight: 600;
+    padding: var(--ds-space-075) var(--ds-space-100);
+    border-radius: var(--ds-radius-full);
+    white-space: nowrap;
+}
+
+.delta-up    { color: var(--ds-text-success); background: var(--ds-background-success); }
+.delta-down  { color: var(--ds-text-danger);  background: var(--ds-background-danger); }
+.delta-equal { color: var(--ds-text-subtle);  background: var(--ds-background-neutral); }
 
 /* Timer widget (inside card) */
 .timer-widget {
@@ -2434,7 +2567,7 @@ a.stat-card:hover {
 .task-row {
     display: flex;
     align-items: center;
-    gap: var(--ds-space-100);
+    gap: var(--ds-space-150);
     padding: var(--ds-space-100) 0;
     border-bottom: var(--ds-border-width) solid var(--ds-border);
 }
@@ -2443,22 +2576,9 @@ a.stat-card:hover {
     border-bottom: none;
 }
 
-.task-priority-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: var(--ds-radius-round);
-    flex-shrink: 0;
-}
-
-.task-row-body {
+.task-row-title {
     flex: 1;
     min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: var(--ds-space-025);
-}
-
-.task-row-title {
     font-size: var(--ds-font-size-body);
     font-weight: var(--ds-font-weight-medium);
     color: var(--ds-text);
@@ -2468,8 +2588,27 @@ a.stat-card:hover {
 }
 
 .task-row-alliance {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--ds-space-050);
+    padding: 2px var(--ds-space-100);
+    background: rgba(var(--app-brand-rgb), 0.08);
+    border-radius: var(--ds-radius-full);
     font-size: var(--ds-font-size-body-sm);
-    color: var(--ds-text-subtlest);
+    font-weight: 500;
+    color: var(--ds-text);
+    white-space: nowrap;
+}
+.task-row-alliance.has-alliance-color {
+    background: color-mix(in srgb, var(--alliance-color) 15%, transparent);
+}
+.task-row-alliance i {
+    font-size: 11px;
+    opacity: 0.8;
+}
+.task-row .lozenge {
+    text-transform: none;
 }
 
 /* Activity list */
@@ -4225,7 +4364,7 @@ a.stat-card:hover {
     align-items: center;
     justify-content: space-between;
     margin-bottom: var(--ds-space-075);
-    padding-bottom: 0;
+    padding: 0 var(--ds-space-050);
 }
 
 .tasks-section-title {
@@ -4260,6 +4399,10 @@ a.stat-card:hover {
     letter-spacing: 0;
 }
 
+.tasks-section-time {
+    font-weight: 500;
+}
+
 .tasks-panel-content {
     display: flex;
     flex-direction: column;
@@ -4269,8 +4412,7 @@ a.stat-card:hover {
 .tasks-panel-content:not(.tasks-cards-grid) {
     background: var(--ds-surface-raised);
     border: var(--ds-border-width) solid var(--ds-border);
-    border-radius: var(--ds-radius-200);
-    padding: 0 var(--ds-space-100);
+    padding: var(--ds-space-100);
 }
 
 /* ---- Tabla con layout grid (activas y ayer) ---- */
@@ -4346,6 +4488,7 @@ a.stat-card:hover {
     background: rgba(var(--app-brand-rgb), 0.08);
     border-radius: var(--ds-radius-full);
     font-size: var(--ds-font-size-body-sm);
+    font-weight: 500;
     color: var(--ds-text);
     /* Tamano fijo: ocupa el ancho completo de la celda para que todos los chips
        tengan las mismas dimensiones (con ellipsis si el nombre es muy largo) */
@@ -6650,6 +6793,19 @@ a.stat-card:hover {
         grid-template-columns: 1fr 1fr;
     }
 
+    .dashboard-tasks-row {
+        grid-template-columns: 2fr 3fr;
+        align-items: stretch;
+    }
+
+    .dashboard-activity-row {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-insights-row {
+        grid-template-columns: 1fr 1fr;
+    }
+
     /* Alliances grid: 3 columnas en desktop */
     .alliances-grid:not(.alliances-grid-table) {
         grid-template-columns: repeat(3, 1fr);
@@ -7507,10 +7663,9 @@ a.stat-card:hover {
 }
 
 .manage-section-desc {
-    margin: 0;
+    margin: var(--ds-space-050);
     font-size: var(--ds-font-size-body-sm);
     color: var(--ds-text-subtle);
-    max-width: 640px;
 }
 
 /* ---- Tabs de manage-tasks (reutiliza .tabs global con margen) ---- */
@@ -7806,6 +7961,18 @@ a.stat-card:hover {
 .cleanup-count-label {
     font-size: var(--ds-font-size-body-sm);
     color: var(--ds-text-subtle);
+}
+
+.cleanup-dupes-bar {
+    display: flex;
+    align-items: center;
+    gap: var(--ds-space-200);
+    flex-wrap: wrap;
+}
+
+.cleanup-dupes-result {
+    flex: 1;
+    min-width: 0;
 }
 
 .cleanup-nuke-card {

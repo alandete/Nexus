@@ -23,7 +23,7 @@ if ($hour < 12) {
 $taskStats = ['pending' => 0, 'in_progress' => 0, 'overdue' => 0];
 $upcomingTasks = [];
 $recentActivity = [];
-$topTags   = [];
+$topPairs  = [];
 $w0        = ['tasks' => 0, 'total_secs' => 0];
 $w1        = ['tasks' => 0, 'total_secs' => 0];
 
@@ -85,21 +85,26 @@ if (isDBAvailable()) {
     $stmt->execute();
     $recentActivity = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Top 3 etiquetas del mes
+    // Top 3 combinaciones de etiquetas del mes
     $stmt = $db->prepare("
-        SELECT tg.name, tg.color, COUNT(tt.task_id) AS cnt
-        FROM task_tags tt
-        JOIN tags tg ON tt.tag_id = tg.id
-        JOIN tasks t  ON tt.task_id = t.id
+        SELECT tg1.name AS name1, tg1.color AS color1,
+               tg2.name AS name2, tg2.color AS color2,
+               COUNT(*) AS cnt
+        FROM task_tags tt1
+        JOIN task_tags tt2 ON tt1.task_id = tt2.task_id AND tt1.tag_id < tt2.tag_id
+        JOIN tags tg1 ON tt1.tag_id = tg1.id
+        JOIN tags tg2 ON tt2.tag_id = tg2.id
+        JOIN tasks t  ON tt1.task_id = t.id
         WHERE t.user_id = ?
           AND YEAR(t.created_at)  = YEAR(CURDATE())
           AND MONTH(t.created_at) = MONTH(CURDATE())
-        GROUP BY tg.id
+        GROUP BY tt1.tag_id, tt2.tag_id
         ORDER BY cnt DESC
         LIMIT 3
     ");
     $stmt->execute([$userId]);
-    $topTags = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $topPairs    = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $topPairsMax = !empty($topPairs) ? (int)$topPairs[0]['cnt'] : 1;
 
     // Comparación semanal
     $stmtW = $db->prepare("
@@ -239,18 +244,23 @@ $weekDelta = $w0Tasks - $w1Tasks;
                 <h3 class="card-title"><?= __('dashboard.insights_top_tags') ?></h3>
             </div>
             <div class="card-body">
-                <?php if (empty($topTags)): ?>
+                <?php if (empty($topPairs)): ?>
                 <p class="text-subtle text-sm"><?= __('dashboard.insights_no_tags') ?></p>
                 <?php else: ?>
                 <ol class="insight-tags-list">
-                    <?php foreach ($topTags as $i => $tag): ?>
+                    <?php foreach ($topPairs as $i => $pair):
+                        $fill = round(($pair['cnt'] / $topPairsMax) * 100) . '%';
+                        $chipColor = $pair['color1'] ?: $pair['color2'];
+                        $chipStyle = '--tag-fill: ' . $fill . ';' . ($chipColor ? ' --tag-color: ' . htmlspecialchars($chipColor) . ';' : '');
+                    ?>
                     <li class="insight-tag-item">
                         <span class="insight-tag-rank text-subtle text-sm">#<?= $i + 1 ?></span>
-                        <span class="insight-tag-chip<?= $tag['color'] ? ' has-tag-color' : '' ?>"
-                              <?= $tag['color'] ? 'style="--tag-color: ' . htmlspecialchars($tag['color']) . ';"' : '' ?>>
-                            <?= htmlspecialchars($tag['name']) ?>
+                        <span class="insight-tag-chip<?= $chipColor ? ' has-tag-color' : '' ?>" style="<?= $chipStyle ?>">
+                            <?= htmlspecialchars($pair['name1']) ?>
+                            <span class="insight-pair-sep">+</span>
+                            <?= htmlspecialchars($pair['name2']) ?>
                         </span>
-                        <span class="insight-tag-count text-subtle text-sm"><?= $tag['cnt'] ?> <?= __('dashboard.insights_tasks') ?></span>
+                        <span class="insight-tag-count text-subtle text-sm"><?= $pair['cnt'] ?> <?= __('dashboard.insights_tasks') ?></span>
                     </li>
                     <?php endforeach; ?>
                 </ol>

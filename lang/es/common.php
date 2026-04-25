@@ -104,7 +104,7 @@ return [
         'chart_title' => 'Tareas completadas este mes',
         'chart_label' => 'Distribución de tareas completadas este mes por alianza',
         // Insights
-        'insights_top_tags'    => 'Top etiquetas del mes',
+        'insights_top_tags'    => 'Combinaciones frecuentes del mes',
         'insights_weekly'      => 'Actividad semanal',
         'insights_this_week'   => 'Esta semana',
         'insights_prev_week'   => 'Semana anterior',

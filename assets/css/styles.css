@@ -1569,11 +1569,11 @@ select.form-control {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--ds-surface-overlay);
-    border: var(--ds-border-width) solid var(--ds-border);
+    background: var(--app-brand);
+    border: none;
     border-radius: var(--ds-radius-round);
     box-shadow: var(--ds-shadow-raised);
-    color: var(--ds-icon);
+    color: #ffffff;
     cursor: pointer;
     opacity: 0;
     visibility: hidden;
@@ -1587,7 +1587,8 @@ select.form-control {
 }
 
 .btn-scroll-top:hover {
-    background: var(--ds-surface-hovered);
+    background: var(--app-brand-dark);
+    opacity: 0.9;
 }
 
 /* ============================================
@@ -2399,7 +2400,11 @@ a.stat-card:hover {
     flex: 1;
     min-width: 0;
     padding: 2px var(--ds-space-100);
-    background: rgba(var(--app-brand-rgb), 0.08);
+    background: linear-gradient(
+        to right,
+        color-mix(in srgb, var(--app-brand) 35%, transparent) var(--tag-fill, 100%),
+        rgba(var(--app-brand-rgb), 0.06) var(--tag-fill, 100%)
+    );
     border-radius: var(--ds-radius-full);
     font-size: var(--ds-font-size-body-sm);
     font-weight: 500;
@@ -2410,7 +2415,18 @@ a.stat-card:hover {
 }
 
 .insight-tag-chip.has-tag-color {
-    background: color-mix(in srgb, var(--tag-color) 15%, transparent);
+    background: linear-gradient(
+        to right,
+        color-mix(in srgb, var(--tag-color) 35%, transparent) var(--tag-fill, 100%),
+        color-mix(in srgb, var(--tag-color) 8%, transparent) var(--tag-fill, 100%)
+    );
+}
+
+.insight-pair-sep {
+    font-size: var(--ds-font-size-body-sm);
+    font-weight: 400;
+    opacity: 0.5;
+    margin: 0 2px;
 }
 
 .insight-tag-count {
@@ -2420,7 +2436,8 @@ a.stat-card:hover {
 
 .insight-weekly {
     display: flex;
-    align-items: center;
+    flex-direction: column;
+    align-items: stretch;
     gap: var(--ds-space-150);
 }
 
@@ -2432,7 +2449,11 @@ a.stat-card:hover {
 }
 
 .insight-week-col-right {
-    text-align: right;
+    text-align: left;
+}
+
+.insight-week-delta {
+    align-self: flex-start;
 }
 
 .insight-week-label {
@@ -6804,6 +6825,19 @@ a.stat-card:hover {
 
     .dashboard-insights-row {
         grid-template-columns: 1fr 1fr;
+    }
+
+    .insight-weekly {
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .insight-week-col-right {
+        text-align: right;
+    }
+
+    .insight-week-delta {
+        align-self: center;
     }
 
     /* Alliances grid: 3 columnas en desktop */

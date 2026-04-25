@@ -98,7 +98,7 @@ return [
         'chart_title' => 'Tasks completed this month',
         'chart_label' => 'Distribution of tasks completed this month by alliance',
         // Insights
-        'insights_top_tags'    => 'Top tags this month',
+        'insights_top_tags'    => 'Frequent combinations this month',
         'insights_weekly'      => 'Weekly activity',
         'insights_this_week'   => 'This week',
         'insights_prev_week'   => 'Previous week',

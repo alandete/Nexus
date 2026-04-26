@@ -1453,6 +1453,62 @@ select.form-control {
     flex-shrink: 0;
 }
 
+/* Callouts dentro de slide panels y guías */
+.callout {
+    padding: var(--ds-space-150) var(--ds-space-200);
+    border-radius: var(--ds-radius-200);
+    border-left: 3px solid currentColor;
+}
+
+.callout p { margin: 0; }
+
+.callout-info {
+    background: rgba(var(--ds-color-information-rgb, 0, 82, 204), 0.06);
+    border-color: var(--ds-color-information, #0052CC);
+    color: var(--ds-text);
+}
+
+.callout-warning {
+    background: rgba(var(--ds-color-warning-rgb, 255, 171, 0), 0.1);
+    border-color: var(--ds-color-warning, #FFAB00);
+    color: var(--ds-text);
+}
+
+.callout-danger {
+    background: rgba(var(--ds-color-danger-rgb, 222, 53, 11), 0.06);
+    border-color: var(--ds-color-danger, #DE350B);
+    color: var(--ds-text);
+}
+
+/* Lista de pasos en guías */
+.guide-steps {
+    margin: var(--ds-space-100) 0 0;
+    padding-left: var(--ds-space-250);
+    line-height: 1.7;
+}
+
+.guide-steps li { margin-bottom: var(--ds-space-075); }
+
+/* Tabla de características en slide panels */
+.guide-feature-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--ds-font-size-body-sm);
+    margin-top: var(--ds-space-100);
+}
+
+.guide-feature-table td {
+    padding: var(--ds-space-075) var(--ds-space-100);
+    border-bottom: var(--ds-border-width) solid var(--ds-border);
+    vertical-align: top;
+}
+
+.guide-feature-table td:first-child {
+    color: var(--ds-text-subtle);
+    white-space: nowrap;
+    width: 40%;
+}
+
 .slide-panel-footer.active {
     display: flex;
 }
@@ -2191,6 +2247,22 @@ select.form-control {
 
 .docs-steps li {
     margin-bottom: var(--ds-space-100);
+}
+
+/* Code block genérico (slide panels, guías) */
+.code-block {
+    background: var(--ds-surface-sunken);
+    border-radius: var(--ds-radius-200);
+    padding: var(--ds-space-100) var(--ds-space-200);
+    overflow-x: auto;
+    margin: 0;
+}
+
+.code-block code {
+    background: transparent;
+    padding: 0;
+    font-size: var(--ds-font-size-code);
+    color: var(--ds-text);
 }
 
 /* Code blocks */
@@ -8383,6 +8455,14 @@ a.stat-card:hover {
     margin: 0;
 }
 
+.img-method-pros {
+    margin: var(--ds-space-075) 0 0;
+    padding-left: var(--ds-space-200);
+    font-size: var(--ds-font-size-body-sm);
+    color: var(--ds-text-subtle);
+    line-height: 1.6;
+}
+
 .img-method-unavailable {
     font-size: var(--ds-font-size-body-sm);
     color: var(--ds-text-danger);
@@ -8409,6 +8489,11 @@ a.stat-card:hover {
 .img-method-icon--api {
     background: rgba(234, 88, 12, 0.12);
     color: #EA580C;
+}
+
+.img-method-icon--gs {
+    background: rgba(37, 99, 235, 0.12);
+    color: #2563EB;
 }
 
 /* Botón de guía — esquina inferior derecha */

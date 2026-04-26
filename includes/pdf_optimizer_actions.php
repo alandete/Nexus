@@ -1,138 +1,119 @@
 <?php
 /**
- * S4Learning - PDF Optimizer Actions
- * Procesa PDFs usando tres metodos: Ghostscript, API iLovePDF o PHP puro
+ * Nexus 2.0 — PDF Optimizer Actions
+ * Métodos: Ghostscript (local), API iLovePDF (cloud)
  */
 define('APP_ACCESS', true);
+ob_start();
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/functions.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
 if (!isLoggedIn()) {
-    echo json_encode(['success' => false, 'message' => 'No autorizado']);
-    exit;
+    pdfOut(['success' => false, 'message' => 'No autorizado']);
+}
+
+if (!validateCsrf()) {
+    http_response_code(403);
+    pdfOut(['success' => false, 'message' => 'Token CSRF inválido']);
 }
 
 $currentUser = getCurrentUser();
 if (!hasPermission($currentUser, 'utilities', 'write')) {
     http_response_code(403);
-    echo json_encode(['success' => false, 'message' => 'Sin permisos para usar esta herramienta']);
-    exit;
-}
-
-if (!validateCsrf()) {
-    http_response_code(403);
-    echo json_encode(['success' => false, 'message' => 'Token CSRF invalido']);
-    exit;
+    pdfOut(['success' => false, 'message' => 'Sin permiso']);
 }
 
 $action = $_POST['action'] ?? '';
+match ($action) {
+    'status'  => pdfHandleStatus(),
+    'process' => pdfHandleProcess(),
+    default   => pdfOut(['success' => false, 'message' => 'Acción no válida']),
+};
 
-// ── Estado: qué metodos estan disponibles ─────────────────────────────────
-if ($action === 'status') {
-    $gsPath   = encontrarGhostscript();
+// ═════════════════════════════════════════════════════════════════════════════
+// STATUS
+// ═════════════════════════════════════════════════════════════════════════════
+function pdfHandleStatus(): void
+{
     $settings = getApiSettings();
-    echo json_encode([
+    pdfOut([
         'success' => true,
         'methods' => [
-            'ghostscript' => $gsPath !== null,
+            'ghostscript' => pdfFindGhostscript() !== null,
             'api'         => !empty($settings['ilp_public_key']) && !empty($settings['ilp_secret_key']),
-            'php'         => true,
         ],
     ]);
-    exit;
 }
 
-// ── Procesar PDF ──────────────────────────────────────────────────────────
-if ($action === 'process') {
-    // Validar archivo
-    if (!isset($_FILES['pdf_file']) || $_FILES['pdf_file']['error'] !== UPLOAD_ERR_OK) {
-        $errMsg = match($_FILES['pdf_file']['error'] ?? -1) {
-            UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE => 'El archivo supera el tamano maximo permitido',
-            UPLOAD_ERR_NO_FILE => 'No se recibio ningun archivo',
+// ═════════════════════════════════════════════════════════════════════════════
+// PROCESS
+// ═════════════════════════════════════════════════════════════════════════════
+function pdfHandleProcess(): void
+{
+    $f = $_FILES['pdf_file'] ?? null;
+    if (!$f || $f['error'] !== UPLOAD_ERR_OK) {
+        $msg = match($f['error'] ?? -1) {
+            UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE => 'El archivo supera el tamaño máximo permitido',
+            UPLOAD_ERR_NO_FILE => 'No se recibió ningún archivo',
             default            => 'Error al recibir el archivo',
         };
-        echo json_encode(['success' => false, 'message' => $errMsg]);
-        exit;
+        pdfOut(['success' => false, 'message' => $msg]);
     }
 
-    $file = $_FILES['pdf_file'];
-
-    // Validar tipo por extension y cabecera
-    $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
-    if ($ext !== 'pdf') {
-        echo json_encode(['success' => false, 'message' => 'El archivo debe tener extension .pdf']);
-        exit;
+    if (strtolower(pathinfo($f['name'], PATHINFO_EXTENSION)) !== 'pdf') {
+        pdfOut(['success' => false, 'message' => 'El archivo debe tener extensión .pdf']);
     }
 
-    // Verificar cabecera PDF (%PDF-)
-    $handle = fopen($file['tmp_name'], 'rb');
+    $handle = fopen($f['tmp_name'], 'rb');
     $header = fread($handle, 5);
     fclose($handle);
     if ($header !== '%PDF-') {
-        echo json_encode(['success' => false, 'message' => 'El archivo no es un PDF valido']);
-        exit;
+        pdfOut(['success' => false, 'message' => 'El archivo no es un PDF válido']);
     }
 
-    if ($file['size'] > 20 * 1024 * 1024) {
-        echo json_encode(['success' => false, 'message' => 'El archivo supera el limite de 20 MB']);
-        exit;
+    if ($f['size'] > 100 * 1024 * 1024) {
+        pdfOut(['success' => false, 'message' => 'El archivo supera el límite de 100 MB']);
     }
 
-    $method       = $_POST['method'] ?? 'php';
-    $originalSize = $file['size'];
-    $baseName     = pathinfo($file['name'], PATHINFO_FILENAME);
-    $outputName   = $baseName . '-optimizado.pdf';
-
-    switch ($method) {
-        case 'ghostscript':
-            $result = procesarConGhostscript($file['tmp_name']);
-            break;
-        case 'api':
-            $result = procesarConAPI($file['tmp_name'], $file['name']);
-            break;
-        default:
-            $result = procesarConPHP($file['tmp_name']);
-    }
+    $method = $_POST['method'] ?? 'ghostscript';
+    $result = match ($method) {
+        'ghostscript' => pdfCompressGhostscript($f['tmp_name']),
+        'api'         => pdfCompressAPI($f['tmp_name'], $f['name']),
+        default       => ['success' => false, 'message' => 'Método no válido'],
+    };
 
     if (!$result['success']) {
-        echo json_encode($result);
-        exit;
+        pdfOut($result);
     }
 
-    $optimizedSize = $result['size'];
-    $savings       = max(0, $originalSize - $optimizedSize);
-    $savingsPct    = $originalSize > 0 ? round(($savings / $originalSize) * 100, 1) : 0;
+    $original  = $f['size'];
+    $optimized = $result['size'];
+    $savings   = max(0, $original - $optimized);
+    $pct       = $original > 0 ? round($savings / $original * 100, 1) : 0;
+    $basename  = pathinfo($f['name'], PATHINFO_FILENAME);
 
-    logActivity('utilities', 'process', 'pdf_optimizer:' . $method . ':' . basename($file['name']));
+    logActivity('utilities', 'process', 'pdf_optimizer:' . $method . ':' . basename($f['name']));
 
-    echo json_encode([
+    pdfOut([
         'success'        => true,
-        'original_size'  => $originalSize,
-        'optimized_size' => $optimizedSize,
+        'filename'       => $basename . '-optimizado.pdf',
+        'original_size'  => $original,
+        'optimized_size' => $optimized,
         'savings'        => $savings,
-        'savings_pct'    => $savingsPct,
-        'filename'       => $outputName,
+        'savings_pct'    => $pct,
         'method_used'    => $method,
         'data'           => $result['data'],
     ]);
-    exit;
 }
 
-echo json_encode(['success' => false, 'message' => 'Accion no valida']);
-
-// ═══════════════════════════════════════════════════════════════════════════
-// FUNCIONES DE OPTIMIZACION
-// ═══════════════════════════════════════════════════════════════════════════
-
-/**
- * Busca el ejecutable de Ghostscript en el sistema
- */
-function encontrarGhostscript(): ?string
+// ═════════════════════════════════════════════════════════════════════════════
+// GHOSTSCRIPT
+// ═════════════════════════════════════════════════════════════════════════════
+function pdfFindGhostscript(): ?string
 {
     if (PHP_OS_FAMILY === 'Windows') {
-        // Intentar por PATH
         foreach (['gswin64c', 'gswin32c', 'gs'] as $cmd) {
             $out = @shell_exec("where {$cmd} 2>&1");
             if ($out) {
@@ -140,22 +121,18 @@ function encontrarGhostscript(): ?string
                 if (file_exists($line)) return $line;
             }
         }
-        // Buscar en rutas de instalacion tipicas
-        $patterns = [
+        foreach ([
             'C:/Program Files/gs/gs*/bin/gswin64c.exe',
             'C:/Program Files (x86)/gs/gs*/bin/gswin64c.exe',
             'C:/Program Files/gs/gs*/bin/gswin32c.exe',
             'C:/Program Files (x86)/gs/gs*/bin/gswin32c.exe',
-        ];
-        foreach ($patterns as $pattern) {
+        ] as $pattern) {
             $matches = glob($pattern);
-            if (!empty($matches)) {
-                return end($matches); // Version mas reciente
-            }
+            if (!empty($matches)) return end($matches);
         }
     } else {
         $out = @shell_exec('which gs 2>&1');
-        if ($out && !str_contains($out, 'not found') && !str_contains($out, 'no gs')) {
+        if ($out && !str_contains($out, 'not found')) {
             $path = trim($out);
             if (file_exists($path)) return $path;
         }
@@ -163,27 +140,20 @@ function encontrarGhostscript(): ?string
     return null;
 }
 
-/**
- * Optimiza el PDF usando Ghostscript (mejor calidad y compresion)
- * Usa perfil /ebook: 150dpi, excelente para documentos web
- */
-function procesarConGhostscript(string $tmpFile): array
+function pdfCompressGhostscript(string $tmpFile): array
 {
-    $gsPath = encontrarGhostscript();
-    if (!$gsPath) {
-        return ['success' => false, 'message' => 'Ghostscript no esta disponible en este servidor'];
+    $gs = pdfFindGhostscript();
+    if (!$gs) {
+        return ['success' => false, 'message' => 'Ghostscript no está disponible en este servidor'];
     }
 
-    $outFile = sys_get_temp_dir() . '/pdfopt_' . uniqid() . '.pdf';
-
-    $cmd = escapeshellarg($gsPath)
+    $outFile = sys_get_temp_dir() . '/nexuspdf_' . uniqid() . '.pdf';
+    $cmd = escapeshellarg($gs)
         . ' -dNOPAUSE -dBATCH -dSAFER -sDEVICE=pdfwrite'
-        . ' -dCompatibilityLevel=1.4'
-        . ' -dPDFSETTINGS=/ebook'
+        . ' -dCompatibilityLevel=1.4 -dPDFSETTINGS=/ebook'
         . ' -dEmbedAllFonts=true -dSubsetFonts=true'
         . ' -dColorImageDownsampleType=/Bicubic -dColorImageResolution=150'
         . ' -dGrayImageDownsampleType=/Bicubic -dGrayImageResolution=150'
-        . ' -dMonoImageDownsampleType=/Bicubic -dMonoImageResolution=150'
         . ' -sOutputFile=' . escapeshellarg($outFile)
         . ' ' . escapeshellarg($tmpFile)
         . ' 2>&1';
@@ -202,162 +172,90 @@ function procesarConGhostscript(string $tmpFile): array
     return ['success' => true, 'data' => $data, 'size' => $size];
 }
 
-/**
- * Optimiza el PDF usando la API REST de iLovePDF
- * Flujo: auth → start task → upload → process → download
- */
-function procesarConAPI(string $tmpFile, string $originalName): array
+// ═════════════════════════════════════════════════════════════════════════════
+// API iLovePDF
+// ═════════════════════════════════════════════════════════════════════════════
+function pdfCompressAPI(string $tmpFile, string $originalName): array
 {
-    $settings  = getApiSettings();
-    $publicKey = $settings['ilp_public_key'] ?? '';
-    $secretKey = $settings['ilp_secret_key'] ?? '';
-
-    if (empty($publicKey) || empty($secretKey)) {
-        return ['success' => false, 'message' => 'La API de iLovePDF no esta configurada'];
+    $settings = getApiSettings();
+    if (empty($settings['ilp_public_key']) || empty($settings['ilp_secret_key'])) {
+        return ['success' => false, 'message' => 'La API de iLovePDF no está configurada'];
     }
 
-    // Paso 1: Autenticacion
-    $token = ilpRequest('POST', 'https://api.ilovepdf.com/v1/auth', ['public_key' => $publicKey]);
-    if (!isset($token['token'])) {
-        return ['success' => false, 'message' => 'Error de autenticacion con iLovePDF. Verifica las claves en Ajustes.'];
+    $auth = pdfAPIRequest('POST', 'https://api.ilovepdf.com/v1/auth', ['public_key' => $settings['ilp_public_key']]);
+    if (empty($auth['token'])) {
+        return ['success' => false, 'message' => 'Error de autenticación con iLovePDF. Verifica las claves en Ajustes.'];
     }
-    $jwt = $token['token'];
+    $jwt = $auth['token'];
 
-    // Paso 2: Iniciar tarea de compresion
-    $task = ilpRequest('GET', 'https://api.ilovepdf.com/v1/start/compress', [], $jwt);
-    if (!isset($task['task'], $task['server'])) {
+    $task = pdfAPIRequest('GET', 'https://api.ilovepdf.com/v1/start/compress', [], $jwt);
+    if (empty($task['task']) || empty($task['server'])) {
         return ['success' => false, 'message' => 'Error al iniciar la tarea en iLovePDF'];
     }
-    $taskId = $task['task'];
-    $server = $task['server'];
+    [$taskId, $server] = [$task['task'], $task['server']];
 
-    // Paso 3: Subir el archivo
-    $uploaded = ilpUpload("https://{$server}/v1/upload", $jwt, $taskId, $tmpFile, basename($originalName));
-    if (!isset($uploaded['server_filename'])) {
+    $uploaded = pdfAPIUpload("https://{$server}/v1/upload", $jwt, $taskId, $tmpFile, basename($originalName));
+    if (empty($uploaded['server_filename'])) {
         return ['success' => false, 'message' => 'Error al subir el archivo a iLovePDF'];
     }
 
-    // Paso 4: Procesar
-    $processed = ilpRequest('POST', "https://{$server}/v1/process", [
+    pdfAPIRequest('POST', "https://{$server}/v1/process", [
         'task'              => $taskId,
         'tool'              => 'compress',
         'files'             => [['server_filename' => $uploaded['server_filename'], 'filename' => basename($originalName)]],
         'compression_level' => 'recommended',
         'output_filename'   => 'optimized',
     ], $jwt);
-    if (!$processed) {
-        return ['success' => false, 'message' => 'Error al procesar el archivo en iLovePDF'];
-    }
 
-    // Paso 5: Descargar resultado
-    $pdfBinary = ilpDownload("https://{$server}/v1/download/{$taskId}", $jwt);
-    if (!$pdfBinary || substr($pdfBinary, 0, 5) !== '%PDF-') {
+    $binary = pdfAPIDownload("https://{$server}/v1/download/{$taskId}", $jwt);
+    if (!$binary || substr($binary, 0, 5) !== '%PDF-') {
         return ['success' => false, 'message' => 'Error al descargar el resultado de iLovePDF'];
     }
 
-    return ['success' => true, 'data' => base64_encode($pdfBinary), 'size' => strlen($pdfBinary)];
+    return ['success' => true, 'data' => base64_encode($binary), 'size' => strlen($binary)];
 }
 
-/**
- * Optimiza el PDF con PHP puro (sin dependencias externas)
- * Elimina metadatos XMP y compacta el documento.
- * Efectividad limitada (5-20%), seguro para cualquier PDF.
- */
-function procesarConPHP(string $tmpFile): array
+function pdfAPIRequest(string $method, string $url, array $body = [], string $token = ''): ?array
 {
-    $pdf = file_get_contents($tmpFile);
-    if ($pdf === false) {
-        return ['success' => false, 'message' => 'Error al leer el archivo PDF'];
-    }
-
-    // Eliminar paquetes XMP (metadatos Adobe)
-    $optimized = preg_replace(
-        '/(<\?xpacket begin[="\xef\xbb\xbf \']*.*?\?xpacket end[^?]*\?>)/s',
-        '',
-        $pdf
-    ) ?? $pdf;
-
-    // Eliminar bloque /Metadata si esta presente como objeto independiente
-    $optimized = preg_replace(
-        '/\d+\s+\d+\s+obj\s*<<[^>]*\/Type\s*\/Metadata[^>]*>>\s*stream[\s\S]*?endstream\s*endobj/i',
-        '',
-        $optimized
-    ) ?? $optimized;
-
-    // Compactar espacios multiples en la estructura (fuera de streams binarios)
-    // Solo entre palabras clave PDF para no corromper datos binarios
-    $optimized = preg_replace('/(\bendobj\b)\s{2,}(\d)/', '$1' . "\n" . '$2', $optimized) ?? $optimized;
-
-    return [
-        'success' => true,
-        'data'    => base64_encode($optimized),
-        'size'    => strlen($optimized),
-    ];
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// HELPERS API iLovePDF
-// ═══════════════════════════════════════════════════════════════════════════
-
-/**
- * Realiza una peticion HTTP a la API de iLovePDF (GET o POST con JSON)
- */
-function ilpRequest(string $method, string $url, array $body = [], string $token = ''): ?array
-{
-    $ch = curl_init($url);
+    $ch      = curl_init($url);
     $headers = ['Accept: application/json', 'Content-Type: application/json'];
     if ($token) $headers[] = "Authorization: Bearer {$token}";
 
-    $opts = [
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_HTTPHEADER     => $headers,
-        CURLOPT_TIMEOUT        => 30,
-        CURLOPT_SSL_VERIFYPEER => true,
-    ];
-
+    $opts = [CURLOPT_RETURNTRANSFER => true, CURLOPT_HTTPHEADER => $headers, CURLOPT_TIMEOUT => 30, CURLOPT_SSL_VERIFYPEER => true];
     if ($method === 'POST') {
         $opts[CURLOPT_POST]       = true;
         $opts[CURLOPT_POSTFIELDS] = json_encode($body);
     }
 
     curl_setopt_array($ch, $opts);
-    $response = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $res  = curl_exec($ch);
+    $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
 
-    if (!$response || $httpCode >= 400) return null;
-    return json_decode($response, true);
+    if (!$res || $code >= 400) return null;
+    return json_decode($res, true);
 }
 
-/**
- * Sube un archivo a iLovePDF (multipart/form-data)
- */
-function ilpUpload(string $url, string $token, string $taskId, string $filePath, string $fileName): ?array
+function pdfAPIUpload(string $url, string $token, string $taskId, string $file, string $name): ?array
 {
     $ch = curl_init($url);
     curl_setopt_array($ch, [
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_POST           => true,
-        CURLOPT_POSTFIELDS     => [
-            'task' => $taskId,
-            'file' => new CURLFile($filePath, 'application/pdf', $fileName),
-        ],
-        CURLOPT_HTTPHEADER => ["Authorization: Bearer {$token}", 'Accept: application/json'],
-        CURLOPT_TIMEOUT    => 60,
+        CURLOPT_POSTFIELDS     => ['task' => $taskId, 'file' => new CURLFile($file, 'application/pdf', $name)],
+        CURLOPT_HTTPHEADER     => ["Authorization: Bearer {$token}", 'Accept: application/json'],
+        CURLOPT_TIMEOUT        => 60,
         CURLOPT_SSL_VERIFYPEER => true,
     ]);
-    $response = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $res  = curl_exec($ch);
+    $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
 
-    if (!$response || $httpCode >= 400) return null;
-    return json_decode($response, true);
+    if (!$res || $code >= 400) return null;
+    return json_decode($res, true);
 }
 
-/**
- * Descarga el PDF resultante de iLovePDF (retorna binario)
- */
-function ilpDownload(string $url, string $token): ?string
+function pdfAPIDownload(string $url, string $token): ?string
 {
     $ch = curl_init($url);
     curl_setopt_array($ch, [
@@ -366,9 +264,19 @@ function ilpDownload(string $url, string $token): ?string
         CURLOPT_TIMEOUT        => 60,
         CURLOPT_SSL_VERIFYPEER => true,
     ]);
-    $response = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $res  = curl_exec($ch);
+    $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
 
-    return ($response && $httpCode === 200) ? $response : null;
+    return ($res && $code === 200) ? $res : null;
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// HELPER
+// ═════════════════════════════════════════════════════════════════════════════
+function pdfOut(array $data): void
+{
+    ob_end_clean();
+    echo json_encode($data, JSON_UNESCAPED_UNICODE);
+    exit;
 }

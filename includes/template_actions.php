@@ -1,9 +1,8 @@
 <?php
 /**
- * S4Learning - Template Generator
+ * Nexus 2.0 — Template Generator
  * Genera plantillas de ejemplo (.docx / .xlsx) para el conversor de preguntas
  */
-
 define('APP_ACCESS', true);
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/functions.php';
@@ -11,6 +10,12 @@ require_once __DIR__ . '/functions.php';
 if (!isLoggedIn()) {
     http_response_code(403);
     exit('No autorizado');
+}
+
+$currentUser = getCurrentUser();
+if (!hasPermission($currentUser, 'utilities', 'read')) {
+    http_response_code(403);
+    exit('Sin permiso');
 }
 
 $type = $_GET['type'] ?? '';

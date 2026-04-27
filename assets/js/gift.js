@@ -178,8 +178,9 @@
         document.getElementById('btnGiftCopy').hidden    = !isGift;
         document.getElementById('btnGiftPreview').hidden = !(data.preguntas && data.preguntas.length > 0);
 
-        renderReport(data.stats || {}, data.format);
-        renderWarnings(data.warnings || []);
+        const warnings = data.warnings || [];
+        renderWarnings(warnings);
+        renderReport(data.stats || {}, data.format, warnings.length);
 
         resultsEl.hidden = false;
         resultsEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -198,7 +199,6 @@
         document.getElementById('giftResGift').hidden    = true;
         document.getElementById('giftResQti').hidden     = true;
         document.getElementById('giftReport').hidden     = true;
-        document.getElementById('giftWarnings').hidden   = true;
         document.getElementById('btnGiftCopy').hidden    = true;
         document.getElementById('btnGiftPreview').hidden = true;
     }
@@ -221,7 +221,7 @@
 
     // ── Informe de procesamiento ──────────────────────────────────────────────
 
-    function renderReport(stats, format) {
+    function renderReport(stats, format, warningCount) {
         const report = document.getElementById('giftReport');
         const items  = document.getElementById('giftReportItems');
         if (!stats.total) { report.hidden = true; return; }
@@ -229,17 +229,28 @@
         const formatLabel = format === 'qti' ? 'QTI (Canvas)' : 'GIFT (Moodle)';
         const parts = [];
 
-        parts.push(reportItem(stats.total, t('utilities.stats_questions', 'preguntas procesadas')));
-        if (stats.italics) parts.push(reportItem(stats.italics, t('utilities.stats_italics', 'cursivas aplicadas')));
-        if (stats.bolds)   parts.push(reportItem(stats.bolds,   t('utilities.stats_bolds',   'negritas aplicadas')));
-        parts.push(reportItem(formatLabel, 'formato', true));
+        parts.push(reportItem(stats.total,          t('utilities.stats_questions', 'preguntas procesadas')));
+        parts.push(reportItem(stats.italics || 0,   t('utilities.stats_italics',   'cursivas aplicadas')));
+        parts.push(reportItem(stats.bolds   || 0,   t('utilities.stats_bolds',     'negritas aplicadas')));
+        parts.push(reportItem(formatLabel,           'formato', true));
 
-        if (stats.omitted)            parts.push(reportItem(stats.omitted,            t('utilities.stats_omitted',         'sin 4 opciones'),      false, true));
-        if (stats.no_retro_correct)   parts.push(reportItem(stats.no_retro_correct,   t('utilities.stats_no_retro_corr',   'sin retro correcta'),  false, true));
-        if (stats.no_retro_incorrect) parts.push(reportItem(stats.no_retro_incorrect, t('utilities.stats_no_retro_incorr', 'sin retro incorrecta'),false, true));
-        if (stats.no_retro)           parts.push(reportItem(stats.no_retro,           t('utilities.stats_no_retro',        'sin retroalimentación'),false, true));
+        if (warningCount) {
+            parts.push(
+                '<button type="button" class="gift-stats-item is-danger" id="btnGiftWarnings">' +
+                '<i class="bi bi-exclamation-triangle" aria-hidden="true"></i> ' +
+                '<strong>' + warningCount + '</strong> ' +
+                (warningCount === 1 ? 'alerta' : 'alertas') +
+                '</button>'
+            );
+        }
 
         items.innerHTML = parts.join('');
+
+        if (warningCount) {
+            document.getElementById('btnGiftWarnings')
+                ?.addEventListener('click', () => openPanel('guideGiftWarnings'));
+        }
+
         report.hidden = false;
     }
 
@@ -254,12 +265,14 @@
     // ── Warnings ──────────────────────────────────────────────────────────────
 
     function renderWarnings(warnings) {
-        const el = document.getElementById('giftWarnings');
-        if (!warnings.length) { el.hidden = true; return; }
-        el.innerHTML = warnings.map(w =>
-            '<p class="text-sm text-warning mt-050"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i> ' + esc(w) + '</p>'
-        ).join('');
-        el.hidden = false;
+        const body = document.getElementById('giftWarningsBody');
+        if (!body) return;
+        if (!warnings.length) { body.innerHTML = ''; return; }
+        body.innerHTML = '<ul class="gift-warnings-list">' +
+            warnings.map(w =>
+                '<li><i class="bi bi-exclamation-triangle" aria-hidden="true"></i> ' + esc(w) + '</li>'
+            ).join('') +
+            '</ul>';
     }
 
     // ── Copy / Download ───────────────────────────────────────────────────────

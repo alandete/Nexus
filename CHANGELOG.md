@@ -5,6 +5,82 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [2.0.0-alpha.3] — 2026-04-19 (en desarrollo)
 
+### Módulo Alianzas (UNIS) — 2026-04-26
+
+**Página**: `/alliances?alliance=unis`
+
+**Funcionalidad**:
+- Procesador de plantillas HTML para alianzas corporativas: el usuario rellena los campos y el backend sustituye variables `{{ Variable }}` en plantillas preexistentes para generar HTML listo para pegar en el LMS.
+- Control explícito de alianzas activas (`$readyForProcessing`); las no iniciadas muestran aviso "próximamente".
+- Selector de LMS (Moodle / Canvas) con badge "Pendiente" cuando no hay plantillas disponibles para ese LMS. El formulario solo aparece tras seleccionar un LMS válido.
+- Pestañas internas **Inicio** y **Unidad**, cada una con sus secciones independientes.
+
+**Pestaña Inicio**:
+- Generalidades: 3 campos URL en línea (Docente, Sílabo, Ruta) con validación en tiempo real (borde verde/rojo).
+- Evaluación: tabla con `rowspan="2"` por unidad — Actividad 1 y Actividad 2 agrupadas bajo el mismo rótulo de unidad; hover sincronizado en pares de filas vía JS.
+
+**Pestaña Unidad** (8 secciones):
+- Título (asimétrico 1fr/2fr), Audio (asimétrico), Temario, Resultado de aprendizaje, Glosario (apilado), Recursos (apilado), Multimedia y Takeaway.
+- Labels ocultos visualmente (`sr-only`); placeholder refleja el label.
+
+**Resultado**:
+- Slide panel con HTML generado, advertencias con campos vacíos o URLs inválidas resaltados, botón Copiar.
+
+**Correcciones globales de DS**:
+- Campos de formulario: fondo cambiado de blanco (`#FFFFFF`) a `--ds-neutral-100` (`#F7F8F9`) para visibilidad sin borde.
+- `.form-helper`: tamaño reducido a 11px, margen superior consistente (`6px`), `margin-bottom: 0`.
+- `.form-help` → `.form-helper` unificado en el formulario de alianzas.
+
+**Archivos**:
+- `pages/alliances.php` — página del procesador (nuevo)
+- `assets/js/alliances.js` — lógica de UI (nuevo)
+- `assets/css/styles.css` — estilos del módulo + correcciones DS
+- `includes/sidebar.php` — links de alianza actualizados a `?alliance=slug`
+- `index.php` — carga de `alliances.js`
+
+### Módulo Convertir Preguntas (GIFT / QTI) — 2026-04-26
+
+**Página**: `/utilities-gift`
+
+**Funcionalidad principal**:
+- Convierte archivos Word (.docx) y Excel (.xlsx) con preguntas estructuradas a formato GIFT (Moodle) o QTI 1.2 (Canvas LMS).
+- Soporta tres tipos de pregunta: Opción Múltiple (OM), Falso/Verdadero (FV) y Emparejamiento (EM).
+- Detección automática de formato cursiva/negrita desde el documento fuente (Word: `<w:b/>`, `<w:i/>`, color rojo como cursiva por convención de DI; Excel: rich text en shared strings).
+- Campo manual de palabras en cursiva y negrita para aplicar formato adicional.
+
+**Formatos de salida**:
+- **GIFT**: texto plano multilínea compatible con importación en Moodle. Título en línea propia, enunciado con `{` al final, opciones en líneas separadas.
+- **QTI 1.2**: paquete ZIP con `objectbank.xml` + `imsmanifest.xml`. Modos banco de preguntas y cuestionario (`quiz`).
+
+**Parser DOCX** (`includes/question_parser.php`):
+- Detecta bloques por cabeceras `OM/FV/EM Reactivo ##` o `OM/FV/EM Pregunta ##`.
+- Admite variantes: `Retro correcta:` / `Retroalimentación correcta:`, opciones `a)`, `A)`, `a.`, `A.`.
+- Normaliza líneas estructurales (cabeceras, opciones, pares EM) eliminando HTML de negrita/cursiva para que el parser las reconozca, pero preserva el HTML del contenido (enunciado y texto de retros).
+- `extraerContenidoRetro()`: extrae el texto después del `:` de una línea HTML manteniendo las etiquetas del contenido intactas.
+
+**Parser XLSX** (`includes/question_parser.php`):
+- Lee hoja 1 (OM). Columnas: nombre, enunciado, opción 1 (correcta), retro 1… opción 4, retro 4, retro general.
+- Detecta rich text en shared strings para cursiva/negrita automática.
+
+**Generación GIFT** (`includes/gift_actions.php`):
+- Cuenta negritas y cursivas auto-detectadas del archivo fuente además de las aplicadas manualmente.
+- Formato multilínea: `::título::\nenunciado {\n=opción\n~opción\n}`.
+
+**Interfaz** (`pages/utilities-gift.php`, `assets/js/gift.js`):
+- Layout 60/40: opciones (formato, palabras cursiva/negrita) a la izquierda; dropzone y acciones a la derecha.
+- Tarjetas de formato GIFT (índigo) y QTI (naranja) en 2 columnas en desktop.
+- Plantillas descargables (.docx y .xlsx) desde `includes/template_actions.php`.
+- **Barra de informe post-proceso**: preguntas procesadas · cursivas · negritas · formato · badge rojo de alertas (abre slide panel con el detalle de cada alerta).
+- **Slide panel de previsualización**: muestra cada pregunta con tipo (`[OM] Pregunta 01`), enunciado, opciones `a) b) c) d)` con opción correcta destacada (borde verde, semibold) y retroalimentación por opción. FV muestra respuesta y retros verdadero/falso.
+- **Slide panel de alertas**: lista de advertencias (sin retro, opciones incompletas) con estilo de borde naranja.
+
+**Archivos involucrados**:
+- `pages/utilities-gift.php` — vista
+- `assets/js/gift.js` — lógica cliente
+- `includes/gift_actions.php` — endpoint AJAX (procesa DOCX/XLSX, genera GIFT/QTI)
+- `includes/question_parser.php` — extracción y parseo de preguntas
+- `includes/template_actions.php` — generador de plantillas .docx y .xlsx
+
 ### Dashboard rediseñado — 2026-04-24
 
 **Encabezado y estadísticas**:

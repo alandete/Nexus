@@ -178,9 +178,6 @@ if (!hasPermission($currentUser, 'utilities', 'read')) {
             </div>
         </div>
 
-        <!-- Warnings -->
-        <div id="giftWarnings" class="card-body pt-0" hidden></div>
-
     </div>
 </div>
 
@@ -230,6 +227,20 @@ if (!hasPermission($currentUser, 'utilities', 'read')) {
             <p class="text-sm"><?= __('utilities.qti_guide_warning') ?></p>
         </div>
     </div>
+</div>
+
+<!-- ── Slide panel: Alertas de procesamiento ──────────────────────────────── -->
+<div class="slide-panel" id="guideGiftWarnings" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="slide-panel-header">
+        <h2 class="slide-panel-title">
+            <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
+            Alertas de procesamiento
+        </h2>
+        <button class="slide-panel-close btn-icon" type="button" aria-label="<?= __('a11y.close_panel') ?>">
+            <i class="bi bi-x-lg" aria-hidden="true"></i>
+        </button>
+    </div>
+    <div class="slide-panel-body" id="giftWarningsBody"></div>
 </div>
 
 <!-- ── Slide panel: Previsualización de preguntas ─────────────────────────── -->

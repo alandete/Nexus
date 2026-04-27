@@ -239,6 +239,10 @@ if (!empty($projectInfo['maintenance_mode'])) {
     <script src="assets/js/users.js?v=<?= filemtime('assets/js/users.js') ?>"></script>
     <?php endif; ?>
 
+    <?php if ($page === 'alliances'): ?>
+    <script src="assets/js/alliances.js?v=<?= filemtime('assets/js/alliances.js') ?>"></script>
+    <?php endif; ?>
+
     <?php if ($page === 'manage-alliances'): ?>
     <script src="assets/js/manage-alliances.js?v=<?= filemtime('assets/js/manage-alliances.js') ?>"></script>
     <?php endif; ?>

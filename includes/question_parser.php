@@ -321,20 +321,22 @@ function parsearBloqueFV(string $bloque, int $autoNum): array
     $retroFalso          = '';
 
     foreach ($lineas as $linea) {
-        $t = trim($linea);
+        $t = trim(strip_tags($linea));
         if ($t === '') continue;
 
         if (preg_match('/^Respuesta\s+correcta\s*:\s*(Verdadero|Falso)/iu', $t, $m)) {
             $enunciadoFinalizado = true;
             $respuesta           = mb_strtolower(trim($m[1]), 'UTF-8') === 'verdadero' ? 'TRUE' : 'FALSE';
-        } elseif (preg_match('/^Retro\s+verdadero\s*:\s*(.+)/iu', $t, $m)) {
+        } elseif (preg_match('/^Retro(?:alimentaci[oó]n)?\s+verdadero\s*:\s*(.+)/iu', $t, $m)) {
             $enunciadoFinalizado = true;
-            $retroVerdadero      = trim($m[1]);
-        } elseif (preg_match('/^Retro\s+falso\s*:\s*(.+)/iu', $t, $m)) {
+            $desde          = extraerContenidoRetro($linea);
+            $retroVerdadero = $desde !== '' ? $desde : trim($m[1]);
+        } elseif (preg_match('/^Retro(?:alimentaci[oó]n)?\s+falso\s*:\s*(.+)/iu', $t, $m)) {
             $enunciadoFinalizado = true;
-            $retroFalso          = trim($m[1]);
+            $desde      = extraerContenidoRetro($linea);
+            $retroFalso = $desde !== '' ? $desde : trim($m[1]);
         } elseif (!$enunciadoFinalizado) {
-            $enunciadoLineas[] = $t;
+            $enunciadoLineas[] = trim($linea);
         }
     }
 
@@ -370,32 +372,36 @@ function parsearBloqueOM(string $bloque, int $autoNum): array
     $textoRetroIncorr = '';
 
     foreach ($lineas as $i => $linea) {
-        $t = trim($linea);
+        $t = trim(strip_tags($linea));
         if (preg_match('/^Retro(?:alimentaci[oó]n)?\s+correcta\s*:\s*(.*)/iu', $t, $m)) {
             $posRetroCorr   = $i;
-            $textoRetroCorr = trim($m[1]);
+            $desde          = extraerContenidoRetro($linea);
+            $textoRetroCorr = $desde !== '' ? $desde : trim($m[1]);
         }
         if (preg_match('/^Retro(?:alimentaci[oó]n)?\s+incorrecta\s*:\s*(.*)/iu', $t, $m)) {
             $posRetroIncorr   = $i;
-            $textoRetroIncorr = trim($m[1]);
+            $desde            = extraerContenidoRetro($linea);
+            $textoRetroIncorr = $desde !== '' ? $desde : trim($m[1]);
         }
     }
 
     // Retro en línea siguiente si está vacía
     if ($posRetroCorr !== null && $textoRetroCorr === '') {
         for ($j = $posRetroCorr + 1; $j < count($lineas); $j++) {
-            $s = trim($lineas[$j]);
-            if ($s !== '') {
-                if (!preg_match('/^(Retro|OM\s+|FV\s+|EM\s+)/i', $s)) $textoRetroCorr = $s;
+            $s      = trim($lineas[$j]);
+            $sPlain = strip_tags($s);
+            if ($sPlain !== '') {
+                if (!preg_match('/^(Retro|OM\s+|FV\s+|EM\s+)/i', $sPlain)) $textoRetroCorr = $s;
                 break;
             }
         }
     }
     if ($posRetroIncorr !== null && $textoRetroIncorr === '') {
         for ($j = $posRetroIncorr + 1; $j < count($lineas); $j++) {
-            $s = trim($lineas[$j]);
-            if ($s !== '') {
-                if (!preg_match('/^(Retro|OM\s+|FV\s+|EM\s+)/i', $s)) $textoRetroIncorr = $s;
+            $s      = trim($lineas[$j]);
+            $sPlain = strip_tags($s);
+            if ($sPlain !== '') {
+                if (!preg_match('/^(Retro|OM\s+|FV\s+|EM\s+)/i', $sPlain)) $textoRetroIncorr = $s;
                 break;
             }
         }
@@ -495,6 +501,33 @@ function parsearBloqueEM(string $bloque, int $autoNum): array
 /**
  * Parsea todas las preguntas de un .docx con tipos mixtos (FV, OM, EM)
  */
+/**
+ * Extrae el contenido que sigue al primer ':' de una línea HTML,
+ * preservando las etiquetas HTML del contenido pero descartando las del prefijo.
+ */
+function extraerContenidoRetro(string $lineaHtml): string
+{
+    $len    = mb_strlen($lineaHtml);
+    $pos    = 0;
+    $inTag  = false;
+
+    while ($pos < $len) {
+        $char = mb_substr($lineaHtml, $pos, 1);
+        if ($char === '<')      { $inTag = true; }
+        elseif ($char === '>')  { $inTag = false; }
+        elseif ($char === ':' && !$inTag) {
+            $after = mb_substr($lineaHtml, $pos + 1);
+            // Eliminar etiquetas de cierre sueltas al inicio (ej: </strong>)
+            $after = preg_replace('/^\s*(?:<\/[^>]+>\s*)*/', '', $after);
+            // Eliminar etiquetas de cierre sueltas al final
+            $after = preg_replace('/(?:\s*<\/[^>]+>)+$/', '', rtrim($after));
+            return trim($after);
+        }
+        $pos++;
+    }
+    return '';
+}
+
 function parsearDocxMixto(string $texto): array
 {
     // Normaliza las líneas estructurales eliminando etiquetas HTML que
@@ -506,7 +539,6 @@ function parsearDocxMixto(string $texto): array
         $plain = strip_tags($linea);
         if (
             preg_match('/^(FV|OM|EM)\s+(?:Reactivo|Pregunta)/i', $plain) ||
-            preg_match('/^Retro(?:alimentaci[oó]n)?\s+(?:correcta|incorrecta|verdadero|falso|general)\s*:/iu', $plain) ||
             preg_match('/^Respuesta\s+correcta\s*:/iu', $plain) ||
             preg_match('/^[a-dA-D][.)]\s+\S/u', $plain) ||
             preg_match('/^.+?\s*->\s*.+$/', $plain)

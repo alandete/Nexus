@@ -243,8 +243,12 @@ function giftProcesarTexto(string $texto, array $cursivas, array $negritas, arra
         $texto = str_replace(array_keys($placeholders), array_values($placeholders), $texto);
     }
 
-    // Detectar si el texto ya tiene formato auto-detectado del archivo fuente
-    if (tieneFormatoHtml($texto)) $usarHtml = true;
+    // Detectar y contar formato auto-detectado del archivo fuente
+    if (tieneFormatoHtml($texto)) {
+        $usarHtml = true;
+        $stats['bolds']   += substr_count($texto, '<strong>');
+        $stats['italics'] += substr_count($texto, '<em>');
+    }
 
     // Aplicar palabras manuales adicionales
     if (!empty($cursivas) || !empty($negritas)) {

@@ -57,12 +57,14 @@ $isUtilitiesActive = in_array($currentPage, $utilitiesPages);
                 </button>
                 <ul class="sidebar-submenu <?= $currentPage === 'alliances' ? 'show' : '' ?>" id="sidebar-sub-alliances" role="menu">
                     <li role="none">
-                        <a class="sidebar-sublink" href="<?= url('alliances') ?>#unis" role="menuitem">
+                        <a class="sidebar-sublink <?= ($currentPage === 'alliances' && ($_GET['alliance'] ?? 'unis') === 'unis') ? 'active' : '' ?>"
+                           href="<?= url('alliances') ?>?alliance=unis" role="menuitem">
                             <span class="sidebar-link-text">UNIS</span>
                         </a>
                     </li>
                     <li role="none">
-                        <a class="sidebar-sublink" href="<?= url('alliances') ?>#unab" role="menuitem">
+                        <a class="sidebar-sublink <?= ($currentPage === 'alliances' && ($_GET['alliance'] ?? '') === 'unab') ? 'active' : '' ?>"
+                           href="<?= url('alliances') ?>?alliance=unab" role="menuitem">
                             <span class="sidebar-link-text">UNAB</span>
                         </a>
                     </li>

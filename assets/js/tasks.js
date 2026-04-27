@@ -32,6 +32,7 @@
         tagNames: '',
         priority: 'medium',
         dueDate: null,
+        isRecurring: false,
         startTime: null,
         tickInterval: null,
         selectedExistingTaskId: null, // Si el usuario selecciona del autocomplete
@@ -343,7 +344,14 @@
                 completed:   'lozenge-success',
             };
             return `
-                <button type="button" class="ac-item" role="option" data-task-id="${task.id}" data-title="${escapeHtml(task.title)}">
+                <button type="button" class="ac-item" role="option"
+                        data-task-id="${task.id}"
+                        data-title="${escapeHtml(task.title)}"
+                        data-alliance-id="${task.alliance_id || ''}"
+                        data-alliance-name="${escapeHtml(task.alliance_name || '')}"
+                        data-tag-ids="${escapeHtml(task.tag_ids || '')}"
+                        data-tag-names="${escapeHtml(task.tag_names || '')}"
+                        data-is-recurring="${task.is_recurring ? '1' : '0'}">
                     <i class="bi bi-arrow-counterclockwise ac-icon" aria-hidden="true"></i>
                     <div class="ac-body">
                         <span class="ac-title">${escapeHtml(task.title)}</span>
@@ -363,11 +371,14 @@
         dropdown.querySelectorAll('.ac-item').forEach(item => {
             item.addEventListener('click', () => {
                 const taskId = parseInt(item.dataset.taskId, 10);
-                const title = item.dataset.title;
-                input.value = title;
+                input.value = item.dataset.title;
                 state.selectedExistingTaskId = taskId;
+                state.allianceId   = item.dataset.allianceId   ? parseInt(item.dataset.allianceId, 10) : null;
+                state.allianceName = item.dataset.allianceName  || null;
+                state.tagIds       = (item.dataset.tagIds || '').split(',').filter(Boolean).map(id => parseInt(id, 10));
+                state.tagNames     = item.dataset.tagNames      || '';
+                state.isRecurring  = item.dataset.isRecurring === '1';
                 hideAutocomplete();
-                // Iniciar de inmediato
                 handlePlayClick();
             });
         });
@@ -417,6 +428,7 @@
                 state.tagNames = result.tag_names || '';
                 state.priority = result.priority || 'medium';
                 state.dueDate = result.due_date || null;
+                state.isRecurring = !!result.is_recurring;
                 state.description = result.description || '';
                 state.startTime = new Date();
 
@@ -452,7 +464,7 @@
         //  - default: tarea del timer activo, valores del state
         let current;
         if (isCreate) {
-            current = { id: null, title: '', description: '', allianceId: null, tagIds: [], priority: 'medium', dueDate: '' };
+            current = { id: null, title: '', description: '', allianceId: null, tagIds: [], priority: 'medium', dueDate: '', isRecurring: false };
         } else if (opts.task) {
             current = {
                 id:          opts.task.id,
@@ -462,6 +474,7 @@
                 tagIds:      String(opts.task.tag_ids || '').split(',').filter(Boolean).map(id => parseInt(id, 10)),
                 priority:    opts.task.priority || 'medium',
                 dueDate:     opts.task.due_date || '',
+                isRecurring: !!parseInt(opts.task.is_recurring || 0),
             };
         } else {
             current = {
@@ -472,6 +485,7 @@
                 tagIds:      state.tagIds,
                 priority:    state.priority || 'medium',
                 dueDate:     state.dueDate || '',
+                isRecurring: state.isRecurring || false,
             };
         }
 
@@ -589,6 +603,18 @@
                         <input type="date" id="fTaskDueDate" name="due_date" class="form-control"
                                value="${escapeHtml(current.dueDate)}">
                     </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-toggle-label" for="fTaskRecurring">
+                        <input type="checkbox" id="fTaskRecurring" name="is_recurring" value="1" ${current.isRecurring ? 'checked' : ''}>
+                        <span class="form-toggle-track" aria-hidden="true"></span>
+                        <span class="form-toggle-text">
+                            <i class="bi bi-arrow-repeat" aria-hidden="true"></i>
+                            ${t('tasks.field_recurring', 'Tarea recurrente')}
+                        </span>
+                    </label>
+                    <p class="form-hint">${t('tasks.recurring_hint', 'Las tareas recurrentes no muestran alertas de retraso y acumulan su historial de sesiones en un solo registro.')}</p>
                 </div>
 
                 ${current.id ? `
@@ -861,6 +887,7 @@
         const allianceId = form.alliance_id.value;
         const priority = form.priority.value;
         const dueDate = form.due_date.value;
+        const isRecurring = form.querySelector('#fTaskRecurring')?.checked ? 1 : 0;
         const tagIds = Array.from(form.querySelectorAll('input[name="tag_ids[]"]:checked')).map(el => el.value);
 
         // Alliance + al menos una etiqueta son obligatorias tanto en create como en forceComplete.
@@ -902,6 +929,7 @@
                 title, description,
                 alliance_id: allianceId,
                 priority, due_date: dueDate,
+                is_recurring: isRecurring,
                 tag_ids: tagIds.join(','),
             };
             let result;
@@ -1405,14 +1433,17 @@
         return `<span class="cell-alliance-chip${hasColorCls}"${styleAttr}><i class="bi bi-building" aria-hidden="true"></i> ${escapeHtml(item.alliance_name)}</span>`;
     }
     function cellTask(item) {
-        // Mostrar contador solo cuando hay mas de una sesion ("2x", "3x", ...)
         const n = parseInt(item.entry_count, 10) || 0;
         const count = n > 1
             ? `<span class="task-entry-count" title="${t('tasks.entry_count_hint', 'Registros')}">${n}x</span>`
             : '';
+        const recurringIcon = parseInt(item.is_recurring || item.task_is_recurring || 0)
+            ? `<i class="bi bi-arrow-repeat cell-task-recurring" title="${escapeHtml(t('tasks.recurring_label', 'Recurrente'))}" aria-hidden="true"></i>`
+            : '';
         return `
             <div class="cell-task-body">
                 <span class="cell-task-title">${escapeHtml(item.title)}</span>
+                ${recurringIcon}
                 ${count}
             </div>
         `;
@@ -1654,7 +1685,8 @@
         setupScrollMask(container);
 
         container.innerHTML = sorted.map(task => {
-            const overdue = task.due_date && task.due_date < today;
+            const recurring = !!parseInt(task.is_recurring || 0);
+            const overdue = !recurring && task.due_date && task.due_date < today;
             const priority = task.priority || 'medium';
             const priorityLabels = {
                 low:    t('tasks.priority_low', 'Baja'),
@@ -1686,10 +1718,15 @@
                     ).join('')}</div>`
                 : '';
 
+            const recurringBadge = recurring
+                ? `<span class="task-card-recurring-badge" title="${escapeHtml(t('tasks.recurring_label', 'Recurrente'))}"><i class="bi bi-arrow-repeat" aria-hidden="true"></i></span>`
+                : '';
+
             return `
                 <article class="task-card task-card-priority-${priority} ${overdue ? 'is-overdue' : ''}">
                     <div class="task-card-top">
                         <span class="task-card-priority-label">${escapeHtml(priorityLabels[priority] || priority)}</span>
+                        ${recurringBadge}
                         ${overdueTag}
                         ${allianceBadge}
                     </div>
@@ -2068,7 +2105,7 @@
     // Calcula el chip de estado "a tiempo / con retraso" a partir de la tarea y sus entries.
     // Devuelve '' si la tarea no tiene due_date.
     function buildStatusBadge(task, entries) {
-        if (!task || !task.due_date) return '';
+        if (!task || !task.due_date || task.is_recurring) return '';
         const today = todayStr();
         const isCompleted = task.status === 'completed';
         const lastEntry = entries.slice().sort((a, b) => (b.end_time || '').localeCompare(a.end_time || ''))[0];
@@ -2211,7 +2248,12 @@
                         <div class="task-detail-desc">${descHtml}</div>
                     </div>
                     <div class="task-detail-block">
-                        <h5 class="task-detail-label">${escapeHtml(t('tasks.entries_title', 'Registros'))}</h5>
+                        <h5 class="task-detail-label">
+                            ${task.is_recurring
+                                ? `<i class="bi bi-arrow-repeat" aria-hidden="true"></i> ${escapeHtml(t('tasks.sessions_title', 'Sesiones'))} <span class="task-detail-session-count">(${dates.length})</span>`
+                                : escapeHtml(t('tasks.entries_title', 'Registros'))
+                            }
+                        </h5>
                         ${entriesHtml}
                     </div>
                 </div>

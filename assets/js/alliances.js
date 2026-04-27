@@ -241,13 +241,13 @@
     // ── Clean ─────────────────────────────────────────────────────────────────
 
     function handleClean() {
-        if (!confirm(t('confirmClean', '¿Limpiar todos los campos?'))) return;
-
-        document.querySelectorAll('.tab-content input, .tab-content textarea, .tab-content select').forEach(el => {
-            el.value = el.tagName === 'SELECT' ? '' : '';
-            if (el.tagName === 'SELECT') el.selectedIndex = 0;
-            el.classList.remove('is-valid', 'is-invalid');
-        });
+        showToastConfirm(t('confirmClean', '¿Limpiar todos los campos?'), () => {
+            document.querySelectorAll('.tab-content input, .tab-content textarea, .tab-content select').forEach(el => {
+                el.value = el.tagName === 'SELECT' ? '' : '';
+                if (el.tagName === 'SELECT') el.selectedIndex = 0;
+                el.classList.remove('is-valid', 'is-invalid');
+            });
+        }, { labelConfirm: t('btnClean', 'Limpiar'), labelCancel: t('btnCancel', 'Cancelar') });
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
@@ -275,6 +275,10 @@
 
     function showToast(msg, type) {
         window.Toast?.show?.(msg, type);
+    }
+
+    function showToastConfirm(msg, onConfirm, opts) {
+        window.Toast?.confirm?.(msg, onConfirm, opts);
     }
 
     // ── Eval table hover ─────────────────────────────────────────────────────

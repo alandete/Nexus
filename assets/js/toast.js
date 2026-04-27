@@ -62,6 +62,43 @@ const Toast = {
     error(msg, opts)    { this.show(msg, 'danger', opts); },
     warning(msg, opts)  { this.show(msg, 'warning', opts); },
     info(msg, opts)     { this.show(msg, 'info', opts); },
+
+    confirm(message, onConfirm, opts = {}) {
+        if (!this.container) this.init();
+
+        const labelConfirm = opts.labelConfirm ?? 'Confirmar';
+        const labelCancel  = opts.labelCancel  ?? 'Cancelar';
+
+        const toast = document.createElement('div');
+        toast.className = 'toast toast-warning toast-confirm';
+        toast.setAttribute('role', 'alertdialog');
+        toast.setAttribute('aria-modal', 'false');
+        toast.innerHTML = `
+            <i class="bi bi-exclamation-triangle-fill toast-icon" aria-hidden="true"></i>
+            <div class="toast-content">
+                <span class="toast-message"></span>
+                <div class="toast-confirm-actions">
+                    <button type="button" class="btn btn-sm btn-danger toast-confirm-ok">${labelConfirm}</button>
+                    <button type="button" class="btn btn-sm btn-secondary toast-confirm-cancel">${labelCancel}</button>
+                </div>
+            </div>
+        `;
+        toast.querySelector('.toast-message').textContent = message;
+
+        const dismiss = () => {
+            toast.classList.add('toast-leaving');
+            setTimeout(() => toast.remove(), 200);
+        };
+
+        toast.querySelector('.toast-confirm-ok').addEventListener('click', () => {
+            dismiss();
+            onConfirm?.();
+        });
+        toast.querySelector('.toast-confirm-cancel').addEventListener('click', dismiss);
+
+        this.container.appendChild(toast);
+        toast.querySelector('.toast-confirm-ok').focus();
+    },
 };
 
 window.Toast = Toast;

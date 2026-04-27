@@ -222,7 +222,7 @@ function createTask(PDO $db, int $userId): void
         return;
     }
 
-    $stmt = $db->prepare("INSERT INTO tasks (user_id, alliance_id, title, description, due_date, priority, status) VALUES (?, ?, ?, ?, ?, ?, ?)");
+    $stmt = $db->prepare("INSERT INTO tasks (user_id, alliance_id, title, description, due_date, priority, is_recurring, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
     $stmt->execute([
         $userId,
         $allianceId,
@@ -230,6 +230,7 @@ function createTask(PDO $db, int $userId): void
         trim($_POST['description'] ?? '') ?: null,
         !empty($_POST['due_date']) ? $_POST['due_date'] : null,
         in_array($_POST['priority'] ?? '', ['low', 'medium', 'high', 'urgent']) ? $_POST['priority'] : 'medium',
+        !empty($_POST['is_recurring']) ? 1 : 0,
         $_POST['status'] ?? 'pending',
     ]);
 
@@ -263,6 +264,10 @@ function updateTask(PDO $db, int $userId): void
         $fields[] = "alliance_id = ?";
         $params[] = $_POST['alliance_id'] !== '' ? (int) $_POST['alliance_id'] : null;
     }
+    if (isset($_POST['is_recurring'])) {
+        $fields[] = "is_recurring = ?";
+        $params[] = (int) $_POST['is_recurring'];
+    }
 
     if (!empty($fields)) {
         $params[] = $taskId;
@@ -294,21 +299,26 @@ function searchTasks(PDO $db, int $userId): void
 {
     $q = trim($_POST['q'] ?? '');
     if (strlen($q) < 2) {
-        echo json_encode(['success' => true, 'results' => []]);
+        echo json_encode(['success' => true, 'tasks' => []]);
         return;
     }
 
     $stmt = $db->prepare("
-        SELECT t.id, t.title, a.name AS alliance_name
+        SELECT t.id, t.title, t.alliance_id, t.status, t.is_recurring, a.name AS alliance_name,
+               GROUP_CONCAT(DISTINCT tg.id   ORDER BY tg.name SEPARATOR ',')  AS tag_ids,
+               GROUP_CONCAT(DISTINCT tg.name ORDER BY tg.name SEPARATOR ', ') AS tag_names
         FROM tasks t
-        LEFT JOIN alliances a ON t.alliance_id = a.id
+        LEFT JOIN alliances a   ON t.alliance_id = a.id
+        LEFT JOIN task_tags tt  ON t.id = tt.task_id
+        LEFT JOIN tags tg       ON tt.tag_id = tg.id
         WHERE t.user_id = ? AND t.title LIKE ? AND t.status != 'cancelled'
+        GROUP BY t.id
         ORDER BY t.updated_at DESC
         LIMIT 10
     ");
     $stmt->execute([$userId, "%{$q}%"]);
 
-    echo json_encode(['success' => true, 'results' => $stmt->fetchAll()]);
+    echo json_encode(['success' => true, 'tasks' => $stmt->fetchAll()]);
 }
 
 function assignTags(PDO $db, int $taskId, string $tagIds): void
@@ -361,12 +371,33 @@ function timerStart(PDO $db, int $userId): void
         return;
     }
 
-    // Verificar propiedad
-    $check = $db->prepare("SELECT id FROM tasks WHERE id = ? AND user_id = ?");
+    // Verificar propiedad y obtener estado actual
+    $check = $db->prepare("SELECT id, status, alliance_id, title, is_recurring FROM tasks WHERE id = ? AND user_id = ?");
     $check->execute([$taskId, $userId]);
-    if (!$check->fetchColumn()) {
+    $existingTask = $check->fetch();
+    if (!$existingTask) {
         echo json_encode(['success' => false, 'message' => 'Tarea no válida']);
         return;
+    }
+
+    // Tarea completada no recurrente: crear nueva instancia independiente con los mismos datos
+    if ($existingTask['status'] === 'completed' && !$existingTask['is_recurring']) {
+        $ins = $db->prepare("INSERT INTO tasks (user_id, alliance_id, title, status, due_date) VALUES (?, ?, ?, 'in_progress', CURDATE())");
+        $ins->execute([$userId, $existingTask['alliance_id'], $existingTask['title']]);
+        $newTaskId = (int) $db->lastInsertId();
+
+        // Copiar etiquetas del registro original
+        $tagStmt = $db->prepare("SELECT tag_id FROM task_tags WHERE task_id = ?");
+        $tagStmt->execute([$taskId]);
+        $tagIds = $tagStmt->fetchAll(PDO::FETCH_COLUMN);
+        if ($tagIds) {
+            $insTag = $db->prepare("INSERT IGNORE INTO task_tags (task_id, tag_id) VALUES (?, ?)");
+            foreach ($tagIds as $tid) {
+                $insTag->execute([$newTaskId, $tid]);
+            }
+        }
+
+        $taskId = $newTaskId;
     }
 
     // Detener cualquier timer activo
@@ -382,7 +413,7 @@ function timerStart(PDO $db, int $userId): void
 
     // Retornar info completa de la tarea para el frontend
     $taskInfo = $db->prepare("
-        SELECT t.title, t.alliance_id, a.name AS alliance_name,
+        SELECT t.title, t.alliance_id, t.is_recurring, a.name AS alliance_name,
                GROUP_CONCAT(DISTINCT tg.id ORDER BY tg.name SEPARATOR ',') AS tag_ids,
                GROUP_CONCAT(DISTINCT tg.name ORDER BY tg.name SEPARATOR ', ') AS tag_names
         FROM tasks t
@@ -404,6 +435,7 @@ function timerStart(PDO $db, int $userId): void
         'alliance_name' => $info['alliance_name'],
         'tag_ids'       => $info['tag_ids'],
         'tag_names'     => $info['tag_names'],
+        'is_recurring'  => (int) ($info['is_recurring'] ?? 0),
     ]);
 }
 

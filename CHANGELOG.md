@@ -5,6 +5,33 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [2.0.0-alpha.3] — 2026-04-19 (en desarrollo)
 
+### Módulo Tareas — mejoras rastreador y tareas recurrentes — 2026-04-27
+
+**Rastreador (tracker)**:
+- Corregido mismatch `results`/`tasks` en la API de búsqueda que impedía que el autocomplete propio funcionara (el usuario veía el autocompletado del navegador en su lugar).
+- La búsqueda ahora devuelve `alliance_id`, `tag_ids`, `tag_names` e `is_recurring`; al seleccionar una sugerencia se pre-poblan alianza, etiquetas y flag de recurrente en el estado antes de iniciar el timer.
+- Tareas `completed` no recurrentes: al reiniciarlas desde el tracker se crea una instancia independiente copiando título, alianza y etiquetas (`due_date = hoy`). El registro original permanece como historial.
+- Tareas recurrentes completadas: al reiniciarlas se reutiliza el mismo registro (no se crea instancia nueva).
+
+**Tareas recurrentes** (`is_recurring`):
+- Nueva columna `is_recurring TINYINT(1) DEFAULT 0` en la tabla `tasks`.
+- Toggle "Tarea recurrente" en el formulario de creación/edición con estilos propios.
+- Listado de tarjetas (Próximas): badge azul con `bi-arrow-repeat` para recurrentes; sin clase `is-overdue` ni etiqueta "Vencida".
+- Filas de tabla (Hoy/Ayer/Historial): icono `bi-arrow-repeat` en la celda de título.
+- Vista de detalle: encabezado "Sesiones (N)" en lugar de "Registros"; sin chip de retraso/a tiempo.
+- `buildStatusBadge`: devuelve vacío para tareas recurrentes.
+
+**Alianzas / Toast**:
+- `Toast.confirm()`: nueva variante de toast modal para confirmaciones en lugar de `window.confirm`.
+- `alliances.js`: acción "Limpiar" migrada a `Toast.confirm`.
+
+**Archivos**:
+- `assets/js/tasks.js`
+- `assets/js/toast.js`
+- `assets/js/alliances.js`
+- `assets/css/styles.css`
+- `includes/tasks_actions.php`
+
 ### Módulo Alianzas (UNIS) — 2026-04-26
 
 **Página**: `/alliances?alliance=unis`

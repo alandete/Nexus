@@ -54,5 +54,25 @@ return [
         'guide_step4'     => 'Abre el proyecto creado. Encontraras la Public Key y la Secret Key.',
         'guide_step5'     => 'Copia ambas claves y pegalas en el formulario de arriba. Haz clic en "Probar conexión" para confirmar.',
         'guide_free_plan' => 'Plan gratuito: 200 operaciones al mes (PDFs e imágenes) con archivos de hasta 100 MB.',
+
+        // Gmail
+        'gmail_description'      => 'Convierte correos etiquetados en Gmail en tareas de Nexus automáticamente vía IMAP.',
+        'gmail_security_note'    => 'La contrasena de aplicacion se almacena encriptada con AES-256. Usar una contrasena de app de Google, no la contrasena principal de Gmail.',
+        'gmail_field_email'      => 'Correo Gmail',
+        'gmail_field_label'      => 'Etiqueta de Gmail',
+        'gmail_field_app_password' => 'Contrasena de aplicacion',
+        'gmail_label_help'       => 'Nombre exacto de la etiqueta en Gmail. Los correos con esa etiqueta se convierten en tareas.',
+        'gmail_last_sync'        => 'Ultima sincronizacion',
+        'gmail_btn_sync'         => 'Sincronizar ahora',
+        'gmail_syncing'          => 'Sincronizando...',
+
+        'gmail_guide_title'  => 'Como configurar la integracion con Gmail',
+        'gmail_guide_intro'  => 'La integracion usa IMAP con una Contrasena de aplicacion de Google. La sincronizacion ocurre al hacer clic en "Sincronizar ahora".',
+        'gmail_guide_step1'  => 'En Gmail, crea una etiqueta nueva (ej: "Nexus") desde Configuracion > Etiquetas.',
+        'gmail_guide_step2'  => 'Ve a tu Cuenta de Google > Seguridad > Verificacion en dos pasos (debe estar activa).',
+        'gmail_guide_step3'  => 'Al final de esa misma pagina encontraras "Contrasenas de aplicaciones". Crea una para "Nexus".',
+        'gmail_guide_step4'  => 'Asegurate de que el acceso IMAP este habilitado en Gmail: Configuracion > Ver toda la configuracion > Reenvio e IMAP.',
+        'gmail_guide_step5'  => 'Pega el correo, la contrasena de app (16 caracteres) y el nombre exacto de la etiqueta en el formulario. Guarda y prueba la conexion.',
+        'gmail_guide_note'   => 'Cuando quieras crear una tarea desde un correo, solo aplicale la etiqueta configurada en Gmail y haz clic en "Sincronizar ahora" en Nexus.',
     ],
 ];

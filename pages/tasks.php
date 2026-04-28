@@ -9,6 +9,10 @@ $currentUser = getCurrentUser();
 $alliances = getAlliances();
 $activeAlliances = array_filter($alliances, fn($a) => !empty($a['active']));
 
+// Gmail sync disponible
+$gmailRaw    = file_exists(API_SETTINGS_FILE) ? (json_decode(file_get_contents(API_SETTINGS_FILE), true) ?? []) : [];
+$gmailActive = !empty($gmailRaw['gmail_email']) && !empty($gmailRaw['gmail_app_password']);
+
 // Precargar tags
 $allTags = [];
 if (isDBAvailable()) {
@@ -26,6 +30,13 @@ if (isDBAvailable()) {
         <p class="page-description"><?= __('tasks.page_subtitle') ?></p>
     </div>
     <div class="page-header-actions">
+        <?php if ($gmailActive): ?>
+        <button type="button" class="btn-icon" id="btnGmailSync"
+                aria-label="<?= __('tasks.gmail_sync') ?>"
+                data-tooltip="<?= __('tasks.gmail_sync') ?>" data-tooltip-position="bottom">
+            <i class="bi bi-envelope-arrow-down" aria-hidden="true"></i>
+        </button>
+        <?php endif; ?>
         <button type="button" class="btn btn-primary" id="btnNewTask">
             <i class="bi bi-plus-lg" aria-hidden="true"></i>
             <?= __('tasks.btn_new_task') ?>

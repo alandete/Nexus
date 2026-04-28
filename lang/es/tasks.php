@@ -16,7 +16,7 @@ return [
         'elapsed_time'        => 'Tiempo transcurrido',
 
         // Input inline (friccion-cero)
-        'input_placeholder'   => 'En que vas a trabajar? Escribe y presiona Enter...',
+        'input_placeholder'   => '¿Qué tarea quieres iniciar?',
         'input_label'         => 'Nombre de la tarea',
         'autocomplete_label'  => 'Sugerencias de tareas existentes',
 
@@ -33,6 +33,7 @@ return [
         'btn_delete'          => 'Eliminar',
         'btn_new_task'        => 'Nueva tarea',
         'btn_reports'         => 'Reportes',
+        'gmail_sync'          => 'Sincronizar Gmail',
         'btn_create'          => 'Crear tarea',
         'create_task_title'   => 'Nueva tarea programada',
         'task_created'        => 'Tarea creada.',

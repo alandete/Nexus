@@ -455,7 +455,7 @@ select.form-control {
 
 /* Form group */
 .form-group {
-    margin-bottom: var(--ds-space-200);
+    margin-bottom: var(--ds-space-100);
 }
 
 /* ============================================
@@ -818,6 +818,8 @@ select.form-control {
 
 .spinner-sm { width: 16px; height: 16px; border-width: 2px; }
 .spinner-lg { width: 32px; height: 32px; border-width: 4px; }
+
+.spin { animation: spin 0.8s linear infinite; }
 
 /* ============================================
    AVATAR — Atlassian DS
@@ -1329,7 +1331,7 @@ select.form-control {
     display: flex;
     align-items: center;
     gap: var(--ds-space-100);
-    padding: var(--ds-space-050) var(--ds-space-150) var(--ds-space-050) var(--ds-space-300);
+    padding: var(--ds-space-050) var(--ds-space-150) var(--ds-space-050) var(--ds-space-200);
     font-size: var(--ds-font-size-body);
     color: var(--ds-text-subtle);
     text-decoration: none;
@@ -6404,6 +6406,34 @@ a.stat-card:hover {
     padding: 0;
 }
 
+.integration-tabs {
+    margin-bottom: var(--ds-space-300);
+}
+
+.integration-tabs .tab {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ds-space-075);
+}
+
+.integration-panel {
+    display: block;
+}
+
+/* Punto de estado en pestaña (verde = configurada) */
+.tab-status-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    margin-left: var(--ds-space-050);
+    flex-shrink: 0;
+}
+
+.tab-status-ok {
+    background: var(--ds-icon-success);
+}
+
 .integration-header {
     display: flex;
     align-items: center;
@@ -6459,7 +6489,7 @@ a.stat-card:hover {
     padding: var(--ds-space-300);
     display: flex;
     flex-direction: column;
-    gap: var(--ds-space-200);
+    gap: var(--ds-space-100);
 }
 
 .integration-section-title {
@@ -7446,20 +7476,140 @@ a.stat-card:hover {
     color: var(--ds-text-inverse);
 }
 
+/* ---- Barra combinada filtros + exports ---- */
+.report-action-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ds-space-200);
+    margin-bottom: var(--ds-space-200);
+    flex-wrap: wrap;
+}
+
+.report-action-filters {
+    display: flex;
+    align-items: center;
+    gap: var(--ds-space-100);
+    flex-wrap: wrap;
+}
+
+/* ---- Multi-select dropdown ---- */
+.report-ms {
+    position: relative;
+}
+
+.report-ms-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ds-space-075);
+    white-space: nowrap;
+    max-width: 220px;
+}
+
+.report-ms-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.report-ms-chevron {
+    flex-shrink: 0;
+    font-size: 11px;
+    transition: transform var(--ds-duration-fast);
+}
+
+.report-ms-btn[aria-expanded="true"] .report-ms-chevron {
+    transform: rotate(180deg);
+}
+
+.report-ms-panel {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    min-width: 200px;
+    max-width: 280px;
+    max-height: 260px;
+    overflow-y: auto;
+    background: var(--ds-surface-overlay);
+    border: var(--ds-border-width) solid var(--ds-border);
+    border-radius: var(--ds-radius-200);
+    box-shadow:
+        0 8px 16px rgba(9, 30, 66, 0.18),
+        0 0 0 1px rgba(9, 30, 66, 0.06);
+    z-index: 200;
+    padding: var(--ds-space-075);
+}
+
+.report-ms-item {
+    display: flex;
+    align-items: center;
+    gap: var(--ds-space-100);
+    padding: var(--ds-space-075) var(--ds-space-100);
+    border-radius: var(--ds-radius-100);
+    cursor: pointer;
+    font-size: var(--ds-font-size-body-sm);
+    color: var(--ds-text);
+    user-select: none;
+}
+
+.report-ms-item:hover {
+    background: var(--ds-background-neutral-hovered);
+}
+
+.report-ms-item input[type="checkbox"] {
+    accent-color: var(--app-brand);
+    flex-shrink: 0;
+}
+
+.report-ms-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: var(--ds-radius-full);
+    flex-shrink: 0;
+    background: var(--ds-border);
+}
+
+.report-ms-active-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: var(--ds-radius-full);
+    background: var(--app-brand);
+    color: #fff;
+    font-size: 11px;
+    font-weight: var(--ds-font-weight-semibold);
+    flex-shrink: 0;
+}
+
 /* ---- Barra de exports ---- */
 .report-export-group {
     display: flex;
     align-items: center;
     gap: var(--ds-space-075);
-    margin-bottom: var(--ds-space-200);
-    padding: var(--ds-space-075) var(--ds-space-100);
-    justify-content: flex-end;
 }
 
 .report-export-label {
     font-size: var(--ds-font-size-body-sm);
     color: var(--ds-text-subtle);
-    margin-right: var(--ds-space-050);
+    white-space: nowrap;
+}
+
+/* ---- Sección gráfico temporal ---- */
+.report-bar-section {
+    background: var(--ds-surface-raised);
+    border: var(--ds-border-width) solid var(--ds-border);
+    border-radius: var(--ds-radius-200);
+    padding: var(--ds-space-200) var(--ds-space-300);
+    margin-bottom: var(--ds-space-200);
+    height: 200px;
+}
+
+.report-bar-section canvas {
+    width: 100% !important;
+    height: 100% !important;
 }
 
 .report-loading {
@@ -7752,8 +7902,9 @@ a.stat-card:hover {
     .page-header,
     .breadcrumb,
     .report-filters,
+    .report-action-bar,
+    .report-bar-section,
     .report-empty,
-    .report-export-group,
     .toast-container,
     .app-tooltip,
     footer { display: none !important; }

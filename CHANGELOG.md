@@ -5,6 +5,34 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [2.0.0-alpha.3] — 2026-04-19 (en desarrollo)
 
+### Integración Gmail IMAP — 2026-04-27
+
+**Nuevo archivo**: `includes/gmail_actions.php`
+
+- Acciones: `get`, `save`, `test`, `sync`.
+- Credenciales cifradas (AES-256-CBC) en `data/api_settings.json`.
+- Sync: abre la carpeta/etiqueta Nexus en Gmail y crea una tarea por correo, sin marcar ni eliminar mensajes.
+- Deduplicación por `Message-ID` (`gmail_processed_map`): si la tarea fue eliminada en Nexus se recrea; si sigue existiendo se omite.
+- Deduplicación de hilos: las respuestas cuyo `In-Reply-To` también está en la etiqueta se omiten (solo el mensaje original genera tarea).
+- Fecha de vencimiento tomada de la fecha del correo.
+- Etiqueta "Correo" asignada automáticamente a todas las tareas creadas desde Gmail.
+- Matching de alianza: si el correo también tiene una etiqueta con el nombre de una alianza activa (comparación case-insensitive vía `imap_reopen`), la alianza se asigna a la tarea.
+- Auto-sync cada 15 minutos al cargar la página Tareas (timestamp en `localStorage` guardado antes del fetch para evitar disparos duplicados en recargas rápidas).
+- Botón manual de sync en la cabecera de la página Tareas (solo visible si Gmail está configurado).
+- Flag `gmailSyncing` previene race condition entre auto-sync y botón manual.
+- Página Integraciones rediseñada con pestañas (iLovePDF / Gmail), alineada al patrón DS del resto de la app.
+- Indicador visual (dot) en la pestaña cuando la integración está configurada.
+
+**Archivos**:
+- `includes/gmail_actions.php` (nuevo)
+- `pages/integrations.php`
+- `pages/tasks.php`
+- `assets/js/integrations.js`
+- `assets/js/tasks.js`
+- `assets/css/styles.css`
+- `lang/es/integrations.php`
+- `lang/es/tasks.php`
+
 ### Módulo Tareas — mejoras rastreador y tareas recurrentes — 2026-04-27
 
 **Rastreador (tracker)**:

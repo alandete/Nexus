@@ -2420,6 +2420,55 @@
         initListDefaults();
         setupListBindings();
         loadList();
+
+        // Gmail auto-sync (respeta intervalo de 15 min)
+        gmailAutoSync(false);
+
+        document.getElementById('btnGmailSync')?.addEventListener('click', () => gmailAutoSync(true));
     });
+
+    let gmailSyncing = false;
+
+    function gmailAutoSync(force = false) {
+        if (gmailSyncing) return;
+        const INTERVAL_MS = 15 * 60 * 1000;
+        const STORAGE_KEY = 'nexus_gmail_sync_ts';
+
+        if (!force) {
+            const last = parseInt(localStorage.getItem(STORAGE_KEY) || '0', 10);
+            if (Date.now() - last < INTERVAL_MS) return;
+            // Guardar timestamp antes del fetch para que cargas rápidas no dupliquen
+            localStorage.setItem(STORAGE_KEY, String(Date.now()));
+        }
+
+        const token = document.querySelector('meta[name="csrf-token"]')?.content || '';
+        const btn   = document.getElementById('btnGmailSync');
+        const icon  = btn?.querySelector('i');
+
+        gmailSyncing = true;
+        if (btn) { btn.disabled = true; if (icon) icon.className = 'bi bi-arrow-repeat spin'; }
+
+        const fd = new FormData();
+        fd.append('action', 'sync');
+        fetch('includes/gmail_actions.php', {
+            method:  'POST',
+            headers: { 'X-CSRF-TOKEN': token },
+            body:    fd,
+        })
+            .then(r => r.json())
+            .then(data => {
+                if (data.synced > 0) {
+                    if (typeof Toast !== 'undefined') Toast.info(data.message);
+                    loadList();
+                } else if (force && typeof Toast !== 'undefined') {
+                    Toast.info(data.message || 'Sin correos nuevos.');
+                }
+            })
+            .catch(() => {})
+            .finally(() => {
+                gmailSyncing = false;
+                if (btn) { btn.disabled = false; if (icon) icon.className = 'bi bi-envelope-arrow-down'; }
+            });
+    }
 
 })();

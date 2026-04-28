@@ -11,6 +11,26 @@
     const t = (key, fallback) => T[key] || fallback;
 
     /** ========================================================
+     * Tab switching
+     * ======================================================== */
+
+    const integrationTabs   = ['ilp', 'gmail'];
+
+    function switchIntegrationTab(name) {
+        integrationTabs.forEach(id => {
+            const tab   = document.getElementById(`tab-${id}`);
+            const panel = document.getElementById(`panel-${id}`);
+            const isActive = id === name;
+            if (tab)   { tab.classList.toggle('active', isActive); tab.setAttribute('aria-selected', String(isActive)); }
+            if (panel) { panel.classList.toggle('d-none', !isActive); panel.hidden = !isActive; }
+        });
+    }
+
+    document.querySelectorAll('.integration-tabs .tab').forEach(tab => {
+        tab.addEventListener('click', () => switchIntegrationTab(tab.dataset.tab));
+    });
+
+    /** ========================================================
      * Password toggles (show/hide)
      * ======================================================== */
 
@@ -37,6 +57,7 @@
     setupPasswordToggle('togglePassword', 'fIlpPassword');
     setupPasswordToggle('togglePublicKey', 'fIlpPublicKey');
     setupPasswordToggle('toggleSecretKey', 'fIlpSecretKey');
+    setupPasswordToggle('toggleGmailPassword', 'fGmailAppPassword');
 
     /** ========================================================
      * Helpers
@@ -192,6 +213,152 @@
     }
 
     /** ========================================================
+     * Gmail — helpers
+     * ======================================================== */
+
+    async function gmailPostAction(data) {
+        const fd = new FormData();
+        Object.keys(data).forEach(k => fd.append(k, data[k] ?? ''));
+        const res = await fetch('includes/gmail_actions.php', {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': csrfToken },
+            body: fd,
+        });
+        return res.json();
+    }
+
+    function showGmailResult(resultBox, success, message) {
+        resultBox.className = 'integration-test-result ' + (success ? 'integration-test-success' : 'integration-test-error');
+        const icon = success ? 'bi-check-circle-fill' : 'bi-x-circle-fill';
+        resultBox.innerHTML = `
+            <div class="integration-test-header">
+                <i class="bi ${icon}" aria-hidden="true"></i>
+                <span>${escapeHtml(message)}</span>
+            </div>
+        `;
+    }
+
+    /** ========================================================
+     * Gmail — guardar
+     * ======================================================== */
+
+    async function handleGmailSubmit(e) {
+        e.preventDefault();
+
+        const form      = document.getElementById('gmailForm');
+        const submitBtn = document.getElementById('gmailSubmitBtn');
+        const errBox    = document.getElementById('gmailFormError');
+        const errText   = document.getElementById('gmailFormErrorText');
+        if (!form || !submitBtn) return;
+
+        const email = form.gmail_email.value.trim();
+        if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            const field = document.getElementById('fGmailEmail');
+            const errEl = document.getElementById('fGmailEmailError');
+            field.classList.add('form-control-error');
+            errEl.textContent = t('integrations.err_email', 'Correo invalido.');
+            return;
+        }
+
+        errBox.classList.add('d-none');
+
+        const data = {
+            action:              'save',
+            gmail_email:         email,
+            gmail_app_password:  form.gmail_app_password.value,
+            gmail_label:         form.gmail_label.value.trim() || 'Nexus',
+        };
+
+        submitBtn.disabled = true;
+        const btnText      = submitBtn.querySelector('.btn-text');
+        const originalText = btnText?.textContent;
+        if (btnText) btnText.textContent = t('common.saving', 'Guardando...');
+
+        try {
+            const result = await gmailPostAction(data);
+            if (result.success) {
+                Toast.success(result.message || t('integrations.saved', 'Configuracion guardada.'));
+                setTimeout(() => window.location.reload(), 600);
+            } else {
+                errText.textContent = result.message || t('integrations.err_generic', 'No se pudo guardar.');
+                errBox.classList.remove('d-none');
+                errBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        } catch {
+            Toast.error(t('common.err_network', 'Error de red.'));
+        } finally {
+            submitBtn.disabled = false;
+            if (btnText) btnText.textContent = originalText;
+        }
+    }
+
+    /** ========================================================
+     * Gmail — probar conexion
+     * ======================================================== */
+
+    async function handleGmailTest() {
+        const testBtn   = document.getElementById('gmailTestBtn');
+        const resultBox = document.getElementById('gmailTestResult');
+        if (!testBtn || !resultBox) return;
+
+        testBtn.disabled = true;
+        const btnText      = testBtn.querySelector('.btn-text');
+        const originalText = btnText?.textContent;
+        if (btnText) btnText.textContent = t('integrations.testing', 'Probando...');
+
+        resultBox.className = 'integration-test-result';
+        resultBox.innerHTML = `
+            <div class="integration-test-loading">
+                <span class="spinner spinner-sm" aria-hidden="true"></span>
+                <span>${t('integrations.testing', 'Probando conexion...')}</span>
+            </div>
+        `;
+
+        try {
+            const result = await gmailPostAction({ action: 'test' });
+            showGmailResult(resultBox, result.success, result.message || (result.success ? t('integrations.test_ok', 'Conexion exitosa.') : t('integrations.test_fail', 'No se pudo conectar.')));
+        } catch {
+            showGmailResult(resultBox, false, t('common.err_network', 'Error de red.'));
+        } finally {
+            testBtn.disabled = false;
+            if (btnText) btnText.textContent = originalText;
+        }
+    }
+
+    /** ========================================================
+     * Gmail — sincronizar
+     * ======================================================== */
+
+    async function handleGmailSync() {
+        const syncBtn   = document.getElementById('gmailSyncBtn');
+        const resultBox = document.getElementById('gmailTestResult');
+        if (!syncBtn || !resultBox) return;
+
+        syncBtn.disabled = true;
+        const btnText      = syncBtn.querySelector('.btn-text');
+        const originalText = btnText?.textContent;
+        if (btnText) btnText.textContent = t('integrations.gmail_syncing', 'Sincronizando...');
+
+        resultBox.className = 'integration-test-result';
+        resultBox.innerHTML = `
+            <div class="integration-test-loading">
+                <span class="spinner spinner-sm" aria-hidden="true"></span>
+                <span>${t('integrations.gmail_syncing', 'Sincronizando...')}</span>
+            </div>
+        `;
+
+        try {
+            const result = await gmailPostAction({ action: 'sync' });
+            showGmailResult(resultBox, result.success, result.message || '');
+        } catch {
+            showGmailResult(resultBox, false, t('common.err_network', 'Error de red.'));
+        } finally {
+            syncBtn.disabled = false;
+            if (btnText) btnText.textContent = originalText;
+        }
+    }
+
+    /** ========================================================
      * Bindings
      * ======================================================== */
 
@@ -199,5 +366,9 @@
 
     const testBtn = document.getElementById('testConnectionBtn');
     if (testBtn) testBtn.addEventListener('click', handleTest);
+
+    document.getElementById('gmailForm')?.addEventListener('submit', handleGmailSubmit);
+    document.getElementById('gmailTestBtn')?.addEventListener('click', handleGmailTest);
+    document.getElementById('gmailSyncBtn')?.addEventListener('click', handleGmailSync);
 
 })();

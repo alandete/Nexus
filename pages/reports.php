@@ -69,19 +69,64 @@ $isAdmin = strtolower($currentUser['role'] ?? '') === 'admin';
     </div>
 </section>
 
-<!-- Barra de exports (aparece cuando hay reporte cargado) -->
-<div class="report-export-group d-none" id="reportExportGroup">
-    <span class="report-export-label"><?= __('reports.export_as') ?></span>
-    <button type="button" class="btn btn-subtle btn-sm" data-export="csv">
-        <i class="bi bi-filetype-csv" aria-hidden="true"></i> CSV
-    </button>
-    <button type="button" class="btn btn-subtle btn-sm" data-export="xls">
-        <i class="bi bi-filetype-xlsx" aria-hidden="true"></i> Excel
-    </button>
-    <button type="button" class="btn btn-subtle btn-sm" data-export="pdf">
-        <i class="bi bi-filetype-pdf" aria-hidden="true"></i> PDF
-    </button>
+<!-- Barra combinada: filtros a la izq, exports a la der -->
+<div class="report-action-bar" id="reportActionBar">
+    <div class="report-action-filters">
+        <!-- Multi-select alianzas -->
+        <div class="report-filter-group">
+            <span class="report-filter-label"><?= __('reports.field_alliance') ?></span>
+            <div class="report-ms" id="allianceMs">
+                <button type="button" class="btn btn-default btn-sm report-ms-btn" id="allianceMsBtn"
+                        aria-haspopup="listbox" aria-expanded="false">
+                    <span class="report-ms-label"><?= __('reports.all_alliances') ?></span>
+                    <i class="bi bi-chevron-down report-ms-chevron" aria-hidden="true"></i>
+                </button>
+                <div class="report-ms-panel" id="allianceMsPanel" role="listbox" aria-multiselectable="true" hidden>
+                    <!-- Populado via JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Multi-select etiquetas -->
+        <div class="report-filter-group">
+            <span class="report-filter-label"><?= __('reports.field_tags') ?></span>
+            <div class="report-ms" id="tagMs">
+                <button type="button" class="btn btn-default btn-sm report-ms-btn" id="tagMsBtn"
+                        aria-haspopup="listbox" aria-expanded="false">
+                    <span class="report-ms-label"><?= __('reports.all_tags') ?></span>
+                    <i class="bi bi-chevron-down report-ms-chevron" aria-hidden="true"></i>
+                </button>
+                <div class="report-ms-panel" id="tagMsPanel" role="listbox" aria-multiselectable="true" hidden>
+                    <!-- Populado via JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Limpiar filtros (visible solo cuando hay filtros activos) -->
+        <button type="button" class="btn btn-subtle btn-sm d-none" id="reportClearBtn">
+            <i class="bi bi-x-circle" aria-hidden="true"></i>
+            <?= __('reports.clear_filters') ?>
+        </button>
+    </div>
+
+    <div class="report-export-group d-none" id="reportExportGroup">
+        <span class="report-export-label"><?= __('reports.export_as') ?></span>
+        <button type="button" class="btn btn-subtle btn-sm" data-export="csv">
+            <i class="bi bi-filetype-csv" aria-hidden="true"></i> CSV
+        </button>
+        <button type="button" class="btn btn-subtle btn-sm" data-export="xls">
+            <i class="bi bi-filetype-xlsx" aria-hidden="true"></i> Excel
+        </button>
+        <button type="button" class="btn btn-subtle btn-sm" data-export="pdf">
+            <i class="bi bi-filetype-pdf" aria-hidden="true"></i> PDF
+        </button>
+    </div>
 </div>
+
+<!-- Gráfico temporal: siempre visible cuando hay datos -->
+<section class="report-bar-section d-none" id="reportBarSection" aria-label="<?= __('reports.bar_chart_label') ?>">
+    <canvas id="reportBarChart"></canvas>
+</section>
 
 <!-- Vista del reporte -->
 <section class="report-view" id="reportView" aria-live="polite" aria-busy="false">

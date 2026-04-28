@@ -1,4 +1,5 @@
 <?php
+
 /**
  * S4Learning - English Translations (Common)
  * Global elements shared across all pages.
@@ -92,7 +93,7 @@ return [
         'view_all_tasks'     => 'View all tasks',
         'quick_access'       => 'Quick access',
         'quick_new_task'     => 'New task',
-        'quick_questions'    => 'Convert questions',
+        'quick_questions'    => 'Generate questions',
         'quick_pdf'          => 'Optimize PDF',
         'quick_alliances'    => 'Alliances',
         'chart_title' => 'Tasks completed this month',

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * S4Learning - English Translations (Utilities)
  */
@@ -7,7 +8,7 @@ defined('APP_ACCESS') or die('Direct access not allowed');
 return [
     'utilities' => [
         'page_title'      => 'Utilities',
-        'tab_gift'        => 'Convert questions',
+        'tab_gift'        => 'Generate questions',
         'format_label'    => 'Output format',
         'format_gift'     => 'GIFT (Moodle)',
         'format_qti'      => 'QTI (Canvas)',

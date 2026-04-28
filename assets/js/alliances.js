@@ -15,6 +15,7 @@
         initLmsSelector();
         initSectionTabs();
         initUrlValidation();
+        initToggleGroups();
         initActionBar();
         initResultPanel();
         initEvalTableHover();
@@ -79,10 +80,14 @@
     // ── URL validation ────────────────────────────────────────────────────────
 
     function initUrlValidation() {
-        document.querySelectorAll('.alliance-url-field').forEach(input => {
-            input.addEventListener('input', () => validateUrlField(input));
-            input.addEventListener('blur',  () => validateUrlField(input));
+        const root = document.getElementById('allianceContent');
+        if (!root) return;
+        root.addEventListener('input', e => {
+            if (e.target.classList.contains('alliance-url-field')) validateUrlField(e.target);
         });
+        root.addEventListener('blur', e => {
+            if (e.target.classList.contains('alliance-url-field')) validateUrlField(e.target);
+        }, true);
     }
 
     function validateUrlField(input) {
@@ -156,8 +161,12 @@
 
         const data = {};
         panel.querySelectorAll('input, textarea, select').forEach(el => {
-            if (!el.name) return;
-            data[el.name] = el.value;
+            if (!el.name || el.disabled) return;
+            if (el.type === 'checkbox') {
+                if (el.checked) data[el.name] = el.value || 'on';
+            } else {
+                data[el.name] = el.value;
+            }
         });
         return data;
     }
@@ -175,8 +184,14 @@
     // ── Result panel ──────────────────────────────────────────────────────────
 
     function initResultPanel() {
-        const btnCopy = document.getElementById('btnAllianceCopy');
+        const btnCopy    = document.getElementById('btnAllianceCopy');
+        const overlay    = document.getElementById('slidePanelOverlay');
         if (btnCopy) btnCopy.addEventListener('click', handleCopy);
+        document.querySelectorAll('#allianceResultPanel .slide-panel-close').forEach(btn => {
+            btn.addEventListener('click', closePanel);
+        });
+        if (overlay) overlay.addEventListener('click', closePanel);
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closePanel(); });
     }
 
     function renderResult(json) {
@@ -238,14 +253,35 @@
         }
     }
 
+    // ── Toggle groups ─────────────────────────────────────────────────────────
+
+    function initToggleGroups() {
+        document.querySelectorAll('.alliance-toggle-input').forEach(cb => {
+            cb.addEventListener('change', () => applyToggleGroup(cb));
+        });
+    }
+
+    function applyToggleGroup(cb) {
+        const fields = cb.dataset.controls ? document.getElementById(cb.dataset.controls) : null;
+        if (!fields) return;
+        fields.hidden = !cb.checked;
+        fields.querySelectorAll('input, textarea, select').forEach(el => {
+            el.disabled = !cb.checked;
+        });
+    }
+
     // ── Clean ─────────────────────────────────────────────────────────────────
 
     function handleClean() {
         showToastConfirm(t('confirmClean', '¿Limpiar todos los campos?'), () => {
             document.querySelectorAll('.tab-content input, .tab-content textarea, .tab-content select').forEach(el => {
-                el.value = el.tagName === 'SELECT' ? '' : '';
                 if (el.tagName === 'SELECT') el.selectedIndex = 0;
+                else el.value = '';
                 el.classList.remove('is-valid', 'is-invalid');
+            });
+            document.querySelectorAll('.alliance-toggle-input').forEach(cb => {
+                cb.checked = false;
+                applyToggleGroup(cb);
             });
         }, { labelConfirm: t('btnClean', 'Limpiar'), labelCancel: t('btnCancel', 'Cancelar') });
     }
@@ -265,12 +301,19 @@
     }
 
     function openPanel(id) {
-        const panel = document.getElementById(id);
+        const panel   = document.getElementById(id);
+        const overlay = document.getElementById('slidePanelOverlay');
         if (!panel) return;
-        panel.classList.add('is-open');
+        panel.classList.add('active');
         panel.setAttribute('aria-hidden', 'false');
-        document.body.classList.add('panel-open');
-        panel.querySelector('button, [tabindex="0"]')?.focus();
+        if (overlay) overlay.classList.add('active');
+    }
+
+    function closePanel() {
+        const panel   = document.getElementById('allianceResultPanel');
+        const overlay = document.getElementById('slidePanelOverlay');
+        if (panel)   { panel.classList.remove('active'); panel.setAttribute('aria-hidden', 'true'); }
+        if (overlay) overlay.classList.remove('active');
     }
 
     function showToast(msg, type) {

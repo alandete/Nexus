@@ -10,9 +10,15 @@ return [
         'page_subtitle' => 'Genera un resumen mensual de tus tareas y exporta en CSV, Excel o PDF.',
 
         'filters_label' => 'Filtros del reporte',
-        'field_type'    => 'Tipo de reporte',
-        'field_range'   => 'Rango de fechas',
-        'field_user'    => 'Usuario',
+        'field_type'     => 'Tipo de reporte',
+        'field_range'    => 'Rango de fechas',
+        'field_user'     => 'Usuario',
+        'field_alliance' => 'Alianza',
+        'field_tags'     => 'Etiqueta',
+        'all_alliances'  => 'Todas las alianzas',
+        'all_tags'       => 'Todas las etiquetas',
+        'clear_filters'  => 'Limpiar filtros',
+        'bar_chart_label'=> 'Distribución de tiempo por período',
 
         'type_summary'  => 'Resumido',
         'type_detailed' => 'Detallado',

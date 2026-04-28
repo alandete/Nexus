@@ -50,7 +50,7 @@ foreach (['moodle', 'canvas'] as $lms) {
 
 <?php
 // Alianzas con UI de procesamiento lista (control explícito)
-$readyForProcessing = ['unis'];
+$readyForProcessing = ['unis', 'unab'];
 
 $allianceReady = in_array($allianceSlug, $readyForProcessing)
     && !empty($allianceData)
@@ -118,12 +118,145 @@ if (!$allianceReady):
     <?php endif; ?>
 
     <!-- ══════════════════════════════════════════
-         PESTAÑA: INICIO (UNIS)
+         PESTAÑA: INICIO
          ══════════════════════════════════════════ -->
     <?php if (in_array('inicio', $sections, true)): ?>
     <div class="tab-content" id="tabPanel-inicio" role="tabpanel" aria-labelledby="tabBtn-inicio">
 
-        <!-- Generalidades -->
+    <?php if ($allianceSlug === 'unab'): ?>
+
+        <!-- UNAB — Banner -->
+        <section class="card alliance-section" id="section-banner">
+            <div class="card-header">
+                <h2 class="card-title"><?= __('alliances.unab_banner') ?></h2>
+                <p class="card-description"><?= __('alliances.unab_banner_desc') ?></p>
+            </div>
+            <div class="card-body alliance-section-fields--stacked">
+                <div class="form-group">
+                    <label class="form-label sr-only" for="field_unab_nombre_curso"><?= __('alliances.field_unab_nombre_curso') ?></label>
+                    <input type="text" class="form-control"
+                           id="field_unab_nombre_curso" name="unab_nombre_curso"
+                           placeholder="<?= htmlspecialchars(__('alliances.field_unab_nombre_curso')) ?>"
+                           autocomplete="off" data-section="inicio">
+                    <p class="form-helper"><?= __('alliances.field_unab_nombre_curso_help') ?></p>
+                </div>
+                <div class="alliance-section-fields">
+                    <div class="form-group">
+                        <label class="form-label sr-only" for="field_unab_facultad"><?= __('alliances.field_unab_facultad') ?></label>
+                        <input type="text" class="form-control"
+                               id="field_unab_facultad" name="unab_facultad"
+                               placeholder="<?= htmlspecialchars(__('alliances.field_unab_facultad')) ?>"
+                               autocomplete="off" data-section="inicio">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label sr-only" for="field_unab_banner"><?= __('alliances.field_unab_banner') ?></label>
+                        <input type="url" class="form-control alliance-url-field"
+                               id="field_unab_banner" name="unab_banner"
+                               placeholder="<?= htmlspecialchars(__('alliances.field_unab_banner')) ?>"
+                               autocomplete="off" data-section="inicio">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- UNAB — Generalidades -->
+        <section class="card alliance-section" id="section-generalidades">
+            <div class="card-header">
+                <h2 class="card-title"><?= __('alliances.unab_generalidades') ?></h2>
+                <p class="card-description"><?= __('alliances.unab_generalidades_desc') ?></p>
+            </div>
+            <div class="card-body alliance-section-fields">
+                <div class="form-group">
+                    <label class="form-label sr-only" for="field_unab_video"><?= __('alliances.field_unab_video') ?></label>
+                    <input type="url" class="form-control alliance-url-field"
+                           id="field_unab_video" name="unab_video"
+                           placeholder="<?= htmlspecialchars(__('alliances.field_unab_video')) ?>"
+                           autocomplete="off" data-section="inicio">
+                </div>
+                <div class="form-group">
+                    <label class="form-label sr-only" for="field_unab_generalidades"><?= __('alliances.field_unab_generalidades') ?></label>
+                    <input type="url" class="form-control alliance-url-field"
+                           id="field_unab_generalidades" name="unab_generalidades"
+                           placeholder="<?= htmlspecialchars(__('alliances.field_unab_generalidades')) ?>"
+                           autocomplete="off" data-section="inicio">
+                </div>
+                <div class="form-group">
+                    <label class="form-label sr-only" for="field_unab_ruta"><?= __('alliances.field_unab_ruta') ?></label>
+                    <input type="url" class="form-control alliance-url-field"
+                           id="field_unab_ruta" name="unab_ruta"
+                           placeholder="<?= htmlspecialchars(__('alliances.field_unab_ruta')) ?>"
+                           autocomplete="off" data-section="inicio">
+                </div>
+                <div class="form-group">
+                    <label class="form-label sr-only" for="field_unab_evaluacion"><?= __('alliances.field_unab_evaluacion') ?></label>
+                    <input type="url" class="form-control alliance-url-field"
+                           id="field_unab_evaluacion" name="unab_evaluacion"
+                           placeholder="<?= htmlspecialchars(__('alliances.field_unab_evaluacion')) ?>"
+                           autocomplete="off" data-section="inicio">
+                </div>
+            </div>
+        </section>
+
+        <!-- UNAB — Conozcámonos -->
+        <section class="card alliance-section" id="section-conozcamonos">
+            <div class="card-header">
+                <h2 class="card-title"><?= __('alliances.unab_conozcamonos') ?></h2>
+                <p class="card-description"><?= __('alliances.unab_conozcamonos_desc') ?></p>
+            </div>
+            <div class="card-body">
+                <div class="alliance-toggle-group">
+                    <?php for ($i = 1; $i <= 4; $i++): ?>
+                    <div class="alliance-tgroup-item">
+                        <div class="alliance-tgroup-header">
+                            <label class="alliance-tgroup-trigger">
+                                <span class="toggle">
+                                    <input type="checkbox"
+                                           class="alliance-toggle-input"
+                                           name="unab_docente_<?= $i ?>_active"
+                                           id="docente_<?= $i ?>_active"
+                                           data-controls="docente-<?= $i ?>-fields">
+                                    <span class="toggle-slider"></span>
+                                </span>
+                                <span class="alliance-tgroup-label"><?= __('alliances.unab_docente_n') ?> <?= $i ?></span>
+                            </label>
+                        </div>
+                        <div class="alliance-tgroup-fields" id="docente-<?= $i ?>-fields" hidden>
+                            <div class="alliance-section-fields--three">
+                                <div class="form-group">
+                                    <label class="form-label sr-only" for="field_docente_<?= $i ?>_nombre"><?= __('alliances.field_unab_docente_nombre') ?></label>
+                                    <input type="text" class="form-control"
+                                           id="field_docente_<?= $i ?>_nombre"
+                                           name="unab_docente_<?= $i ?>_nombre"
+                                           placeholder="<?= htmlspecialchars(__('alliances.field_unab_docente_nombre')) ?>"
+                                           autocomplete="off" data-section="inicio" disabled>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label sr-only" for="field_docente_<?= $i ?>_foto"><?= __('alliances.field_unab_docente_foto') ?></label>
+                                    <input type="url" class="form-control alliance-url-field"
+                                           id="field_docente_<?= $i ?>_foto"
+                                           name="unab_docente_<?= $i ?>_foto"
+                                           placeholder="<?= htmlspecialchars(__('alliances.field_unab_docente_foto')) ?>"
+                                           autocomplete="off" data-section="inicio" disabled>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label sr-only" for="field_docente_<?= $i ?>_semblanza"><?= __('alliances.field_unab_docente_semblanza') ?></label>
+                                    <input type="url" class="form-control alliance-url-field"
+                                           id="field_docente_<?= $i ?>_semblanza"
+                                           name="unab_docente_<?= $i ?>_semblanza"
+                                           placeholder="<?= htmlspecialchars(__('alliances.field_unab_docente_semblanza')) ?>"
+                                           autocomplete="off" data-section="inicio" disabled>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <?php endfor; ?>
+                </div>
+            </div>
+        </section>
+
+    <?php else: ?>
+
+        <!-- UNIS — Generalidades -->
         <section class="card alliance-section" id="section-generalidades">
             <div class="card-header">
                 <h2 class="card-title"><?= __('alliances.generalidades') ?></h2>
@@ -157,7 +290,7 @@ if (!$allianceReady):
             </div>
         </section>
 
-        <!-- Evaluación -->
+        <!-- UNIS — Evaluación -->
         <section class="card alliance-section" id="section-evaluacion">
             <div class="card-header">
                 <h2 class="card-title"><?= __('alliances.evaluacion') ?></h2>
@@ -213,6 +346,8 @@ if (!$allianceReady):
                 </div>
             </div>
         </section>
+
+    <?php endif; ?>
 
     </div><!-- /tabPanel-inicio -->
     <?php endif; ?>
@@ -380,6 +515,206 @@ if (!$allianceReady):
         </section>
 
     </div><!-- /tabPanel-unidad -->
+    <?php endif; ?>
+
+    <!-- ══════════════════════════════════════════
+         PESTAÑA: CURSO (UNAB)
+         ══════════════════════════════════════════ -->
+    <?php if (in_array('curso', $sections, true)): ?>
+    <?php $resourceTypes = $allianceData['resource_types'] ?? []; ?>
+    <div class="tab-content d-none" id="tabPanel-curso" role="tabpanel" aria-labelledby="tabBtn-curso">
+
+        <!-- Banner del curso -->
+        <section class="card alliance-section" id="section-curso-banner">
+            <div class="card-header">
+                <h2 class="card-title"><?= __('alliances.unab_curso_banner') ?></h2>
+                <p class="card-description"><?= __('alliances.unab_curso_banner_desc') ?></p>
+            </div>
+            <div class="card-body alliance-section-fields--stacked">
+                <div class="form-group">
+                    <label class="form-label sr-only" for="field_unab_curso_nombre_tema"><?= __('alliances.field_unab_curso_nombre_tema') ?></label>
+                    <input type="text" class="form-control"
+                           id="field_unab_curso_nombre_tema" name="unab_curso_nombre_tema"
+                           placeholder="<?= htmlspecialchars(__('alliances.field_unab_curso_nombre_tema')) ?>"
+                           autocomplete="off" data-section="curso">
+                </div>
+                <div class="alliance-section-fields">
+                    <div class="form-group">
+                        <label class="form-label sr-only" for="field_unab_curso_codigo"><?= __('alliances.field_unab_curso_codigo') ?></label>
+                        <input type="text" class="form-control"
+                               id="field_unab_curso_codigo" name="unab_curso_codigo"
+                               placeholder="<?= htmlspecialchars(__('alliances.field_unab_curso_codigo')) ?>"
+                               autocomplete="off" data-section="curso">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label sr-only" for="field_unab_curso_imagen_banner"><?= __('alliances.field_unab_curso_imagen_banner') ?></label>
+                        <input type="url" class="form-control alliance-url-field"
+                               id="field_unab_curso_imagen_banner" name="unab_curso_imagen_banner"
+                               placeholder="<?= htmlspecialchars(__('alliances.field_unab_curso_imagen_banner')) ?>"
+                               autocomplete="off" data-section="curso">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Generalidades del curso -->
+        <section class="card alliance-section" id="section-curso-generalidades">
+            <div class="card-header">
+                <h2 class="card-title"><?= __('alliances.unab_curso_generalidades') ?></h2>
+                <p class="card-description"><?= __('alliances.unab_curso_generalidades_desc') ?></p>
+            </div>
+            <div class="card-body alliance-section-fields--stacked">
+                <div class="alliance-section-fields">
+                    <div class="form-group">
+                        <label class="form-label sr-only" for="field_unab_curso_descripcion"><?= __('alliances.field_unab_curso_descripcion') ?></label>
+                        <textarea class="form-control" id="field_unab_curso_descripcion" name="unab_curso_descripcion"
+                                  rows="5"
+                                  placeholder="<?= htmlspecialchars(__('alliances.field_unab_curso_descripcion')) ?>"
+                                  data-section="curso"></textarea>
+                        <p class="form-helper"><?= __('alliances.field_unab_curso_descripcion_help') ?></p>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label sr-only" for="field_unab_curso_resultados"><?= __('alliances.field_unab_curso_resultados') ?></label>
+                        <textarea class="form-control" id="field_unab_curso_resultados" name="unab_curso_resultados"
+                                  rows="5"
+                                  placeholder="<?= htmlspecialchars(__('alliances.field_unab_curso_resultados')) ?>"
+                                  data-section="curso"></textarea>
+                        <p class="form-helper"><?= __('alliances.field_unab_curso_resultados_help') ?></p>
+                    </div>
+                </div>
+                <div class="alliance-section-fields--three">
+                    <div class="form-group">
+                        <label class="form-label sr-only" for="field_unab_curso_syllabus"><?= __('alliances.field_unab_curso_syllabus') ?></label>
+                        <input type="url" class="form-control alliance-url-field"
+                               id="field_unab_curso_syllabus" name="unab_curso_syllabus"
+                               placeholder="<?= htmlspecialchars(__('alliances.field_unab_curso_syllabus')) ?>"
+                               autocomplete="off" data-section="curso">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label sr-only" for="field_unab_curso_video_descripcion"><?= __('alliances.field_unab_curso_video_descripcion') ?></label>
+                        <input type="url" class="form-control alliance-url-field"
+                               id="field_unab_curso_video_descripcion" name="unab_curso_video_descripcion"
+                               placeholder="<?= htmlspecialchars(__('alliances.field_unab_curso_video_descripcion')) ?>"
+                               autocomplete="off" data-section="curso">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label sr-only" for="field_unab_curso_video_introduccion"><?= __('alliances.field_unab_curso_video_introduccion') ?></label>
+                        <input type="url" class="form-control alliance-url-field"
+                               id="field_unab_curso_video_introduccion" name="unab_curso_video_introduccion"
+                               placeholder="<?= htmlspecialchars(__('alliances.field_unab_curso_video_introduccion')) ?>"
+                               autocomplete="off" data-section="curso">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Aprende (4 unidades con toggle) -->
+        <section class="card alliance-section" id="section-curso-aprende">
+            <div class="card-header">
+                <h2 class="card-title"><?= __('alliances.unab_aprende') ?></h2>
+                <p class="card-description"><?= __('alliances.unab_aprende_desc') ?></p>
+            </div>
+            <div class="card-body">
+                <div class="alliance-toggle-group alliance-toggle-group--columns">
+                    <?php for ($i = 1; $i <= 4; $i++): ?>
+                    <div class="alliance-tgroup-item">
+                        <div class="alliance-tgroup-header">
+                            <label class="alliance-tgroup-trigger">
+                                <span class="toggle">
+                                    <input type="checkbox"
+                                           class="alliance-toggle-input"
+                                           name="unab_curso_unidad_<?= $i ?>_active"
+                                           id="curso_unidad_<?= $i ?>_active"
+                                           data-controls="curso-unidad-<?= $i ?>-fields">
+                                    <span class="toggle-slider"></span>
+                                </span>
+                                <span class="alliance-tgroup-label"><?= __('alliances.unab_unidad_n') ?> <?= $i ?></span>
+                            </label>
+                        </div>
+                        <div class="alliance-tgroup-fields" id="curso-unidad-<?= $i ?>-fields" hidden>
+                            <div class="alliance-section-fields">
+                                <div class="form-group">
+                                    <label class="form-label sr-only" for="field_unab_curso_unidad_<?= $i ?>_tipo"><?= __('alliances.field_unab_curso_tipo_recurso') ?></label>
+                                    <select class="form-control"
+                                            id="field_unab_curso_unidad_<?= $i ?>_tipo"
+                                            name="unab_curso_unidad_<?= $i ?>_tipo"
+                                            data-section="curso" disabled>
+                                        <option value=""><?= htmlspecialchars(__('alliances.field_unab_curso_tipo_recurso')) ?>...</option>
+                                        <?php foreach ($resourceTypes as $rt): ?>
+                                        <option value="<?= htmlspecialchars($rt['value']) ?>">
+                                            <?= htmlspecialchars(__('alliances.' . $rt['label_key']) ?: $rt['value']) ?>
+                                        </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label sr-only" for="field_unab_curso_unidad_<?= $i ?>_recurso"><?= __('alliances.field_unab_curso_recurso') ?></label>
+                                    <input type="url" class="form-control alliance-url-field"
+                                           id="field_unab_curso_unidad_<?= $i ?>_recurso"
+                                           name="unab_curso_unidad_<?= $i ?>_recurso"
+                                           placeholder="<?= htmlspecialchars(__('alliances.field_unab_curso_recurso')) ?>"
+                                           autocomplete="off" data-section="curso" disabled>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <?php endfor; ?>
+                </div>
+            </div>
+        </section>
+
+        <!-- Recursos -->
+        <section class="card alliance-section" id="section-curso-recursos">
+            <div class="card-header">
+                <h2 class="card-title"><?= __('alliances.unab_recursos') ?></h2>
+                <p class="card-description"><?= __('alliances.unab_recursos_desc') ?></p>
+            </div>
+            <div class="card-body alliance-section-fields--stacked">
+                <div class="form-group">
+                    <label class="form-label sr-only" for="field_unab_curso_obligatorios"><?= __('alliances.field_unab_curso_obligatorios') ?></label>
+                    <textarea class="form-control" id="field_unab_curso_obligatorios" name="unab_curso_obligatorios"
+                              rows="6"
+                              placeholder="<?= htmlspecialchars(__('alliances.field_unab_curso_obligatorios')) ?>"
+                              data-section="curso"></textarea>
+                    <p class="form-helper"><?= __('alliances.field_unab_recursos_help') ?></p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label sr-only" for="field_unab_curso_opcionales"><?= __('alliances.field_unab_curso_opcionales') ?></label>
+                    <textarea class="form-control" id="field_unab_curso_opcionales" name="unab_curso_opcionales"
+                              rows="6"
+                              placeholder="<?= htmlspecialchars(__('alliances.field_unab_curso_opcionales')) ?>"
+                              data-section="curso"></textarea>
+                </div>
+            </div>
+        </section>
+
+        <!-- Glosario -->
+        <section class="card alliance-section" id="section-curso-glosario">
+            <div class="card-header">
+                <h2 class="card-title"><?= __('alliances.unab_glosario') ?></h2>
+                <p class="card-description"><?= __('alliances.unab_glosario_desc') ?></p>
+            </div>
+            <div class="card-body alliance-section-fields--stacked">
+                <div class="form-group">
+                    <label class="form-label sr-only" for="field_unab_curso_destacados"><?= __('alliances.field_unab_curso_destacados') ?></label>
+                    <input type="text" class="form-control"
+                           id="field_unab_curso_destacados" name="unab_curso_destacados"
+                           placeholder="<?= htmlspecialchars(__('alliances.field_unab_curso_destacados')) ?>"
+                           autocomplete="off" data-section="curso">
+                    <p class="form-helper"><?= __('alliances.field_unab_curso_destacados_help') ?></p>
+                </div>
+                <div class="form-group">
+                    <label class="form-label sr-only" for="field_unab_curso_terminos"><?= __('alliances.field_unab_curso_terminos') ?></label>
+                    <textarea class="form-control" id="field_unab_curso_terminos" name="unab_curso_terminos"
+                              rows="6"
+                              placeholder="<?= htmlspecialchars(__('alliances.field_unab_curso_terminos')) ?>"
+                              data-section="curso"></textarea>
+                    <p class="form-helper"><?= __('alliances.field_unab_glosario_help') ?></p>
+                </div>
+            </div>
+        </section>
+
+    </div><!-- /tabPanel-curso -->
     <?php endif; ?>
 
     <!-- Barra de acciones -->

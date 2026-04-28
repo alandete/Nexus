@@ -13,15 +13,19 @@
 
     // Estado de filtros
     const state = {
-        type:   'summary',   // 'summary' | 'detailed'
-        range:  'monthly',   // 'weekly' | 'monthly' | 'custom'
-        start:  null,
-        end:    null,
-        userId: null,
+        type:        'summary',  // 'summary' | 'detailed'
+        range:       'monthly',  // 'weekly' | 'monthly' | 'custom'
+        start:       null,
+        end:         null,
+        userId:      null,
+        allianceIds: [],         // [] = todas
+        tagIds:      [],         // [] = todas
     };
 
     let lastReport = null;
     let chartInstance = null;
+    let barChartInstance = null;
+    const multiSelectInstances = {};
 
     /* ========================================================
      * Helpers
@@ -91,6 +95,129 @@
     }
 
     /* ========================================================
+     * Multi-select genérico para alianzas y etiquetas
+     * ======================================================== */
+
+    function buildMultiSelect({ btnId, panelId, items, stateKey, allLabel }) {
+        const btn   = document.getElementById(btnId);
+        const panel = document.getElementById(panelId);
+        if (!btn || !panel) return null;
+
+        panel.innerHTML = items.map(item => {
+            const dotStyle = item.color ? `style="background:${escapeHtml(item.color)};"` : '';
+            return `
+                <label class="report-ms-item" role="option">
+                    <input type="checkbox" value="${item.id}">
+                    <span class="report-ms-dot" ${dotStyle}></span>
+                    <span>${escapeHtml(item.name)}</span>
+                </label>
+            `;
+        }).join('');
+
+        function updateLabel() {
+            const checked = Array.from(panel.querySelectorAll('input[type="checkbox"]:checked'));
+            const labelEl = btn.querySelector('.report-ms-label');
+            const oldBadge = btn.querySelector('.report-ms-active-badge');
+            if (oldBadge) oldBadge.remove();
+
+            if (checked.length === 0) {
+                labelEl.textContent = allLabel;
+                state[stateKey] = [];
+            } else {
+                labelEl.textContent = checked.length === 1
+                    ? checked[0].closest('label').querySelector('span:last-child').textContent.trim()
+                    : allLabel;
+                if (checked.length > 1) {
+                    const badge = document.createElement('span');
+                    badge.className = 'report-ms-active-badge';
+                    badge.textContent = checked.length;
+                    btn.insertBefore(badge, btn.querySelector('.report-ms-chevron'));
+                }
+                state[stateKey] = checked.map(c => parseInt(c.value, 10));
+            }
+        }
+
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isOpen = !panel.hidden;
+            closeAllPanels();
+            if (!isOpen) {
+                panel.hidden = false;
+                btn.setAttribute('aria-expanded', 'true');
+            }
+        });
+
+        panel.addEventListener('change', () => {
+            updateLabel();
+            updateClearBtn();
+            generate();
+        });
+
+        updateLabel();
+
+        return {
+            clear() {
+                panel.querySelectorAll('input[type="checkbox"]').forEach(cb => { cb.checked = false; });
+                updateLabel();
+            },
+        };
+    }
+
+    function closeAllPanels() {
+        document.querySelectorAll('.report-ms-panel').forEach(p => {
+            p.hidden = true;
+            const ms = p.closest('.report-ms');
+            if (ms) ms.querySelector('.report-ms-btn')?.setAttribute('aria-expanded', 'false');
+        });
+    }
+
+    /* ========================================================
+     * Cargar alianzas y etiquetas
+     * ======================================================== */
+
+    async function loadAlliances() {
+        try {
+            const result = await api('alliances_list');
+            if (!result.success || !result.alliances.length) return;
+            multiSelectInstances.alliances = buildMultiSelect({
+                btnId:    'allianceMsBtn',
+                panelId:  'allianceMsPanel',
+                items:    result.alliances,
+                stateKey: 'allianceIds',
+                allLabel: t('reports.all_alliances', 'Todas las alianzas'),
+            });
+        } catch (_) { /* ignore */ }
+    }
+
+    async function loadTags() {
+        try {
+            const result = await api('tags_list');
+            if (!result.success || !result.tags.length) return;
+            multiSelectInstances.tags = buildMultiSelect({
+                btnId:    'tagMsBtn',
+                panelId:  'tagMsPanel',
+                items:    result.tags,
+                stateKey: 'tagIds',
+                allLabel: t('reports.all_tags', 'Todas las etiquetas'),
+            });
+        } catch (_) { /* ignore */ }
+    }
+
+    function updateClearBtn() {
+        const btn = document.getElementById('reportClearBtn');
+        if (!btn) return;
+        const hasFilters = state.allianceIds.length > 0 || state.tagIds.length > 0;
+        btn.classList.toggle('d-none', !hasFilters);
+    }
+
+    function clearFilters() {
+        multiSelectInstances.alliances?.clear();
+        multiSelectInstances.tags?.clear();
+        updateClearBtn();
+        generate();
+    }
+
+    /* ========================================================
      * Cargar usuarios (solo admin)
      * ======================================================== */
 
@@ -131,9 +258,11 @@
 
         try {
             const result = await api('monthly', {
-                start: range.start,
-                end:   range.end,
-                user_id: state.userId || '',
+                start:        range.start,
+                end:          range.end,
+                user_id:      state.userId || '',
+                alliance_ids: state.allianceIds.join(','),
+                tag_ids:      state.tagIds.join(','),
                 include_tasks: state.type === 'detailed' ? 1 : 0,
                 include_tags:  state.type === 'detailed' ? 1 : 0,
             });
@@ -166,12 +295,27 @@
             ? t('reports.type_detailed', 'Detallado')
             : t('reports.type_summary', 'Resumido');
 
+        // Chips de filtros activos
+        let filterChips = '';
+        if (data.alliance_filter && data.alliance_filter.length) {
+            filterChips += data.alliance_filter.map(a => {
+                const cs = a.color ? `style="--alliance-color:${escapeHtml(a.color)};"` : '';
+                return `<span class="report-alliance-chip ${a.color ? 'has-alliance-color' : ''}" ${cs}><span class="report-alliance-dot"></span>${escapeHtml(a.name)}</span>`;
+            }).join(' ');
+        }
+        if (data.tag_filter && data.tag_filter.length) {
+            filterChips += data.tag_filter.map(tg => {
+                const cs = tg.color ? `style="--tag-color:${escapeHtml(tg.color)};"` : '';
+                return `<span class="report-tag-chip" ${cs}><span class="report-tag-dot"></span>${escapeHtml(tg.name)}</span>`;
+            }).join(' ');
+        }
+
         // Header de pantalla: 2 columnas (user+fecha izq | total der)
         const header = `
             <header class="report-header">
                 <div class="report-header-left">
                     <h2 class="report-user-name">${escapeHtml(user.name || user.username || '')}</h2>
-                    <div class="report-period">${escapeHtml(period.label || '')}</div>
+                    <div class="report-period">${escapeHtml(period.label || '')}${filterChips ? ' &mdash; ' + filterChips : ''}</div>
                 </div>
                 <div class="report-header-right">
                     <div class="report-total-label">${escapeHtml(t('reports.meta_total', 'Tiempo total'))}</div>
@@ -219,14 +363,27 @@
         const tagsSection  = data.by_tag ? renderTagsSection(data.by_tag) : '';
 
         container.innerHTML = printHeader + header + allianceSection + tasksSection + tagsSection + printFooter;
-        setTimeout(() => drawChart(data.by_alliance || []), 50);
+        const multipleAlliances = (data.by_alliance || []).length > 1;
+        setTimeout(() => {
+            if (multipleAlliances) {
+                drawChart(data.by_alliance);
+            } else if (chartInstance) {
+                chartInstance.destroy();
+                chartInstance = null;
+            }
+            renderBarChart(data);
+        }, 50);
     }
 
     function renderAllianceSection(data) {
-        const rows = (data.by_alliance || []).map(a => {
+        const alliances = data.by_alliance || [];
+        const showChart = alliances.length > 1;
+
+        const rows = alliances.map(a => {
             const pct = data.total_seconds ? Math.round((a.total_seconds / data.total_seconds) * 100) : 0;
             const colorStyle = a.color ? `style="--alliance-color: ${escapeHtml(a.color)};"` : '';
             const colorCls   = a.color ? 'has-alliance-color' : '';
+            const pctCell    = showChart ? `<td class="text-right text-mono">${pct}%</td>` : '';
             return `
                 <tr>
                     <td>
@@ -237,13 +394,15 @@
                     </td>
                     <td class="text-right">${a.task_count}</td>
                     <td class="text-right text-mono">${escapeHtml(formatDuration(a.total_seconds))}</td>
-                    <td class="text-right text-mono">${pct}%</td>
+                    ${pctCell}
                 </tr>
             `;
         }).join('');
 
-        // Leyenda HTML para impresion: solo color+nombre (los datos estan en la tabla de abajo)
-        const legendItems = (data.by_alliance || []).map(a => {
+        const pctHeader = showChart ? `<th scope="col" class="text-right">%</th>` : '';
+
+        // Leyenda para impresion (solo cuando hay grafico)
+        const legendItems = showChart ? alliances.map(a => {
             const dotStyle = a.color ? `style="background:${escapeHtml(a.color)};"` : '';
             return `
                 <div class="print-legend-item">
@@ -251,29 +410,29 @@
                     <span class="print-legend-name">${escapeHtml(a.name)}</span>
                 </div>
             `;
-        }).join('');
+        }).join('') : '';
 
         const period = data.period || {};
 
+        const chartBlock = showChart ? `
+            <div class="report-chart-row">
+                <div class="report-chart-col">
+                    <div class="report-chart-wrap">
+                        <canvas id="reportChart" aria-label="${escapeHtml(t('reports.chart_label', 'Gráfico de distribución por alianza'))}"></canvas>
+                    </div>
+                    <div class="report-print-legend" aria-hidden="true">${legendItems}</div>
+                </div>
+                <div class="print-chart-info" aria-hidden="true">
+                    <div class="print-chart-period">${escapeHtml(period.label || '')}</div>
+                    <div class="print-chart-total">${escapeHtml(formatDuration(data.total_seconds))}</div>
+                    <div class="print-chart-tasks">${data.task_count || 0} ${escapeHtml(t('reports.meta_tasks', 'tareas'))}</div>
+                </div>
+            </div>
+        ` : '';
+
         return `
             <section class="report-section">
-                <!-- Fila superior: grafico+leyenda izq | periodo+total der -->
-                <div class="report-chart-row">
-                    <div class="report-chart-col">
-                        <div class="report-chart-wrap">
-                            <canvas id="reportChart" aria-label="${escapeHtml(t('reports.chart_label', 'Gráfico de distribución por alianza'))}"></canvas>
-                        </div>
-                        <div class="report-print-legend" aria-hidden="true">
-                            ${legendItems}
-                        </div>
-                    </div>
-                    <div class="print-chart-info" aria-hidden="true">
-                        <div class="print-chart-period">${escapeHtml(period.label || '')}</div>
-                        <div class="print-chart-total">${escapeHtml(formatDuration(data.total_seconds))}</div>
-                        <div class="print-chart-tasks">${data.task_count || 0} ${escapeHtml(t('reports.meta_tasks', 'tareas'))}</div>
-                    </div>
-                </div>
-                <!-- Tabla de alianzas: ancho completo debajo -->
+                ${chartBlock}
                 <div class="report-alliance-table">
                     <table class="table report-table">
                         <caption class="sr-only">${escapeHtml(t('reports.section_alliances', 'Distribución por alianza'))}</caption>
@@ -282,7 +441,7 @@
                                 <th scope="col" class="text-left">${escapeHtml(t('reports.col_alliance', 'Alianza'))}</th>
                                 <th scope="col" class="text-right">${escapeHtml(t('reports.col_tasks', 'Tareas'))}</th>
                                 <th scope="col" class="text-right">${escapeHtml(t('reports.col_time', 'Tiempo'))}</th>
-                                <th scope="col" class="text-right">%</th>
+                                ${pctHeader}
                             </tr>
                         </thead>
                         <tbody>${rows}</tbody>
@@ -464,6 +623,116 @@
                 },
             },
             plugins: [pctLabelsPlugin],
+        });
+    }
+
+    /* ========================================================
+     * Gráfico de barras temporal
+     * ======================================================== */
+
+    function getMondayStr(d) {
+        const day = new Date(d);
+        const dow = day.getDay() || 7;
+        day.setDate(day.getDate() - (dow - 1));
+        return localDateStr(day);
+    }
+
+    function renderBarChart(data) {
+        const section = document.getElementById('reportBarSection');
+        const el      = document.getElementById('reportBarChart');
+        if (!section || !el || typeof Chart === 'undefined') return;
+
+        const byDay = data.by_day || [];
+        if (!byDay.length) {
+            section.classList.add('d-none');
+            if (barChartInstance) { barChartInstance.destroy(); barChartInstance = null; }
+            return;
+        }
+
+        const dayMap = {};
+        byDay.forEach(d => { dayMap[d.date] = d.seconds; });
+
+        const start    = new Date(data.period.start + 'T00:00:00');
+        const end      = new Date(data.period.end   + 'T00:00:00');
+        const diffDays = Math.round((end - start) / 86400000) + 1;
+
+        const labels = [];
+        const values = [];
+
+        if (diffDays <= 31) {
+            // Un punto por día
+            for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+                labels.push(d.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }));
+                values.push(((dayMap[localDateStr(d)] || 0) / 3600));
+            }
+        } else if (diffDays <= 90) {
+            // Agrupado por semana (lunes como inicio)
+            const weekMap = {};
+            const weekOrder = [];
+            for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+                const key = getMondayStr(d);
+                if (!weekMap[key]) { weekMap[key] = 0; weekOrder.push(key); }
+                weekMap[key] += (dayMap[localDateStr(d)] || 0);
+            }
+            weekOrder.forEach(monStr => {
+                const mon = new Date(monStr + 'T00:00:00');
+                labels.push(mon.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' }));
+                values.push(weekMap[monStr] / 3600);
+            });
+        } else {
+            // Agrupado por mes
+            const monthMap = {};
+            const monthOrder = [];
+            const monthNames = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+            for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+                const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+                if (!monthMap[key]) { monthMap[key] = 0; monthOrder.push(key); }
+                monthMap[key] += (dayMap[localDateStr(d)] || 0);
+            }
+            monthOrder.forEach(key => {
+                const [y, m] = key.split('-');
+                labels.push(monthNames[parseInt(m, 10) - 1] + ' ' + y);
+                values.push(monthMap[key] / 3600);
+            });
+        }
+
+        const brand = getComputedStyle(document.documentElement).getPropertyValue('--app-brand').trim() || '#585d8a';
+
+        section.classList.remove('d-none');
+        if (barChartInstance) barChartInstance.destroy();
+
+        barChartInstance = new Chart(el, {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [{
+                    data: values,
+                    backgroundColor: brand + 'b3',
+                    borderColor: brand,
+                    borderWidth: 1,
+                    borderRadius: 3,
+                }],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => formatDuration(Math.round(ctx.raw * 3600)),
+                        },
+                    },
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { callback: (v) => v % 1 === 0 ? v + 'h' : '' },
+                        grid: { color: 'rgba(9,30,66,0.06)' },
+                    },
+                    x: { grid: { display: false } },
+                },
+            },
         });
     }
 
@@ -877,8 +1146,14 @@
             });
         });
 
-        // Cargar usuarios si admin (y disparar generate cuando cambie)
-        await loadUsers();
+        // Cerrar paneles al click fuera
+        document.addEventListener('click', closeAllPanels);
+
+        // Limpiar filtros
+        document.getElementById('reportClearBtn')?.addEventListener('click', clearFilters);
+
+        // Cargar alianzas, etiquetas y usuarios (en paralelo)
+        await Promise.all([loadAlliances(), loadTags(), loadUsers()]);
 
         // Auto-carga inicial: resumido del mes actual
         generate();

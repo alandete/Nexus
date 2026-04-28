@@ -97,7 +97,7 @@ return [
         // Accesos rapidos
         'quick_access'       => 'Accesos rapidos',
         'quick_new_task'     => 'Nueva tarea',
-        'quick_questions'    => 'Convertir preguntas',
+        'quick_questions'    => 'Generar preguntas',
         'quick_pdf'          => 'Optimizar PDF',
         'quick_alliances'    => 'Alianzas',
         // Gráfico de tareas

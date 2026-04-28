@@ -150,8 +150,8 @@ function listTasks(PDO $db, int $userId): void
     $scheduledWhere = "t.user_id = ? AND t.status IN ('pending', 'in_progress')";
     $scheduledParams = [$userId];
 
-    // Auto-urgente: actualizar prioridad de tareas vencidas
-    $db->prepare("UPDATE tasks SET priority = 'urgent' WHERE user_id = ? AND due_date < CURDATE() AND status IN ('pending', 'in_progress') AND priority != 'urgent'")
+    // Auto-urgente: actualizar prioridad de tareas vencidas (excluye recurrentes)
+    $db->prepare("UPDATE tasks SET priority = 'urgent' WHERE user_id = ? AND due_date < CURDATE() AND status IN ('pending', 'in_progress') AND priority != 'urgent' AND is_recurring = 0")
        ->execute([$userId]);
 
     $scheduledStmt = $db->prepare("
@@ -380,24 +380,39 @@ function timerStart(PDO $db, int $userId): void
         return;
     }
 
-    // Tarea completada no recurrente: crear nueva instancia independiente con los mismos datos
-    if ($existingTask['status'] === 'completed' && !$existingTask['is_recurring']) {
-        $ins = $db->prepare("INSERT INTO tasks (user_id, alliance_id, title, status, due_date) VALUES (?, ?, ?, 'in_progress', CURDATE())");
-        $ins->execute([$userId, $existingTask['alliance_id'], $existingTask['title']]);
-        $newTaskId = (int) $db->lastInsertId();
+    // Tarea completada: comportamiento según si es recurrente y si fue el mismo día
+    if ($existingTask['status'] === 'completed') {
+        $recurring = (bool) $existingTask['is_recurring'];
 
-        // Copiar etiquetas del registro original
-        $tagStmt = $db->prepare("SELECT tag_id FROM task_tags WHERE task_id = ?");
-        $tagStmt->execute([$taskId]);
-        $tagIds = $tagStmt->fetchAll(PDO::FETCH_COLUMN);
-        if ($tagIds) {
-            $insTag = $db->prepare("INSERT IGNORE INTO task_tags (task_id, tag_id) VALUES (?, ?)");
-            foreach ($tagIds as $tid) {
-                $insTag->execute([$newTaskId, $tid]);
+        $lastDayStmt = $db->prepare("SELECT MAX(DATE(start_time)) FROM time_entries WHERE task_id = ? AND user_id = ?");
+        $lastDayStmt->execute([$taskId, $userId]);
+        $lastDay = $lastDayStmt->fetchColumn();
+        $sameDay = ($lastDay === date('Y-m-d'));
+
+        if (!$recurring && !$sameDay) {
+            // No recurrente + día distinto → instancia nueva sin due_date
+            $ins = $db->prepare("INSERT INTO tasks (user_id, alliance_id, title, status) VALUES (?, ?, ?, 'in_progress')");
+            $ins->execute([$userId, $existingTask['alliance_id'], $existingTask['title']]);
+            $newTaskId = (int) $db->lastInsertId();
+
+            $tagStmt = $db->prepare("SELECT tag_id FROM task_tags WHERE task_id = ?");
+            $tagStmt->execute([$taskId]);
+            $existingTagIds = $tagStmt->fetchAll(PDO::FETCH_COLUMN);
+            if ($existingTagIds) {
+                $insTag = $db->prepare("INSERT IGNORE INTO task_tags (task_id, tag_id) VALUES (?, ?)");
+                foreach ($existingTagIds as $tid) { $insTag->execute([$newTaskId, $tid]); }
             }
-        }
 
-        $taskId = $newTaskId;
+            $taskId = $newTaskId;
+        } elseif (!$recurring && $sameDay) {
+            // No recurrente + mismo día → reabrir y limpiar due_date vencido
+            $db->prepare("UPDATE tasks SET status = 'in_progress', due_date = IF(due_date < CURDATE(), NULL, due_date) WHERE id = ?")
+               ->execute([$taskId]);
+        } else {
+            // Recurrente (cualquier día) → reabrir, conservar historial y due_date
+            $db->prepare("UPDATE tasks SET status = 'in_progress' WHERE id = ?")
+               ->execute([$taskId]);
+        }
     }
 
     // Detener cualquier timer activo

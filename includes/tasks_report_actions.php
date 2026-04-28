@@ -37,10 +37,36 @@ if (!$me) { echo json_encode(['success' => false, 'message' => 'Usuario no encon
 $action = $_POST['action'] ?? '';
 
 switch ($action) {
-    case 'monthly':    reportMonthly($db, $me);    break;
-    case 'users_list': reportUsersList($db, $me);  break;
+    case 'monthly':        reportMonthly($db, $me);       break;
+    case 'users_list':     reportUsersList($db, $me);     break;
+    case 'alliances_list': reportAlliancesList($db, $me); break;
+    case 'tags_list':      reportTagsList($db, $me);      break;
     default:
         echo json_encode(['success' => false, 'message' => 'Acción no válida']);
+}
+
+/**
+ * Lista de alianzas activas.
+ */
+function reportAlliancesList(PDO $db, array $me): void
+{
+    $stmt = $db->query("SELECT id, name, color FROM alliances WHERE active = 1 ORDER BY name");
+    echo json_encode([
+        'success'   => true,
+        'alliances' => $stmt->fetchAll(PDO::FETCH_ASSOC),
+    ]);
+}
+
+/**
+ * Lista de etiquetas disponibles (con tiempo registrado en el sistema).
+ */
+function reportTagsList(PDO $db, array $me): void
+{
+    $stmt = $db->query("SELECT id, name, color FROM tags ORDER BY name");
+    echo json_encode([
+        'success' => true,
+        'tags'    => $stmt->fetchAll(PDO::FETCH_ASSOC),
+    ]);
 }
 
 /**
@@ -108,17 +134,38 @@ function reportMonthly(PDO $db, array $me): void
     $includeTasks = !empty($_POST['include_tasks']);
     $includeTags  = !empty($_POST['include_tags']);
 
-    // Total global del mes
+    // Filtros opcionales: múltiples alianzas y/o etiquetas (CSV de IDs)
+    $allianceIds = array_values(array_filter(array_map('intval', explode(',', $_POST['alliance_ids'] ?? ''))));
+    $tagIds      = array_values(array_filter(array_map('intval', explode(',', $_POST['tag_ids'] ?? ''))));
+
+    $allianceFilter = '';
+    if ($allianceIds) {
+        $pls = implode(',', array_fill(0, count($allianceIds), '?'));
+        $allianceFilter = " AND t.alliance_id IN ($pls)";
+    }
+    $tagFilter = '';
+    if ($tagIds) {
+        $pls = implode(',', array_fill(0, count($tagIds), '?'));
+        $tagFilter = " AND t.id IN (SELECT task_id FROM task_tags WHERE tag_id IN ($pls))";
+    }
+
+    // Helper: arma params base + filtros
+    $baseParams  = fn() => [$targetUserId, $startDate, $endDate];
+    $extraParams = fn() => array_merge($allianceIds, $tagIds);
+
+    // Total global del periodo
     $totalStmt = $db->prepare("
-        SELECT COALESCE(SUM(duration_seconds), 0)
-        FROM time_entries
-        WHERE user_id = ? AND end_time IS NOT NULL
-          AND DATE(start_time) BETWEEN ? AND ?
+        SELECT COALESCE(SUM(te.duration_seconds), 0)
+        FROM time_entries te
+        JOIN tasks t ON te.task_id = t.id
+        WHERE te.user_id = ? AND te.end_time IS NOT NULL
+          AND DATE(te.start_time) BETWEEN ? AND ?
+          $allianceFilter $tagFilter
     ");
-    $totalStmt->execute([$targetUserId, $startDate, $endDate]);
+    $totalStmt->execute(array_merge($baseParams(), $extraParams()));
     $totalSeconds = (int) $totalStmt->fetchColumn();
 
-    // Resumen por alianza (total + conteo de tareas distintas)
+    // Resumen por alianza
     $byAllianceStmt = $db->prepare("
         SELECT
             a.id, a.name, a.color,
@@ -129,10 +176,11 @@ function reportMonthly(PDO $db, array $me): void
         LEFT JOIN alliances a ON t.alliance_id = a.id
         WHERE te.user_id = ? AND te.end_time IS NOT NULL
           AND DATE(te.start_time) BETWEEN ? AND ?
+          $allianceFilter $tagFilter
         GROUP BY a.id, a.name, a.color
         ORDER BY total_seconds DESC
     ");
-    $byAllianceStmt->execute([$targetUserId, $startDate, $endDate]);
+    $byAllianceStmt->execute(array_merge($baseParams(), $extraParams()));
     $byAlliance = array_map(function($r) {
         return [
             'id'            => $r['id'] ? (int) $r['id'] : null,
@@ -143,6 +191,22 @@ function reportMonthly(PDO $db, array $me): void
         ];
     }, $byAllianceStmt->fetchAll(PDO::FETCH_ASSOC));
 
+    // Info de filtros activos para mostrar en el reporte
+    $allianceFilterInfo = [];
+    if ($allianceIds) {
+        $pls = implode(',', array_fill(0, count($allianceIds), '?'));
+        $s = $db->prepare("SELECT id, name, color FROM alliances WHERE id IN ($pls) ORDER BY name");
+        $s->execute($allianceIds);
+        $allianceFilterInfo = $s->fetchAll(PDO::FETCH_ASSOC);
+    }
+    $tagFilterInfo = [];
+    if ($tagIds) {
+        $pls = implode(',', array_fill(0, count($tagIds), '?'));
+        $s = $db->prepare("SELECT id, name, color FROM tags WHERE id IN ($pls) ORDER BY name");
+        $s->execute($tagIds);
+        $tagFilterInfo = $s->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     $response = [
         'success' => true,
         'period'  => [
@@ -150,6 +214,8 @@ function reportMonthly(PDO $db, array $me): void
             'end'   => $endDate,
             'label' => formatRangeLabel($startDate, $endDate),
         ],
+        'alliance_filter' => $allianceFilterInfo ?: null,
+        'tag_filter'      => $tagFilterInfo      ?: null,
         'user' => [
             'id'       => (int) $targetUser['id'],
             'name'     => $targetUser['name'],
@@ -164,8 +230,26 @@ function reportMonthly(PDO $db, array $me): void
         'task_count'    => array_sum(array_column($byAlliance, 'task_count')),
     ];
 
+    // Tiempo por día (siempre incluido para el gráfico de barras)
+    $dayStmt = $db->prepare("
+        SELECT DATE(te.start_time) AS day, COALESCE(SUM(te.duration_seconds), 0) AS seconds
+        FROM time_entries te
+        JOIN tasks t ON te.task_id = t.id
+        WHERE te.user_id = ? AND te.end_time IS NOT NULL
+          AND DATE(te.start_time) BETWEEN ? AND ?
+          $allianceFilter $tagFilter
+        GROUP BY DATE(te.start_time)
+        ORDER BY day ASC
+    ");
+    $dayStmt->execute(array_merge($baseParams(), $extraParams()));
+    $response['by_day'] = array_map(
+        fn($r) => ['date' => $r['day'], 'seconds' => (int) $r['seconds']],
+        $dayStmt->fetchAll(PDO::FETCH_ASSOC)
+    );
+
     // Opcional: listado de tareas por alianza
     if ($includeTasks) {
+        // En esta query las fechas van primero (JOIN condition), user_id después
         $tasksStmt = $db->prepare("
             SELECT
                 t.id, t.title, t.alliance_id, a.name AS alliance_name,
@@ -177,10 +261,11 @@ function reportMonthly(PDO $db, array $me): void
                 AND DATE(te.start_time) BETWEEN ? AND ?
             LEFT JOIN alliances a ON t.alliance_id = a.id
             WHERE te.user_id = ?
+            $allianceFilter $tagFilter
             GROUP BY t.id, t.title, t.alliance_id, a.name, t.status, t.priority, t.due_date
             ORDER BY a.name ASC, total_seconds DESC
         ");
-        $tasksStmt->execute([$startDate, $endDate, $targetUserId]);
+        $tasksStmt->execute(array_merge([$startDate, $endDate, $targetUserId], $extraParams()));
         $response['tasks_by_alliance'] = array_map(function($r) {
             return [
                 'id'             => (int) $r['id'],
@@ -198,6 +283,7 @@ function reportMonthly(PDO $db, array $me): void
 
     // Opcional: total de tareas/tiempo por etiqueta
     if ($includeTags) {
+        // Igual que tasks: fechas primero, user_id después
         $tagsStmt = $db->prepare("
             SELECT
                 tg.id, tg.name, tg.color,
@@ -209,10 +295,11 @@ function reportMonthly(PDO $db, array $me): void
             JOIN time_entries te ON te.task_id = t.id AND te.end_time IS NOT NULL
                 AND DATE(te.start_time) BETWEEN ? AND ?
             WHERE te.user_id = ?
+            $allianceFilter $tagFilter
             GROUP BY tg.id, tg.name, tg.color
             ORDER BY task_count DESC, total_seconds DESC
         ");
-        $tagsStmt->execute([$startDate, $endDate, $targetUserId]);
+        $tagsStmt->execute(array_merge([$startDate, $endDate, $targetUserId], $extraParams()));
         $response['by_tag'] = array_map(function($r) {
             return [
                 'id'            => (int) $r['id'],

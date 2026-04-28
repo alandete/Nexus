@@ -5,6 +5,35 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [2.0.0-alpha.3] — 2026-04-19 (en desarrollo)
 
+### Módulo Tareas — fixes críticos backend — 2026-04-28
+
+- `timerStart`: lógica de reapertura con tres casos según recurrencia y día:
+  - No recurrente + día distinto → nueva instancia limpia sin `due_date`, copiando alianza y etiquetas.
+  - No recurrente + mismo día → reabre la misma tarea y limpia `due_date` si estaba vencido.
+  - Recurrente → reabre el mismo registro conservando historial y `due_date`.
+- Auto-urgente por `due_date` vencido excluye tareas recurrentes (`is_recurring = 0`).
+- `timerDiscard`: si tras descartar no quedan entries y el estado previo era `in_progress`, elimina la tarea; si era otro estado la resetea a `pending`.
+- `time_entry_create` y `time_entry_update`: nueva función `findOverlappingEntry` que valida solapamiento de rangos horarios; devuelve mensaje con nombre y horario de la tarea conflictiva.
+
+**Archivos**: `includes/tasks_actions.php`
+
+### Módulo Alianzas — UNAB — 2026-04-28
+
+- UNAB habilitada en `$readyForProcessing` junto a UNIS.
+- Formulario completo pestaña Inicio: Banner (nombre de curso, facultad, URL de banner), más secciones de procesamiento con sus campos específicos.
+- Strings ES/EN para todos los campos UNAB.
+
+**Archivos**: `pages/alliances.php`, `assets/js/alliances.js`, `lang/es/alliances.php`, `lang/en/alliances.php`, `lang/es/common.php`, `lang/en/common.php`, `lang/es/utilities.php`, `lang/en/utilities.php`, `assets/css/styles.css`
+
+### Módulo Reportes — filtros multi-select — 2026-04-28
+
+- Barra de acción rediseñada: filtros (alianzas, etiquetas) a la izquierda, exports a la derecha.
+- Multi-select de alianzas y etiquetas con dropdown, dots de color y badge de activos.
+- Backend: nuevas acciones `alliances_list` y `tags_list`; `reportMonthly` acepta `alliance_ids` y `tag_ids` (CSV de IDs) y aplica los filtros a todas las consultas del reporte.
+- Botón "Limpiar filtros" visible solo cuando hay filtros activos.
+
+**Archivos**: `pages/reports.php`, `assets/js/reports.js`, `includes/tasks_report_actions.php`, `lang/es/reports.php`
+
 ### Integración Gmail IMAP — 2026-04-27
 
 **Nuevo archivo**: `includes/gmail_actions.php`

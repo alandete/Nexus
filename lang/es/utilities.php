@@ -8,7 +8,7 @@ defined('APP_ACCESS') or die('Acceso directo no permitido');
 return [
     'utilities' => [
         'page_title'      => 'Utilidades',
-        'tab_gift'        => 'Convertir preguntas',
+        'tab_gift'        => 'Generar preguntas',
         'format_label'    => 'Formato de salida',
         'format_gift'     => 'GIFT (Moodle)',
         'format_qti'      => 'QTI (Canvas)',

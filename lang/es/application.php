@@ -16,6 +16,13 @@ return [
         'sec_company_desc'   => 'Datos de contacto de la organización.',
         'sec_operation'      => 'Operación',
         'sec_operation_desc' => 'Zona horaria, idioma por defecto y modo mantenimiento.',
+        'sec_schedule'            => 'Jornada laboral',
+        'sec_schedule_desc'       => 'Horario de trabajo y meta de horas diarias.',
+        'field_work_start'        => 'Inicio de jornada',
+        'field_work_end'          => 'Fin de jornada',
+        'field_daily_goal'        => 'Meta de horas al día',
+        'field_daily_goal_help'   => 'Define cuántas horas quieres registrar cada día. Aparece como indicador en la sección Hoy. Usa 0 para desactivar.',
+        'unit_hours'              => 'h',
         'sec_privacy'        => 'Privacidad',
         'sec_privacy_desc'   => 'Visibilidad del sitio ante buscadores y traductores.',
 

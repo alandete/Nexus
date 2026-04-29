@@ -15,6 +15,13 @@ return [
         'sec_company_desc'   => 'Organization contact information.',
         'sec_operation'      => 'Operation',
         'sec_operation_desc' => 'Timezone, default language and maintenance mode.',
+        'sec_schedule'            => 'Work schedule',
+        'sec_schedule_desc'       => 'Working hours and daily time goal.',
+        'field_work_start'        => 'Start of day',
+        'field_work_end'          => 'End of day',
+        'field_daily_goal'        => 'Daily hours goal',
+        'field_daily_goal_help'   => 'How many hours you want to log each day. Shown as an indicator in the Today section. Set 0 to disable.',
+        'unit_hours'              => 'h',
         'sec_privacy'        => 'Privacy',
         'sec_privacy_desc'   => 'Site visibility to search engines and translators.',
 

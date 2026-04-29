@@ -191,14 +191,15 @@ $adminCount = count(array_filter($users, fn($u) => ($u['role'] ?? '') === 'admin
 <!-- Datos iniciales para JS -->
 <script>
 window.__USERS_DATA__ = <?= json_encode(array_map(fn($u) => [
-    'id' => $u['id'] ?? 0,
-    'username' => $u['username'] ?? '',
-    'name' => $u['name'] ?? '',
-    'email' => $u['email'] ?? '',
-    'role' => $u['role'] ?? '',
-    'lang' => $u['lang'] ?? 'es',
-    'photo' => $u['photo'] ?? '',
-    'active' => !empty($u['active']),
+    'id'            => $u['id'] ?? 0,
+    'username'      => $u['username'] ?? '',
+    'name'          => $u['name'] ?? '',
+    'email'         => $u['email'] ?? '',
+    'role'          => $u['role'] ?? '',
+    'lang'          => $u['lang'] ?? 'es',
+    'photo'         => $u['photo'] ?? '',
+    'active'        => !empty($u['active']),
+    'work_schedule' => $u['work_schedule'] ?? [],
 ], $users), JSON_UNESCAPED_UNICODE) ?>;
 window.__USERS_ROLES__ = <?= json_encode(array_keys($roles)) ?>;
 window.__USERS_CAN_WRITE__ = <?= $canWrite ? 'true' : 'false' ?>;

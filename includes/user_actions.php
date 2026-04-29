@@ -152,19 +152,28 @@ if ($action === 'create') {
     // Idioma preferido
     $userLang = in_array($_POST['lang'] ?? '', ['es', 'en'], true) ? $_POST['lang'] : 'es';
 
+    // Horario laboral
+    $rawSchedule = $_POST['work_schedule'] ?? '';
+    $workSchedule = [];
+    if ($rawSchedule) {
+        $decoded = json_decode($rawSchedule, true);
+        if (is_array($decoded)) $workSchedule = $decoded;
+    }
+
     // Crear nuevo usuario
     $users[$username] = [
-        'id' => $newId,
-        'username' => $username,
-        'password' => password_hash($password, PASSWORD_BCRYPT),
-        'name' => $name,
-        'email' => $email,
-        'role' => $role,
-        'photo' => $photo,
-        'lang' => $userLang,
-        'active' => true,
-        'created_at' => date('Y-m-d H:i:s'),
-        'last_login' => null
+        'id'            => $newId,
+        'username'      => $username,
+        'password'      => password_hash($password, PASSWORD_BCRYPT),
+        'name'          => $name,
+        'email'         => $email,
+        'role'          => $role,
+        'photo'         => $photo,
+        'lang'          => $userLang,
+        'active'        => true,
+        'created_at'    => date('Y-m-d H:i:s'),
+        'last_login'    => null,
+        'work_schedule' => $workSchedule,
     ];
 
     if (saveUsers($users)) {
@@ -230,6 +239,13 @@ if ($action === 'update') {
     // Idioma preferido
     $userLang = in_array($_POST['lang'] ?? '', ['es', 'en'], true) ? $_POST['lang'] : ($users[$username]['lang'] ?? 'es');
     $users[$username]['lang'] = $userLang;
+
+    // Horario laboral
+    $rawSchedule = $_POST['work_schedule'] ?? '';
+    if ($rawSchedule !== '') {
+        $decoded = json_decode($rawSchedule, true);
+        $users[$username]['work_schedule'] = is_array($decoded) ? $decoded : [];
+    }
 
     // Quitar foto si se solicitó
     if (isset($_POST['remove_photo']) && $_POST['remove_photo'] === '1') {

@@ -91,6 +91,85 @@
     });
 
     /** ========================================================
+     * Jornada laboral
+     * ======================================================== */
+
+    const SCHEDULE_DAYS = [
+        { key: 'monday',    label: t('users.day_monday',    'Lunes') },
+        { key: 'tuesday',   label: t('users.day_tuesday',   'Martes') },
+        { key: 'wednesday', label: t('users.day_wednesday', 'Miércoles') },
+        { key: 'thursday',  label: t('users.day_thursday',  'Jueves') },
+        { key: 'friday',    label: t('users.day_friday',    'Viernes') },
+        { key: 'saturday',  label: t('users.day_saturday',  'Sábado') },
+        { key: 'sunday',    label: t('users.day_sunday',    'Domingo') },
+    ];
+
+    function buildScheduleDays(schedule) {
+        return SCHEDULE_DAYS.map(({ key, label }) => {
+            const day    = schedule[key] || {};
+            const active = !!day.active;
+            const amS    = day.am_start || '08:00';
+            const amE    = day.am_end   || '12:00';
+            const pmS    = day.pm_start || '14:00';
+            const pmE    = day.pm_end   || '18:00';
+            const dis = active ? '' : 'disabled';
+        return `
+                <div class="schedule-day${active ? '' : ' schedule-day--off'}" data-day="${key}">
+                    <label class="schedule-day-label">
+                        <input type="checkbox" class="schedule-day-check" ${active ? 'checked' : ''}>
+                        <span class="schedule-day-name">${escapeHtml(label)}</span>
+                    </label>
+                    <div class="schedule-day-times">
+                        <div class="schedule-block">
+                            <input type="time" class="form-control form-control-sm schedule-time" data-field="am_start" value="${amS}" ${dis}>
+                            <span class="schedule-sep" aria-hidden="true">—</span>
+                            <input type="time" class="form-control form-control-sm schedule-time" data-field="am_end" value="${amE}" ${dis}>
+                        </div>
+                        <div class="schedule-block">
+                            <input type="time" class="form-control form-control-sm schedule-time" data-field="pm_start" value="${pmS}" ${dis}>
+                            <span class="schedule-sep" aria-hidden="true">—</span>
+                            <input type="time" class="form-control form-control-sm schedule-time" data-field="pm_end" value="${pmE}" ${dis}>
+                        </div>
+                    </div>
+                </div>`;
+        }).join('');
+    }
+
+    function serializeSchedule() {
+        const schedule = {};
+        document.querySelectorAll('#scheduleDays .schedule-day').forEach(row => {
+            const key    = row.dataset.day;
+            const active = row.querySelector('.schedule-day-check').checked;
+            schedule[key] = active ? {
+                active:   true,
+                am_start: row.querySelector('[data-field="am_start"]').value,
+                am_end:   row.querySelector('[data-field="am_end"]').value,
+                pm_start: row.querySelector('[data-field="pm_start"]').value,
+                pm_end:   row.querySelector('[data-field="pm_end"]').value,
+            } : { active: false };
+        });
+        const input = document.getElementById('workScheduleInput');
+        if (input) input.value = JSON.stringify(schedule);
+    }
+
+    function validateSchedule() {
+        let error = null;
+        document.querySelectorAll('#scheduleDays .schedule-day').forEach(row => {
+            if (error) return;
+            if (!row.querySelector('.schedule-day-check').checked) return;
+            const label  = row.querySelector('.schedule-day-name').textContent;
+            const amS    = row.querySelector('[data-field="am_start"]').value;
+            const amE    = row.querySelector('[data-field="am_end"]').value;
+            const pmS    = row.querySelector('[data-field="pm_start"]').value;
+            const pmE    = row.querySelector('[data-field="pm_end"]').value;
+            if (amS >= amE)  error = `${label}: la hora de fin de la mañana debe ser posterior al inicio.`;
+            else if (pmS >= pmE)  error = `${label}: la hora de fin de la tarde debe ser posterior al inicio.`;
+            else if (amE > pmS)   error = `${label}: el bloque de tarde debe iniciar después del fin de la mañana.`;
+        });
+        return error;
+    }
+
+    /** ========================================================
      * Formulario (crear / editar) en Slide Panel
      * ======================================================== */
 
@@ -222,6 +301,16 @@
                 </div>
                 ` : ''}
 
+                <!-- Jornada laboral -->
+                <div class="form-group">
+                    <label class="form-label">${t('users.field_schedule', 'Jornada laboral')}</label>
+                    <p class="form-helper">${t('users.field_schedule_help', 'Activa los dias laborables e indica los bloques de horario.')}</p>
+                    <div class="user-schedule" id="scheduleDays">
+                        ${buildScheduleDays(user.work_schedule || {})}
+                    </div>
+                    <input type="hidden" name="work_schedule" id="workScheduleInput">
+                </div>
+
                 <!-- Alert de error general -->
                 <div class="alert alert-danger d-none" id="formError" role="alert">
                     <i class="bi bi-exclamation-triangle-fill alert-icon" aria-hidden="true"></i>
@@ -261,7 +350,30 @@
         document.getElementById('userCancelBtn').addEventListener('click', () => SlidePanel.close());
 
         // Submit
-        document.getElementById('userSubmitBtn').addEventListener('click', (e) => handleUserSubmit(e, mode));
+        document.getElementById('userSubmitBtn').addEventListener('click', (e) => {
+            const scheduleError = validateSchedule();
+            if (scheduleError) {
+                const errEl = document.getElementById('formErrorText');
+                const errBox = document.getElementById('formError');
+                if (errEl) errEl.textContent = scheduleError;
+                if (errBox) errBox.classList.remove('d-none');
+                return;
+            }
+            serializeSchedule();
+            handleUserSubmit(e, mode);
+        });
+
+        // Toggle días de jornada
+        document.getElementById('scheduleDays')?.addEventListener('change', (e) => {
+            if (e.target.classList.contains('schedule-day-check')) {
+                const row     = e.target.closest('.schedule-day');
+                const enabled = e.target.checked;
+                row.classList.toggle('schedule-day--off', !enabled);
+                row.querySelectorAll('.schedule-time').forEach(input => {
+                    input.disabled = !enabled;
+                });
+            }
+        });
 
         // Preview de foto
         const photoInput = document.getElementById('photoInput');
@@ -312,6 +424,7 @@
         form.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA' && e.target.tagName !== 'BUTTON') {
                 e.preventDefault();
+                serializeSchedule();
                 handleUserSubmit(e, mode);
             }
         });
@@ -389,6 +502,7 @@
         const photoFile = document.getElementById('photoInput')?.files[0];
         if (photoFile) data.photo = photoFile;
         if (form.active) data.active = form.active.checked ? '1' : '0';
+        data.work_schedule = document.getElementById('workScheduleInput')?.value || '{}';
 
         // Loading
         submitBtn.disabled = true;

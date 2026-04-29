@@ -251,6 +251,9 @@ function getMigrations(): array
 
         '011_alliances_add_billable' => "
             ALTER TABLE alliances ADD COLUMN billable TINYINT(1) NOT NULL DEFAULT 1 AFTER active",
+
+        '012_users_add_work_schedule' => "
+            ALTER TABLE users ADD COLUMN work_schedule JSON DEFAULT NULL AFTER lang",
     ];
 }
 
@@ -295,17 +298,18 @@ function getUsers() {
                 $users = [];
                 foreach ($rows as $row) {
                     $users[$row['username']] = [
-                        'id'         => (int) $row['id'],
-                        'username'   => $row['username'],
-                        'password'   => $row['password'],
-                        'name'       => $row['name'],
-                        'email'      => $row['email'],
-                        'role'       => $row['role'],
-                        'lang'       => $row['lang'],
-                        'photo'      => $row['photo'],
-                        'active'     => (bool) $row['active'],
-                        'last_login' => $row['last_login'],
-                        'created_at' => $row['created_at'],
+                        'id'            => (int) $row['id'],
+                        'username'      => $row['username'],
+                        'password'      => $row['password'],
+                        'name'          => $row['name'],
+                        'email'         => $row['email'],
+                        'role'          => $row['role'],
+                        'lang'          => $row['lang'],
+                        'photo'         => $row['photo'],
+                        'active'        => (bool) $row['active'],
+                        'last_login'    => $row['last_login'],
+                        'created_at'    => $row['created_at'],
+                        'work_schedule' => isset($row['work_schedule']) ? (json_decode($row['work_schedule'], true) ?? []) : [],
                     ];
                 }
                 return $users;
@@ -325,10 +329,12 @@ function saveUsers($users) {
     if ($db) {
         try {
             foreach ($users as $username => $u) {
-                $stmt = $db->prepare("INSERT INTO users (username, password, name, email, role, lang, photo, active, last_login, created_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                $workScheduleJson = !empty($u['work_schedule']) ? json_encode($u['work_schedule']) : null;
+                $stmt = $db->prepare("INSERT INTO users (username, password, name, email, role, lang, photo, active, last_login, created_at, work_schedule)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ON DUPLICATE KEY UPDATE password=VALUES(password), name=VALUES(name), email=VALUES(email),
-                    role=VALUES(role), lang=VALUES(lang), photo=VALUES(photo), active=VALUES(active), last_login=VALUES(last_login)");
+                    role=VALUES(role), lang=VALUES(lang), photo=VALUES(photo), active=VALUES(active),
+                    last_login=VALUES(last_login), work_schedule=VALUES(work_schedule)");
                 $stmt->execute([
                     $username,
                     $u['password'] ?? '',
@@ -340,6 +346,7 @@ function saveUsers($users) {
                     isset($u['active']) ? ($u['active'] ? 1 : 0) : 1,
                     $u['last_login'] ?? null,
                     $u['created_at'] ?? date('Y-m-d H:i:s'),
+                    $workScheduleJson,
                 ]);
             }
             return true;
@@ -485,16 +492,16 @@ function saveAlliances(array $alliances): bool
 function getProjectInfo(): array
 {
     $defaults = [
-        'app_name'        => 'S4Learning',
-        'tagline'         => '',
-        'description'     => '',
-        'logo'            => null,
-        'company_name'    => '',
-        'company_address' => '',
-        'contact_email'   => '',
-        'contact_phone'   => '',
-        'website'         => '',
-        'updated_at'      => null,
+        'app_name'          => 'S4Learning',
+        'tagline'           => '',
+        'description'       => '',
+        'logo'              => null,
+        'company_name'      => '',
+        'company_address'   => '',
+        'contact_email'     => '',
+        'contact_phone'     => '',
+        'website'    => '',
+        'updated_at' => null,
     ];
 
     if (!file_exists(PROJECTINFO_FILE)) {

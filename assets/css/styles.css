@@ -4953,6 +4953,90 @@ a.stat-card:hover {
     font-weight: 500;
 }
 
+.tasks-section-right {
+    display: flex;
+    align-items: center;
+    gap: var(--ds-space-050);
+}
+
+.tasks-day-goal {
+    font-size: var(--ds-font-size-sm);
+    color: var(--ds-text-subtle);
+    font-weight: 500;
+}
+
+.tasks-day-goal--met {
+    color: var(--ds-color-green-600, #1f7a3b);
+}
+
+.tasks-day-goal-remaining {
+    color: var(--ds-color-red-600, #c9372c);
+    font-weight: 500;
+}
+
+/* ---- Jornada laboral (formulario de usuario) ---- */
+.user-schedule {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-space-200);
+    margin-top: var(--ds-space-100);
+}
+
+.schedule-day {
+    display: flex;
+    align-items: center;
+    gap: var(--ds-space-150);
+}
+
+.schedule-day-label {
+    display: flex;
+    align-items: center;
+    gap: var(--ds-space-075);
+    min-width: 6.5rem;
+    cursor: pointer;
+    user-select: none;
+    flex-shrink: 0;
+}
+
+.schedule-day-name {
+    font-weight: 500;
+    font-size: var(--ds-font-size-sm);
+}
+
+.schedule-day-times {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-space-050);
+}
+
+.schedule-block {
+    display: flex;
+    align-items: center;
+    gap: var(--ds-space-050);
+}
+
+.schedule-sep {
+    color: var(--ds-text-subtlest);
+    font-size: var(--ds-font-size-sm);
+    flex-shrink: 0;
+}
+
+.schedule-day-times .form-control {
+    width: 6rem;
+    padding: var(--ds-space-050) var(--ds-space-075);
+    font-size: var(--ds-font-size-sm);
+    min-width: 0;
+}
+
+.schedule-day--off .schedule-day-times {
+    opacity: 0.35;
+    pointer-events: none;
+}
+
+.schedule-day--off .schedule-day-name {
+    color: var(--ds-text-subtlest);
+}
+
 .tasks-panel-content {
     display: flex;
     flex-direction: column;

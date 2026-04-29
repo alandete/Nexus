@@ -116,7 +116,7 @@ function listTasks(PDO $db, int $userId): void
     $params = [$userId, $dateFrom, $dateTo];
 
     $entriesStmt = $db->prepare("
-        SELECT te.*, t.title AS task_title, t.description AS task_description, t.status AS task_status, t.alliance_id, t.priority,
+        SELECT te.*, t.title AS task_title, t.description AS task_description, t.status AS task_status, t.alliance_id, t.priority, t.due_date,
                a.name AS alliance_name, a.color AS alliance_color,
                GROUP_CONCAT(DISTINCT tg.name ORDER BY tg.name SEPARATOR ', ') AS tag_names,
                GROUP_CONCAT(DISTINCT tg.id ORDER BY tg.name SEPARATOR ',') AS tag_ids

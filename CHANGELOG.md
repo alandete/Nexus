@@ -5,6 +5,23 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [2.0.0-alpha.3] — 2026-04-19 (en desarrollo)
 
+### Módulo Tareas — jornada laboral y filtro con retraso — 2026-04-28
+
+**Jornada laboral por usuario:**
+- Nueva columna `work_schedule JSON` en la tabla `users` (migración `012`).
+- Formulario de edición de usuario: sección "Jornada laboral" con toggle por día (Lunes-Domingo) y dos bloques horarios por día (mañana y tarde). Campos siempre visibles, atenuados cuando el día está desactivado.
+- Validación antes de guardar: fin > inicio en cada bloque, y el bloque de tarde no puede solaparse con la mañana.
+- Página Tareas: indicador de meta diaria en la sección "Hoy" calculado dinámicamente desde el horario del usuario. Muestra `tiempo / meta · −faltante` (faltante en rojo), o `✓ meta` en verde al cumplirla. Solo aparece si hoy es día laboral según el schedule.
+
+**Filtro "Con retraso":**
+- Nueva opción en el selector de prioridad del historial. Filtra tareas que se atendieron cuando su `due_date` ya había vencido.
+- Backend: `due_date` añadido al SELECT de entries para que esté disponible en el cliente.
+
+**Conteo de tareas en historial:**
+- Los encabezados de grupo por fecha en el historial ahora muestran el total de tareas del día, igual que las secciones Hoy y Ayer.
+
+**Archivos**: `assets/css/styles.css`, `assets/js/tasks.js`, `assets/js/users.js`, `includes/functions.php`, `includes/tasks_actions.php`, `includes/user_actions.php`, `pages/tasks.php`, `pages/users.php`, `lang/*`
+
 ### Módulo Tareas — fixes críticos backend — 2026-04-28
 
 - `timerStart`: lógica de reapertura con tres casos según recurrencia y día:

@@ -1164,7 +1164,10 @@
                 if (!hay.includes(search.toLowerCase())) return false;
             }
             if (alliance && String(task.alliance_id || '') !== String(alliance)) return false;
-            if (priority && (task.priority || 'medium') !== priority) return false;
+            if (priority === 'overdue') {
+                const entryDate = task.entries?.[0]?.start_time?.substring(0, 10);
+                if (!task.due_date || !entryDate || task.due_date >= entryDate) return false;
+            } else if (priority && (task.priority || 'medium') !== priority) return false;
             if (tags && tags.length > 0) {
                 // Semantica AND: la tarea debe tener TODAS las etiquetas seleccionadas
                 const taskTagIds = String(task.tag_ids || '').split(',').filter(Boolean);
@@ -1220,6 +1223,7 @@
                     total_seconds: 0,
                     entry_count: 0,
                     priority: e.priority || 'medium',
+                    due_date: e.due_date || null,
                     entries: [],
                 };
             }
@@ -1236,6 +1240,21 @@
             g.entries.sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''));
         });
         return Object.values(grouped);
+    }
+
+    function getDailyGoalSecs() {
+        const schedule = window.__TASKS_WORK_SCHEDULE__;
+        if (!schedule) return 0;
+        const keys = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+        const day  = schedule[keys[new Date().getDay()]];
+        if (!day?.active) return 0;
+        const block = (s, e) => {
+            if (!s || !e) return 0;
+            const [sh, sm] = s.split(':').map(Number);
+            const [eh, em] = e.split(':').map(Number);
+            return Math.max(0, (eh * 60 + em) - (sh * 60 + sm)) * 60;
+        };
+        return block(day.am_start, day.am_end) + block(day.pm_start, day.pm_end);
     }
 
     function updateSectionCounts() {
@@ -1276,6 +1295,23 @@
         };
         setTime('timeToday',     todaySecs);
         setTime('timeYesterday', yesterdaySecs);
+
+        // Meta diaria calculada desde el horario del usuario
+        const goalEl = document.getElementById('todayGoal');
+        if (goalEl) {
+            const goalSecs = getDailyGoalSecs();
+            if (goalSecs > 0) {
+                const met       = todaySecs >= goalSecs;
+                const remaining = goalSecs - todaySecs;
+                goalEl.className = 'tasks-day-goal' + (met ? ' tasks-day-goal--met' : '');
+                goalEl.innerHTML = met
+                    ? `<i class="bi bi-check-circle-fill" aria-hidden="true"></i> ${formatDuration(goalSecs)}`
+                    : `/ ${formatDuration(goalSecs)}<span class="tasks-day-goal-remaining"> &nbsp;&minus;&nbsp;${formatDuration(remaining)}</span>`;
+                goalEl.hidden = false;
+            } else {
+                goalEl.hidden = true;
+            }
+        }
 
         // Contador de resultados del filtro: suma de lo que queda en las secciones
         // afectadas por los filtros locales (Ayer + Historial).
@@ -1813,7 +1849,10 @@
             return `
                 <div class="history-day" data-day="${escapeHtml(date)}">
                     <div class="history-day-header">
-                        <span class="history-day-date">${escapeHtml(formatDayLabel(date))}</span>
+                        <span class="history-day-date">
+                            ${escapeHtml(formatDayLabel(date))}
+                            <span class="tasks-section-count">${tasks.length}</span>
+                        </span>
                         <span class="history-day-total"><i class="bi bi-clock" aria-hidden="true"></i> ${formatDuration(dayTotal)}</span>
                     </div>
                     <div class="tasks-grid-table history-day-table" data-day-container="${escapeHtml(date)}"></div>

@@ -163,6 +163,7 @@ return [
         'filter_all_alliances'     => 'Todas las alianzas',
         'filter_priority'          => 'Filtrar por prioridad',
         'filter_all_priorities'    => 'Todas las prioridades',
+        'filter_overdue'           => 'Con retraso',
         'filter_tag'               => 'Filtrar por etiqueta',
         'filter_all_tags'          => 'Todas las etiquetas',
         'filter_clear'             => 'Limpiar',

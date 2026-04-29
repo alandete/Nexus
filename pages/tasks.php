@@ -13,6 +13,17 @@ $activeAlliances = array_filter($alliances, fn($a) => !empty($a['active']));
 $gmailRaw    = file_exists(API_SETTINGS_FILE) ? (json_decode(file_get_contents(API_SETTINGS_FILE), true) ?? []) : [];
 $gmailActive = !empty($gmailRaw['gmail_email']) && !empty($gmailRaw['gmail_app_password']);
 
+// Horario laboral del usuario actual
+$workSchedule = [];
+if (isDBAvailable() && !empty($currentUser['id'])) {
+    try {
+        $stmt = getDB()->prepare("SELECT work_schedule FROM users WHERE id = ?");
+        $stmt->execute([$currentUser['id']]);
+        $raw = $stmt->fetchColumn();
+        $workSchedule = ($raw && $raw !== 'null') ? (json_decode($raw, true) ?? []) : [];
+    } catch (Exception $e) { /* ignore */ }
+}
+
 // Precargar tags
 $allTags = [];
 if (isDBAvailable()) {
@@ -154,7 +165,10 @@ if (isDBAvailable()) {
                 <?= __('tasks.tab_today') ?>
                 <span class="tasks-section-count" id="countToday">0</span>
             </h3>
-            <span class="tasks-section-time text-subtle text-sm" id="timeToday"></span>
+            <div class="tasks-section-right">
+                <span class="tasks-section-time text-subtle text-sm" id="timeToday"></span>
+                <span class="tasks-day-goal" id="todayGoal" hidden></span>
+            </div>
         </div>
         <div class="tasks-panel-content tasks-grid-table" id="contentToday" role="grid"></div>
     </div>
@@ -191,6 +205,7 @@ if (isDBAvailable()) {
             <option value="high"><?= __('tasks.priority_high') ?></option>
             <option value="medium"><?= __('tasks.priority_medium') ?></option>
             <option value="low"><?= __('tasks.priority_low') ?></option>
+            <option value="overdue"><?= __('tasks.filter_overdue') ?></option>
         </select>
 
         <div class="filter-multiselect" id="filterTagsWrapper">
@@ -250,4 +265,5 @@ window.__TASKS_ALLIANCES__ = <?= json_encode(array_values(array_map(fn($a) => [
     'color' => $a['color'] ?? null,
 ], $activeAlliances)), JSON_UNESCAPED_UNICODE) ?>;
 window.__TASKS_TAGS__ = <?= json_encode($allTags, JSON_UNESCAPED_UNICODE) ?>;
+window.__TASKS_WORK_SCHEDULE__ = <?= json_encode($workSchedule, JSON_UNESCAPED_UNICODE) ?>;
 </script>

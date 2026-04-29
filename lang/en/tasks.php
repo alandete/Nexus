@@ -163,6 +163,7 @@ return [
         'filter_all_alliances'     => 'All alliances',
         'filter_priority'          => 'Filter by priority',
         'filter_all_priorities'    => 'All priorities',
+        'filter_overdue'           => 'Attended late',
         'filter_tag'               => 'Filter by tag',
         'filter_all_tags'          => 'All tags',
         'filter_clear'             => 'Clear',

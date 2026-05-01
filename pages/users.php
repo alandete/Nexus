@@ -160,8 +160,18 @@ $adminCount = count(array_filter($users, fn($u) => ($u['role'] ?? '') === 'admin
                         <button type="button" class="btn-icon btn-edit-user"
                                 data-username="<?= htmlspecialchars($username) ?>"
                                 data-tooltip="<?= __('users.btn_edit') ?>"
+                                data-tooltip-position="left"
                                 aria-label="<?= __('users.btn_edit') ?>">
                             <i class="bi bi-pencil" aria-hidden="true"></i>
+                        </button>
+                        <?php endif; ?>
+                        <?php if ($currentUser['role'] === 'admin' && !$isSelf): ?>
+                        <button type="button" class="btn-icon btn-reset-link"
+                                data-username="<?= htmlspecialchars($username) ?>"
+                                data-tooltip="<?= __('users.btn_reset_link') ?>"
+                                data-tooltip-position="left"
+                                aria-label="<?= __('users.btn_reset_link') ?>">
+                            <i class="bi bi-key" aria-hidden="true"></i>
                         </button>
                         <?php endif; ?>
                         <?php if ($canDelete && !$isSelf): ?>
@@ -169,6 +179,7 @@ $adminCount = count(array_filter($users, fn($u) => ($u['role'] ?? '') === 'admin
                                 data-username="<?= htmlspecialchars($username) ?>"
                                 data-name="<?= htmlspecialchars($user['name'] ?? $username) ?>"
                                 data-tooltip="<?= __('users.btn_delete') ?>"
+                                data-tooltip-position="left"
                                 aria-label="<?= __('users.btn_delete') ?>">
                             <i class="bi bi-trash" aria-hidden="true"></i>
                         </button>

@@ -31,6 +31,22 @@ $currentUser = getCurrentUser();
 
         <div class="topbar-spacer"></div>
 
+        <!-- Quick links (configurados por el admin) -->
+        <nav class="topbar-quicklinks" id="topbar-quicklinks" aria-label="<?= __('header.quick_links') ?>">
+            <?php foreach ($quickLinks as $qlPage):
+                $qlItem = $quickLinksMeta[$qlPage] ?? null;
+                if (!$qlItem) continue;
+            ?>
+            <a href="<?= htmlspecialchars($qlItem['href']) ?>" class="topbar-ql-item"
+               data-tooltip="<?= htmlspecialchars($qlItem['label']) ?>" data-tooltip-position="bottom"
+               aria-label="<?= htmlspecialchars($qlItem['label']) ?>">
+                <i class="bi <?= htmlspecialchars($qlItem['icon']) ?>" aria-hidden="true"></i>
+            </a>
+            <?php endforeach; ?>
+        </nav>
+
+        <div class="topbar-spacer"></div>
+
         <!-- Usuario -->
         <div class="topbar-user">
             <div class="dropdown">

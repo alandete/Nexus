@@ -32,6 +32,16 @@ $lang = $_SESSION['lang'] ?? 'es';
 
 // Rutas
 define('BASE_PATH', __DIR__ . '/..');
+
+// URL base de la app (fiable desde cualquier script, incluyendo endpoints en includes/)
+if (!defined('APP_BASE_URL')) {
+    $scheme  = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? 'https' : 'http';
+    $host    = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    $docRoot = rtrim(str_replace('\\', '/', (string) realpath($_SERVER['DOCUMENT_ROOT'] ?? '')), '/');
+    $appRoot = rtrim(str_replace('\\', '/', (string) realpath(BASE_PATH)), '/');
+    $webPath = $docRoot !== '' ? str_replace($docRoot, '', $appRoot) : '';
+    define('APP_BASE_URL', $scheme . '://' . $host . $webPath);
+}
 define('LANG_PATH', BASE_PATH . '/lang');
 define('BACKUP_PATH', BASE_PATH . '/backups');
 define('DATA_PATH', BASE_PATH . '/data');

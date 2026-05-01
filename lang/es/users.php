@@ -39,6 +39,7 @@ return [
 
         // Acciones
         'btn_edit'             => 'Editar',
+        'btn_reset_link'       => 'Generar enlace de recuperación',
         'btn_delete'           => 'Eliminar',
 
         // Empty states

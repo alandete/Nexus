@@ -1097,15 +1097,19 @@
             if (!result.success || !result.running || !result.entry) return;
 
             const entry = result.entry;
-            state.running = true;
-            state.taskId = entry.task_id;
-            state.title = entry.title;
-            state.startTime = new Date(entry.start_time.replace(' ', 'T'));
+            state.running      = true;
+            state.taskId       = entry.task_id;
+            state.title        = entry.title;
+            state.startTime    = new Date(entry.start_time.replace(' ', 'T'));
+            state.allianceId   = entry.alliance_id ? parseInt(entry.alliance_id, 10) : null;
+            state.allianceName = entry.alliance_name || null;
+            state.tagIds       = entry.tag_ids ? entry.tag_ids.split(',').map(id => parseInt(id, 10)) : [];
+            state.tagNames     = entry.tag_names || null;
 
             renderActiveCard();
             startTicking();
 
-            // timer_status no devuelve alliance_id/tag_ids/priority/due_date/description,
+            // timer_status no devuelve priority/due_date/description,
             // hidratar con 'get' para tener el state completo.
             hydrateTimerTask(entry.task_id);
         } catch (err) { /* ignore */ }

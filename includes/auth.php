@@ -193,3 +193,101 @@ function requirePermission($module, $action) {
         exit;
     }
 }
+
+/**
+ * Genera un token de recuperación de contraseña (64 hex chars, 24h de validez).
+ * Añade las columnas necesarias si aún no existen.
+ */
+function generatePasswordResetToken(string $username): ?string
+{
+    $db = getDB();
+    if (!$db) return null;
+
+    // Garantizar que las columnas existen (tolerante a "duplicate column" si ya existen)
+    try { $db->exec("ALTER TABLE users ADD COLUMN reset_token VARCHAR(100) DEFAULT NULL"); }
+    catch (PDOException $e) { /* ya existe */ }
+    try { $db->exec("ALTER TABLE users ADD COLUMN reset_expires DATETIME DEFAULT NULL"); }
+    catch (PDOException $e) { /* ya existe */ }
+
+    try {
+        $check = $db->prepare("SELECT id FROM users WHERE username = ? LIMIT 1");
+        $check->execute([$username]);
+        if (!$check->fetch()) return null;
+
+        $token   = bin2hex(random_bytes(32));
+        $expires = date('Y-m-d H:i:s', strtotime('+24 hours'));
+
+        $db->prepare("UPDATE users SET reset_token = ?, reset_expires = ? WHERE username = ?")
+           ->execute([$token, $expires, $username]);
+
+        return $token;
+    } catch (PDOException $e) {
+        return null;
+    }
+}
+
+/**
+ * Busca usuario por email y genera token de recuperación.
+ * Siempre retorna true por seguridad (no revelar si el email existe).
+ */
+function requestPasswordReset(string $email): bool
+{
+    $db = getDB();
+    if (!$db) return false;
+
+    try {
+        $stmt = $db->prepare("SELECT username, name, lang FROM users WHERE LOWER(email) = ? AND active = 1 LIMIT 1");
+        $stmt->execute([strtolower(trim($email))]);
+        $user = $stmt->fetch();
+        if (!$user) return true;
+
+        $token = generatePasswordResetToken($user['username']);
+        if ($token) {
+            sendPasswordResetEmail($email, $user['name'], $token, $user['lang'] ?? 'es');
+        }
+        return true;
+    } catch (PDOException $e) {
+        return false;
+    }
+}
+
+/**
+ * Valida un token de recuperación. Retorna el username o null si inválido/expirado.
+ */
+function validateResetToken(string $token): ?string
+{
+    if (empty($token)) return null;
+
+    $db = getDB();
+    if (!$db) return null;
+
+    try {
+        $stmt = $db->prepare("SELECT username FROM users WHERE reset_token = ? AND reset_expires > NOW() LIMIT 1");
+        $stmt->execute([$token]);
+        $row = $stmt->fetch();
+        return $row ? $row['username'] : null;
+    } catch (PDOException $e) {
+        return null; // columnas aún no existen
+    }
+}
+
+/**
+ * Restablece la contraseña usando un token válido. Invalida el token al usarlo.
+ */
+function resetPassword(string $token, string $newPassword): bool
+{
+    $db = getDB();
+    if (!$db) return false;
+
+    if (!validateResetToken($token)) return false;
+    if (strlen($newPassword) < 6) return false;
+
+    $hash = password_hash($newPassword, PASSWORD_DEFAULT);
+    try {
+        $stmt = $db->prepare("UPDATE users SET password = ?, reset_token = NULL, reset_expires = NULL WHERE reset_token = ?");
+        $stmt->execute([$hash, $token]);
+        return $stmt->rowCount() > 0;
+    } catch (PDOException $e) {
+        return false;
+    }
+}

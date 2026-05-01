@@ -82,6 +82,9 @@ function isDBAvailable(): bool
 /**
  * Ejecuta las migraciones pendientes.
  * Crea las tablas si no existen. Seguro para llamar en cada request.
+ * Usa try/catch por migración: un fallo no bloquea las siguientes.
+ * Si la migración falla porque el esquema ya es correcto (columna/tabla duplicada),
+ * la marca como ejecutada igualmente para que no vuelva a intentarse.
  */
 function runMigrations(): bool
 {
@@ -89,25 +92,35 @@ function runMigrations(): bool
     if (!$db) return false;
 
     try {
-        // Tabla de control de migraciones
         $db->exec("CREATE TABLE IF NOT EXISTS migrations (
             id INT AUTO_INCREMENT PRIMARY KEY,
             name VARCHAR(255) NOT NULL UNIQUE,
             executed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
-        // Obtener migraciones ya ejecutadas
-        $executed = $db->query("SELECT name FROM migrations")->fetchAll(PDO::FETCH_COLUMN);
-
-        // Definir migraciones en orden
+        $executed   = $db->query("SELECT name FROM migrations")->fetchAll(PDO::FETCH_COLUMN);
         $migrations = getMigrations();
 
         foreach ($migrations as $name => $sql) {
             if (in_array($name, $executed)) continue;
 
-            $db->exec($sql);
-            $stmt = $db->prepare("INSERT INTO migrations (name) VALUES (?)");
-            $stmt->execute([$name]);
+            $schemaOk = true;
+            try {
+                $db->exec($sql);
+            } catch (PDOException $e) {
+                $msg = strtolower($e->getMessage());
+                // Columna/tabla ya existe: el esquema ya es correcto, marcar como ejecutada
+                $schemaOk = str_contains($msg, 'duplicate column')
+                         || str_contains($msg, 'already exists')
+                         || (int) $e->getCode() === 1060   // Duplicate column name
+                         || (int) $e->getCode() === 1050;  // Table already exists
+            }
+
+            if ($schemaOk) {
+                try {
+                    $db->prepare("INSERT IGNORE INTO migrations (name) VALUES (?)")->execute([$name]);
+                } catch (PDOException $e) {}
+            }
         }
 
         return true;
@@ -254,6 +267,15 @@ function getMigrations(): array
 
         '012_users_add_work_schedule' => "
             ALTER TABLE users ADD COLUMN work_schedule JSON DEFAULT NULL AFTER lang",
+
+        '013_tasks_add_is_recurring' => "
+            ALTER TABLE tasks ADD COLUMN is_recurring TINYINT(1) NOT NULL DEFAULT 0 AFTER tags",
+
+        '014_users_add_reset_token' => "
+            ALTER TABLE users ADD COLUMN reset_token VARCHAR(100) DEFAULT NULL",
+
+        '015_users_add_reset_expires' => "
+            ALTER TABLE users ADD COLUMN reset_expires DATETIME DEFAULT NULL",
     ];
 }
 
@@ -411,8 +433,14 @@ function getAlliances(): array
         try {
             $rows = $db->query("SELECT * FROM alliances ORDER BY name")->fetchAll();
             if (!empty($rows)) {
+                // Fallback al JSON para campos que puedan ser NULL en BD (ej. resource_types añadido después)
+                $jsonFallback = file_exists(ALLIANCES_FILE)
+                    ? (json_decode(file_get_contents(ALLIANCES_FILE), true) ?? [])
+                    : [];
+
                 $alliances = [];
                 foreach ($rows as $row) {
+                    $jf = $jsonFallback[$row['slug']] ?? [];
                     $alliances[$row['slug']] = [
                         'id'             => (int) $row['id'],
                         'name'           => $row['name'],
@@ -425,7 +453,7 @@ function getAlliances(): array
                         'coordinator'    => json_decode($row['coordinator'], true),
                         'migrator'       => json_decode($row['migrator'], true),
                         'sections'       => json_decode($row['sections'], true) ?? [],
-                        'resource_types' => json_decode($row['resource_types'], true),
+                        'resource_types' => json_decode($row['resource_types'], true) ?? ($jf['resource_types'] ?? null),
                         'config'         => json_decode($row['config'], true),
                         'active'         => (bool) $row['active'],
                         'billable'       => isset($row['billable']) ? (bool) $row['billable'] : true,
@@ -527,6 +555,27 @@ function saveProjectInfo(array $data): bool
 }
 
 /**
+ * Obtener accesos rápidos del topbar
+ */
+function getQuickLinks(): array
+{
+    $info = getProjectInfo();
+    return (isset($info['quick_links']) && is_array($info['quick_links']))
+        ? array_values($info['quick_links'])
+        : [];
+}
+
+/**
+ * Guardar accesos rápidos del topbar
+ */
+function saveQuickLinks(array $links): bool
+{
+    $info = getProjectInfo();
+    $info['quick_links'] = array_values($links);
+    return saveProjectInfo($info);
+}
+
+/**
  * Registra una actividad en el log.
  */
 function logActivity(string $module, string $action, string $detail = ''): void
@@ -600,6 +649,87 @@ function decryptApiValue(string $value): string
 }
 
 /**
+ * Lee configuracion SMTP desencriptada
+ */
+function getSmtpSettings(): array
+{
+    if (!file_exists(API_SETTINGS_FILE)) return [];
+    $raw = json_decode(file_get_contents(API_SETTINGS_FILE), true) ?? [];
+    return [
+        'host'       => $raw['smtp_host']      ?? '',
+        'port'       => (int)($raw['smtp_port'] ?? 587),
+        'user'       => $raw['smtp_user']       ?? '',
+        'pass'       => decryptApiValue($raw['smtp_pass'] ?? ''),
+        'secure'     => $raw['smtp_secure']     ?? 'tls',
+        'from_email' => $raw['smtp_from']       ?? '',
+        'from_name'  => $raw['smtp_from_name']  ?? '',
+    ];
+}
+
+/**
+ * Guarda configuracion SMTP (contrasena encriptada)
+ */
+function saveSmtpSettings(array $data): bool
+{
+    $raw = file_exists(API_SETTINGS_FILE)
+        ? (json_decode(file_get_contents(API_SETTINGS_FILE), true) ?? [])
+        : [];
+
+    if (isset($data['smtp_host']))      $raw['smtp_host']      = trim($data['smtp_host']);
+    if (isset($data['smtp_port']))      $raw['smtp_port']      = (int) $data['smtp_port'];
+    if (isset($data['smtp_user']))      $raw['smtp_user']      = trim($data['smtp_user']);
+    if (isset($data['smtp_secure']))    $raw['smtp_secure']    = trim($data['smtp_secure']);
+    if (isset($data['smtp_from']))      $raw['smtp_from']      = trim($data['smtp_from']);
+    if (isset($data['smtp_from_name'])) $raw['smtp_from_name'] = trim($data['smtp_from_name']);
+
+    if (!empty($data['smtp_pass']) && !str_contains($data['smtp_pass'], '****')) {
+        $raw['smtp_pass'] = encryptApiValue($data['smtp_pass']);
+    }
+
+    if (!is_dir(DATA_PATH)) mkdir(DATA_PATH, 0755, true);
+    return file_put_contents(API_SETTINGS_FILE, json_encode($raw, JSON_PRETTY_PRINT), LOCK_EX) !== false;
+}
+
+/**
+ * Envia un correo de recuperacion de contrasena
+ */
+function sendPasswordResetEmail(string $to, string $name, string $token, string $langCode = 'es'): bool
+{
+    $smtp = getSmtpSettings();
+    if (empty($smtp['host']) || empty($smtp['user'])) return false;
+
+    require_once __DIR__ . '/mailer.php';
+    $mailer = new Mailer($smtp);
+
+    $resetUrl = rtrim(APP_BASE_URL, '/') . '/?page=reset-password&token=' . urlencode($token);
+    $appName  = defined('APP_NAME') ? APP_NAME : 'Nexus';
+
+    if ($langCode === 'en') {
+        $subject = "Password Recovery — {$appName}";
+        $html = "<!DOCTYPE html><html><body style='font-family:sans-serif;max-width:520px;margin:auto;'>"
+              . "<h2>Password Recovery</h2>"
+              . "<p>Hi <strong>" . htmlspecialchars($name) . "</strong>,</p>"
+              . "<p>We received a request to reset the password for your account.</p>"
+              . "<p><a href='" . htmlspecialchars($resetUrl) . "' style='background:#0052CC;color:#fff;padding:10px 22px;border-radius:4px;text-decoration:none;display:inline-block;'>Reset password</a></p>"
+              . "<p>This link expires in <strong>24 hours</strong>. If you didn't request this, ignore this email.</p>"
+              . "<p style='color:#888;font-size:12px;'>If the button doesn't work, copy: " . htmlspecialchars($resetUrl) . "</p>"
+              . "</body></html>";
+    } else {
+        $subject = "Recuperación de contraseña — {$appName}";
+        $html = "<!DOCTYPE html><html><body style='font-family:sans-serif;max-width:520px;margin:auto;'>"
+              . "<h2>Recuperación de contraseña</h2>"
+              . "<p>Hola <strong>" . htmlspecialchars($name) . "</strong>,</p>"
+              . "<p>Recibimos una solicitud para restablecer la contraseña de tu cuenta.</p>"
+              . "<p><a href='" . htmlspecialchars($resetUrl) . "' style='background:#0052CC;color:#fff;padding:10px 22px;border-radius:4px;text-decoration:none;display:inline-block;'>Restablecer contraseña</a></p>"
+              . "<p>Este enlace expira en <strong>24 horas</strong>. Si no solicitaste este cambio, ignora este correo.</p>"
+              . "<p style='color:#888;font-size:12px;'>Si el botón no funciona, copia: " . htmlspecialchars($resetUrl) . "</p>"
+              . "</body></html>";
+    }
+
+    return $mailer->send($to, $subject, $html);
+}
+
+/**
  * Obtiene la configuracion de APIs externas (desencriptada)
  */
 function getApiSettings(): array
@@ -616,6 +746,7 @@ function getApiSettings(): array
     return [
         'ilp_public_key' => decryptApiValue($raw['ilp_public_key'] ?? ''),
         'ilp_secret_key' => decryptApiValue($raw['ilp_secret_key'] ?? ''),
+        'gs_quality'     => $raw['gs_quality'] ?? 'ebook',
     ];
 }
 

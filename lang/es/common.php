@@ -30,7 +30,8 @@ return [
         'backups' => 'Copias de seguridad',
         'system' => 'Sistema',
         'activity' => 'Actividad',
-        'docs' => 'Documentación',
+        'docs'    => 'Documentación',
+        'reports' => 'Reportes',
     ],
 
     // Header
@@ -40,6 +41,17 @@ return [
         'toggle_menu'   => 'Abrir menú de navegación',
         'user_fallback' => 'Usuario',
         'change_lang'   => 'Cambiar idioma',
+        'quick_links'   => 'Accesos rápidos',
+    ],
+
+    // Accesos rápidos del topbar
+    'quicklinks' => [
+        'added'      => 'Página añadida al acceso rápido',
+        'removed'    => 'Página eliminada del acceso rápido',
+        'replaced'   => 'Se reemplazó "{old}" del acceso rápido',
+        'error'      => 'Error al actualizar el acceso rápido',
+        'btn_add'    => 'Añadir a accesos rápidos',
+        'btn_remove' => 'Quitar de accesos rápidos',
     ],
 
     // Accesibilidad
@@ -49,6 +61,37 @@ return [
         'scroll_to_top'   => 'Volver arriba',
         'help'            => 'Ayuda',
         'loading'         => 'Cargando contenido',
+    ],
+
+    // Recuperación de contraseña
+    'forgot_password' => [
+        'page_title'          => 'Recuperar contraseña',
+        'form_title'          => '¿Olvidaste tu contraseña?',
+        'form_subtitle'       => 'Ingresa tu correo y te enviaremos un enlace para restablecerla.',
+        'field_email'         => 'Correo electrónico',
+        'placeholder_email'   => 'correo@empresa.com',
+        'btn_submit'          => 'Enviar enlace de recuperación',
+        'sent_message'        => 'Si el correo está registrado, recibirás un enlace en los próximos minutos. Revisa también tu carpeta de spam.',
+        'back_to_login'       => 'Volver al inicio de sesión',
+        'error_invalid_email' => 'El correo ingresado no es válido.',
+    ],
+
+    // Restablecer contraseña
+    'reset_password' => [
+        'page_title'       => 'Nueva contraseña',
+        'form_title'       => 'Restablecer contraseña',
+        'form_subtitle'    => 'Ingresa tu nueva contraseña. Debe tener al menos 6 caracteres.',
+        'field_password'   => 'Nueva contraseña',
+        'field_confirm'    => 'Confirmar contraseña',
+        'placeholder_password' => 'Mínimo 6 caracteres',
+        'placeholder_confirm'  => 'Repite la contraseña',
+        'btn_submit'       => 'Guardar nueva contraseña',
+        'btn_login'        => 'Ir al inicio de sesión',
+        'success_message'  => 'Tu contraseña fue actualizada correctamente. Ya puedes iniciar sesión.',
+        'error_expired'    => 'El enlace ha expirado o ya fue utilizado. Solicita uno nuevo.',
+        'error_mismatch'   => 'Las contraseñas no coinciden.',
+        'error_too_short'  => 'La contraseña debe tener al menos 6 caracteres.',
+        'request_new'      => 'Solicitar un nuevo enlace',
     ],
 
     // Login

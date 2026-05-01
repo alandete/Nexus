@@ -54,5 +54,20 @@ return [
         'guide_step4'     => 'Open the created project. You will find the Public Key and Secret Key.',
         'guide_step5'     => 'Copy both keys and paste them in the form above. Click "Test connection" to confirm.',
         'guide_free_plan' => 'Free plan: 200 operations per month (PDFs and images) with files up to 100 MB.',
+
+        // SMTP
+        'smtp_title'          => 'Outgoing mail (SMTP)',
+        'smtp_description'    => 'Configure the mail server for sending notifications and password recovery emails.',
+        'smtp_security_note'  => 'The password is stored encrypted with AES-256. It is recommended to use an app password, not the main account password.',
+        'smtp_section_server' => 'Server',
+        'smtp_section_auth'   => 'Authentication',
+        'smtp_section_sender' => 'Sender',
+        'smtp_field_host'     => 'SMTP server',
+        'smtp_field_port'     => 'Port',
+        'smtp_field_secure'   => 'Encryption',
+        'smtp_field_user'     => 'Username / email',
+        'smtp_field_pass'     => 'Password',
+        'smtp_field_from_email' => 'Sender address',
+        'smtp_field_from_name'  => 'Sender name',
     ],
 ];

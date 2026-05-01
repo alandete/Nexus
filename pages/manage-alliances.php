@@ -121,7 +121,6 @@ $billableCount = count(array_filter($alliances, fn($a) => !empty($a['billable'])
 <!-- Vista tarjetas -->
 <div class="alliances-grid" id="alliancesGrid">
     <?php foreach ($alliancesJs as $slug => $a):
-        $flag = !empty($a['country']) ? countryFlag($a['country']) : '';
         $fileCount = count($a['files']);
     ?>
     <article class="alliance-card"
@@ -132,7 +131,7 @@ $billableCount = count(array_filter($alliances, fn($a) => !empty($a['billable'])
         <header class="alliance-card-header">
             <div class="alliance-card-title-row">
                 <h2 class="alliance-card-title">
-                    <?php if ($flag): ?><span class="alliance-flag" aria-hidden="true"><?= $flag ?></span><?php endif; ?>
+                    <?php if (!empty($a['country'])): ?><span class="fi fi-<?= strtolower(htmlspecialchars($a['country'])) ?> alliance-flag" aria-hidden="true"></span><?php endif; ?>
                     <?= htmlspecialchars($a['name']) ?>
                 </h2>
                 <?php if (!empty($a['active'])): ?>

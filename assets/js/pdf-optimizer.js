@@ -152,11 +152,15 @@
         successEl.hidden  = true;
 
         let data;
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 180000);
         try {
-            const res = await fetch(ENDPOINT, { method: 'POST', headers: { 'X-CSRF-TOKEN': csrfToken }, body: fd });
+            const res = await fetch(ENDPOINT, { method: 'POST', headers: { 'X-CSRF-TOKEN': csrfToken }, body: fd, signal: controller.signal });
             data = await res.json();
-        } catch (_) {
-            data = { success: false, message: 'Error de red' };
+        } catch (err) {
+            data = { success: false, message: err.name === 'AbortError' ? 'El proceso tardó demasiado. Intenta con un archivo más pequeño.' : 'Error de red' };
+        } finally {
+            clearTimeout(timer);
         }
 
         if (data.success) {

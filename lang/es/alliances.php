@@ -26,6 +26,17 @@ return [
         'coming_soon_central'           => 'Contenido de Central próximamente...',
         'coming_soon_formacion_docente' => 'Contenido de Formación Docente próximamente...',
 
+        // Placeholder alianzas sin UI lista
+        'placeholder_badge'   => 'En desarrollo',
+        'placeholder_links'   => 'Accesos directos',
+        'placeholder_website' => 'Sitio web institucional',
+        'placeholder_lms'     => 'Plataforma LMS',
+        'placeholder_team'    => 'Equipo de trabajo',
+        'role_manager'        => 'Líder',
+        'role_coordinator'    => 'Coordinador',
+        'role_migrator'       => 'Migrador',
+        'inactive_notice'     => 'Esta alianza no está activa actualmente.',
+
         // Pestañas internas
         'tab_inicio'  => 'Inicio',
         'tab_unidad'  => 'Unidad',

@@ -14,7 +14,7 @@
      * Tab switching
      * ======================================================== */
 
-    const integrationTabs   = ['ilp', 'gmail'];
+    const integrationTabs   = ['ilp', 'gs', 'gmail', 'smtp'];
 
     function switchIntegrationTab(name) {
         integrationTabs.forEach(id => {
@@ -58,6 +58,7 @@
     setupPasswordToggle('togglePublicKey', 'fIlpPublicKey');
     setupPasswordToggle('toggleSecretKey', 'fIlpSecretKey');
     setupPasswordToggle('toggleGmailPassword', 'fGmailAppPassword');
+    setupPasswordToggle('toggleSmtpPass', 'fSmtpPass');
 
     /** ========================================================
      * Helpers
@@ -359,6 +360,59 @@
     }
 
     /** ========================================================
+     * Ghostscript — calidad
+     * ======================================================== */
+
+    const gsDescriptions = {
+        screen:   'Tamaño mínimo, calidad baja. Ideal para visualización en pantalla o adjunto de email liviano.',
+        ebook:    'Balance óptimo entre calidad y tamaño. Recomendado para la mayoría de casos.',
+        printer:  'Alta calidad para impresión general. Genera archivos más grandes.',
+        prepress: 'Máxima calidad, preserva perfil de color. Para publicación profesional.',
+        default:  'Aplica compresión mínima sin modificar imágenes. Útil para PDFs con gráficos vectoriales.',
+    };
+
+    const gsSelect = document.getElementById('fGsQuality');
+    if (gsSelect) {
+        gsSelect.addEventListener('change', () => {
+            const val = gsSelect.value;
+            const descEl = document.getElementById('gsQualityDescText');
+            if (descEl) descEl.textContent = gsDescriptions[val] || '';
+            Object.keys(gsDescriptions).forEach(k => {
+                const row = document.getElementById('gsRow-' + k);
+                if (!row) return;
+                row.style.fontWeight = k === val ? 'var(--ds-font-weight-semibold)' : '';
+                row.style.background = k === val ? 'var(--ds-background-selected)' : '';
+            });
+        });
+    }
+
+    async function handleGsSubmit(e) {
+        e.preventDefault();
+        const form      = document.getElementById('gsForm');
+        const submitBtn = document.getElementById('gsSubmitBtn');
+        if (!form || !submitBtn) return;
+
+        submitBtn.disabled = true;
+        const btnText      = submitBtn.querySelector('.btn-text');
+        const originalText = btnText?.textContent;
+        if (btnText) btnText.textContent = t('common.saving', 'Guardando...');
+
+        try {
+            const result = await postAction({ action: 'save_gs', gs_quality: form.gs_quality.value });
+            if (result.success) {
+                Toast.success(result.message || 'Configuración guardada.');
+            } else {
+                Toast.error(result.message || 'No se pudo guardar.');
+            }
+        } catch {
+            Toast.error(t('common.err_network', 'Error de red.'));
+        } finally {
+            submitBtn.disabled = false;
+            if (btnText) btnText.textContent = originalText;
+        }
+    }
+
+    /** ========================================================
      * Bindings
      * ======================================================== */
 
@@ -367,8 +421,99 @@
     const testBtn = document.getElementById('testConnectionBtn');
     if (testBtn) testBtn.addEventListener('click', handleTest);
 
+    document.getElementById('gsForm')?.addEventListener('submit', handleGsSubmit);
     document.getElementById('gmailForm')?.addEventListener('submit', handleGmailSubmit);
     document.getElementById('gmailTestBtn')?.addEventListener('click', handleGmailTest);
     document.getElementById('gmailSyncBtn')?.addEventListener('click', handleGmailSync);
+
+    /** ========================================================
+     * SMTP — guardar
+     * ======================================================== */
+
+    async function handleSmtpSubmit(e) {
+        e.preventDefault();
+        const form      = document.getElementById('smtpForm');
+        const submitBtn = document.getElementById('smtpSubmitBtn');
+        if (!form || !submitBtn) return;
+
+        submitBtn.disabled = true;
+        const btnText      = submitBtn.querySelector('.btn-text');
+        const originalText = btnText?.textContent;
+        if (btnText) btnText.textContent = t('common.saving', 'Guardando...');
+
+        const fd = new FormData();
+        fd.append('action',          'smtp_save');
+        fd.append('csrf_token',      csrfToken);
+        fd.append('smtp_host',       form.smtp_host.value.trim());
+        fd.append('smtp_port',       form.smtp_port.value);
+        fd.append('smtp_user',       form.smtp_user.value.trim());
+        fd.append('smtp_pass',       form.smtp_pass.value);
+        fd.append('smtp_secure',     form.smtp_secure.value);
+        fd.append('smtp_from',       form.smtp_from.value.trim());
+        fd.append('smtp_from_name',  form.smtp_from_name.value.trim());
+
+        try {
+            const res    = await fetch('includes/api_settings_actions.php', { method: 'POST', body: fd });
+            const result = await res.json();
+            if (result.success) {
+                Toast.success(result.message || t('integrations.saved', 'Configuración guardada.'));
+                setTimeout(() => window.location.reload(), 600);
+            } else {
+                Toast.error(result.message || t('integrations.err_generic', 'No se pudo guardar.'));
+            }
+        } catch {
+            Toast.error(t('common.err_network', 'Error de red.'));
+        } finally {
+            submitBtn.disabled = false;
+            if (btnText) btnText.textContent = originalText;
+        }
+    }
+
+    /** ========================================================
+     * SMTP — probar conexion
+     * ======================================================== */
+
+    async function handleSmtpTest() {
+        const testBtn   = document.getElementById('smtpTestBtn');
+        const resultBox = document.getElementById('smtpTestResult');
+        if (!testBtn || !resultBox) return;
+
+        testBtn.disabled = true;
+        const btnText      = testBtn.querySelector('.btn-text');
+        const originalText = btnText?.textContent;
+        if (btnText) btnText.textContent = t('integrations.testing', 'Probando...');
+
+        resultBox.className = 'integration-test-result';
+        resultBox.innerHTML = `
+            <div class="integration-test-loading">
+                <span class="spinner spinner-sm" aria-hidden="true"></span>
+                <span>${t('integrations.testing', 'Enviando correo de prueba...')}</span>
+            </div>`;
+
+        const fd = new FormData();
+        fd.append('action',     'smtp_test');
+        fd.append('csrf_token', csrfToken);
+
+        try {
+            const res    = await fetch('includes/api_settings_actions.php', { method: 'POST', body: fd });
+            const result = await res.json();
+            const icon = result.success ? 'bi-check-circle-fill' : 'bi-x-circle-fill';
+            resultBox.className = 'integration-test-result ' + (result.success ? 'integration-test-success' : 'integration-test-error');
+            resultBox.innerHTML = `
+                <div class="integration-test-header">
+                    <i class="bi ${icon}" aria-hidden="true"></i>
+                    <span>${escapeHtml(result.message || '')}</span>
+                </div>`;
+        } catch {
+            resultBox.className = 'integration-test-result integration-test-error';
+            resultBox.innerHTML = `<div class="integration-test-header"><i class="bi bi-x-circle-fill" aria-hidden="true"></i><span>${escapeHtml(t('common.err_network', 'Error de red.'))}</span></div>`;
+        } finally {
+            testBtn.disabled = false;
+            if (btnText) btnText.textContent = originalText;
+        }
+    }
+
+    document.getElementById('smtpForm')?.addEventListener('submit', handleSmtpSubmit);
+    document.getElementById('smtpTestBtn')?.addEventListener('click', handleSmtpTest);
 
 })();

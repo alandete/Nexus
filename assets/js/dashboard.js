@@ -40,7 +40,7 @@
         var el = document.getElementById('dashTodayTime');
         if (!el) return;
 
-        postAction('day_summary', { date: new Date().toISOString().slice(0, 10) })
+        postAction('day_summary', { date: new Date().toLocaleDateString('en-CA') })
             .then(function(data) {
                 if (data.success) {
                     el.textContent = formatTime(data.total_seconds || 0);

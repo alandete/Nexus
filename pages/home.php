@@ -215,26 +215,6 @@ $weekDelta = $w0Tasks - $w1Tasks;
         </a>
     </div>
 
-    <!-- Quick Access (inline) -->
-    <div class="quick-access-bar">
-        <a href="<?= url('tasks') ?>" class="quick-access-item">
-            <i class="bi bi-plus-circle quick-access-icon-inline" aria-hidden="true"></i>
-            <span class="quick-access-label"><?= __('dashboard.quick_new_task') ?></span>
-        </a>
-        <a href="<?= url('utilities') ?>#preguntas" class="quick-access-item">
-            <i class="bi bi-file-earmark-text quick-access-icon-inline" aria-hidden="true"></i>
-            <span class="quick-access-label"><?= __('dashboard.quick_questions') ?></span>
-        </a>
-        <a href="<?= url('utilities') ?>#pdf" class="quick-access-item">
-            <i class="bi bi-file-earmark-pdf quick-access-icon-inline" aria-hidden="true"></i>
-            <span class="quick-access-label"><?= __('dashboard.quick_pdf') ?></span>
-        </a>
-        <a href="<?= url('alliances') ?>" class="quick-access-item">
-            <i class="bi bi-building quick-access-icon-inline" aria-hidden="true"></i>
-            <span class="quick-access-label"><?= __('dashboard.quick_alliances') ?></span>
-        </a>
-    </div>
-
     <!-- Fila de insights: top etiquetas + comparación semanal -->
     <div class="dashboard-insights-row">
 

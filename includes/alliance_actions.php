@@ -36,6 +36,8 @@ $action = $_POST['action'] ?? '';
 
 if ($action === 'process') {
     procesarAlianza($currentUser);
+} elseif ($action === 'check_url') {
+    checkUrl();
 } else {
     echo json_encode(['success' => false, 'message' => 'Acción no válida']);
 }
@@ -1455,4 +1457,59 @@ function parsearRecursosUnab(string $recursos): array
 
     return ['items' => $items, 'errors' => $errors];
 }
+
+// ============================================================
+// CHECK URL
+// ============================================================
+
+function checkUrl(): void
+{
+    $raw = trim($_POST['url'] ?? '');
+
+    if (empty($raw)) {
+        echo json_encode(['reachable' => false]);
+        exit;
+    }
+
+    $parsed = parse_url($raw);
+    $scheme = strtolower($parsed['scheme'] ?? '');
+    $host   = strtolower($parsed['host']   ?? '');
+
+    // Solo http/https
+    if (!in_array($scheme, ['http', 'https'], true) || empty($host)) {
+        echo json_encode(['reachable' => false]);
+        exit;
+    }
+
+    // Protección SSRF: bloquear IPs privadas y loopback
+    $ip = filter_var($host, FILTER_VALIDATE_IP)
+        ? $host
+        : gethostbyname($host);
+
+    if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE) === false) {
+        echo json_encode(['reachable' => false]);
+        exit;
+    }
+
+    $ch = curl_init($raw);
+    curl_setopt_array($ch, [
+        CURLOPT_NOBODY         => true,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_MAXREDIRS      => 5,
+        CURLOPT_TIMEOUT        => 6,
+        CURLOPT_CONNECTTIMEOUT => 4,
+        CURLOPT_SSL_VERIFYPEER => true,
+        CURLOPT_USERAGENT      => 'Mozilla/5.0 (compatible; NexusBot/1.0)',
+    ]);
+    curl_exec($ch);
+    $code = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    // 2xx y 3xx = alcanzable
+    $reachable = $code >= 200 && $code < 400;
+    echo json_encode(['reachable' => $reachable]);
+    exit;
+}
+
 

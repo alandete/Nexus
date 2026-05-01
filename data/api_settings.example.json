@@ -3,5 +3,16 @@
     "ilp_password": "",
     "ilp_project": "",
     "ilp_public_key": "",
-    "ilp_secret_key": ""
+    "ilp_secret_key": "",
+    "gs_quality": "ebook",
+    "gmail_email": "",
+    "gmail_app_password": "",
+    "gmail_label": "Nexus",
+    "smtp_host": "",
+    "smtp_port": 587,
+    "smtp_user": "",
+    "smtp_pass": "",
+    "smtp_secure": "tls",
+    "smtp_from": "",
+    "smtp_from_name": ""
 }

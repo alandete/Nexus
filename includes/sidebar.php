@@ -56,18 +56,25 @@ $isUtilitiesActive = in_array($currentPage, $utilitiesPages);
                     <i class="bi bi-chevron-down sidebar-chevron" aria-hidden="true"></i>
                 </button>
                 <ul class="sidebar-submenu <?= $currentPage === 'alliances' ? 'show' : '' ?>" id="sidebar-sub-alliances" role="menu">
+                    <?php
+                    $currentAlliance = $_GET['alliance'] ?? 'unis';
+                    $readyAlliances  = ['unis', 'unab'];
+                    $sidebarAlliances = getAlliances();
+                    foreach ($sidebarAlliances as $aSlug => $aData):
+                        if (empty($aData['active'])) continue;
+                        $isCurrentAlliance = $currentPage === 'alliances' && $currentAlliance === $aSlug;
+                        $isReady = in_array($aSlug, $readyAlliances);
+                    ?>
                     <li role="none">
-                        <a class="sidebar-sublink <?= ($currentPage === 'alliances' && ($_GET['alliance'] ?? 'unis') === 'unis') ? 'active' : '' ?>"
-                           href="<?= url('alliances') ?>?alliance=unis" role="menuitem">
-                            <span class="sidebar-link-text">UNIS</span>
+                        <a class="sidebar-sublink <?= $isCurrentAlliance ? 'active' : '' ?> <?= !$isReady ? 'sidebar-sublink--pending' : '' ?>"
+                           href="<?= url('alliances') ?>?alliance=<?= urlencode($aSlug) ?>" role="menuitem">
+                            <span class="sidebar-link-text"><?= htmlspecialchars($aData['name']) ?></span>
+                            <?php if (!$isReady): ?>
+                            <span class="sidebar-pending-dot" aria-label="En desarrollo"></span>
+                            <?php endif; ?>
                         </a>
                     </li>
-                    <li role="none">
-                        <a class="sidebar-sublink <?= ($currentPage === 'alliances' && ($_GET['alliance'] ?? '') === 'unab') ? 'active' : '' ?>"
-                           href="<?= url('alliances') ?>?alliance=unab" role="menuitem">
-                            <span class="sidebar-link-text">UNAB</span>
-                        </a>
-                    </li>
+                    <?php endforeach; ?>
                 </ul>
             </li>
 

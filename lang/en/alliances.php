@@ -25,6 +25,17 @@ return [
         'coming_soon_central'           => 'Central content coming soon...',
         'coming_soon_formacion_docente' => 'Teacher Training content coming soon...',
 
+        // Placeholder for alliances without UI
+        'placeholder_badge'   => 'In development',
+        'placeholder_links'   => 'Quick links',
+        'placeholder_website' => 'Institutional website',
+        'placeholder_lms'     => 'LMS platform',
+        'placeholder_team'    => 'Work team',
+        'role_manager'        => 'Manager',
+        'role_coordinator'    => 'Coordinator',
+        'role_migrator'       => 'Migrator',
+        'inactive_notice'     => 'This alliance is not currently active.',
+
         // Internal tabs
         'tab_inicio'  => 'Overview',
         'tab_unidad'  => 'Unit',

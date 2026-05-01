@@ -86,23 +86,49 @@
             if (e.target.classList.contains('alliance-url-field')) validateUrlField(e.target);
         });
         root.addEventListener('blur', e => {
-            if (e.target.classList.contains('alliance-url-field')) validateUrlField(e.target);
+            if (e.target.classList.contains('alliance-url-field')) checkUrlReachability(e.target);
         }, true);
     }
 
     function validateUrlField(input) {
         const val = input.value.trim();
         if (!val) {
-            input.classList.remove('is-valid', 'is-invalid');
+            input.classList.remove('is-valid', 'is-invalid', 'is-checking');
             return;
         }
+        let valid = false;
         try {
-            new URL(val);
-            input.classList.add('is-valid');
-            input.classList.remove('is-invalid');
+            const url = new URL(val);
+            valid = (url.protocol === 'http:' || url.protocol === 'https:')
+                    && url.hostname.includes('.');
+        } catch (_) {}
+        input.classList.remove('is-checking');
+        input.classList.toggle('is-valid',   valid);
+        input.classList.toggle('is-invalid', !valid);
+    }
+
+    async function checkUrlReachability(input) {
+        const val = input.value.trim();
+        if (!val) return;
+
+        // Si sintaxis inválida, marcar rojo directamente sin consultar backend
+        if (input.classList.contains('is-invalid')) return;
+
+        input.classList.remove('is-valid', 'is-invalid');
+        input.classList.add('is-checking');
+
+        try {
+            const fd = new FormData();
+            fd.append('action', 'check_url');
+            fd.append('url', val);
+            const res  = await fetch(ENDPOINT, { method: 'POST', headers: { 'X-CSRF-TOKEN': csrfToken }, body: fd });
+            const json = await res.json();
+            input.classList.remove('is-checking');
+            input.classList.toggle('is-valid',   !!json.reachable);
+            input.classList.toggle('is-invalid', !json.reachable);
         } catch (_) {
-            input.classList.add('is-invalid');
-            input.classList.remove('is-valid');
+            input.classList.remove('is-checking');
+            validateUrlField(input);
         }
     }
 

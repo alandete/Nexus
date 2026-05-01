@@ -41,7 +41,12 @@ foreach (['moodle', 'canvas'] as $lms) {
 
 <div class="page-header">
     <div>
-        <h1 class="page-title"><?= htmlspecialchars($allianceData['name'] ?? strtoupper($allianceSlug)) ?></h1>
+        <h1 class="page-title">
+            <?php if (!empty($allianceData['country'])): ?>
+            <span class="fi fi-<?= strtolower(htmlspecialchars($allianceData['country'])) ?> page-title-flag" aria-hidden="true"></span>
+            <?php endif; ?>
+            <?= htmlspecialchars($allianceData['name'] ?? strtoupper($allianceSlug)) ?>
+        </h1>
         <?php if (!empty($allianceData['fullname'])): ?>
         <p class="page-description"><?= htmlspecialchars($allianceData['fullname']) ?></p>
         <?php endif; ?>
@@ -57,12 +62,10 @@ $allianceReady = in_array($allianceSlug, $readyForProcessing)
     && !empty($allianceData['active']);
 
 if (!$allianceReady):
-    $comingSoonKey = 'alliances.coming_soon_' . $allianceSlug;
-    $comingSoonMsg = __($comingSoonKey) ?: 'Contenido próximamente...';
 ?>
 <div class="alliance-coming-soon">
     <i class="bi bi-hourglass-split alliance-coming-soon-icon" aria-hidden="true"></i>
-    <p class="alliance-coming-soon-text"><?= htmlspecialchars($comingSoonMsg) ?></p>
+    <p class="alliance-coming-soon-text"><?= __('alliances.placeholder_badge') ?></p>
 </div>
 <?php return; endif; ?>
 
@@ -314,7 +317,7 @@ if (!$allianceReady):
                         <tbody>
                             <?php for ($u = 1; $u <= 4; $u++): ?>
                             <tr class="eval-row-first">
-                                <td class="alliance-eval-unit" rowspan="2"><?= __('alliances.col_unit') ?> <?= $u ?></td>
+                                <td class="alliance-eval-unit" <?= $u < 4 ? 'rowspan="2"' : '' ?>><?= __('alliances.col_unit') ?> <?= $u ?></td>
                                 <td>
                                     <input type="text" class="form-control form-control-sm alliance-eval-field"
                                            name="eval_u<?= $u ?>_act_1" id="eval_u<?= $u ?>_act_1"
@@ -327,6 +330,7 @@ if (!$allianceReady):
                                            placeholder="%" autocomplete="off" data-section="inicio">
                                 </td>
                             </tr>
+                            <?php if ($u < 4): ?>
                             <tr class="eval-row-second">
                                 <td>
                                     <input type="text" class="form-control form-control-sm alliance-eval-field"
@@ -340,6 +344,7 @@ if (!$allianceReady):
                                            placeholder="%" autocomplete="off" data-section="inicio">
                                 </td>
                             </tr>
+                            <?php endif; ?>
                             <?php endfor; ?>
                         </tbody>
                     </table>

@@ -5,6 +5,37 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [2.0.0-alpha.3] — 2026-04-19 (en desarrollo)
 
+### Recuperación de contraseña + accesos rápidos + correcciones — 2026-05-01
+
+**Recuperación de contraseña:**
+- Nuevo módulo completo: flujo por email (SMTP) y enlace manual generado por Admin.
+- `pages/forgot-password.php` y `pages/reset-password.php`: páginas standalone con el mismo diseño que login. El formulario de solicitud siempre muestra éxito (no revela si el email existe).
+- `includes/mailer.php`: cliente SMTP mínimo sin dependencias externas. Soporta STARTTLS (587), SSL (465) y sin cifrado.
+- `includes/password_reset_actions.php`: endpoint AJAX para `request` (email), `reset` (nueva contraseña) y `generate_link` (admin genera enlace y lo copia al portapapeles).
+- `includes/auth.php`: funciones `generatePasswordResetToken`, `requestPasswordReset`, `validateResetToken`, `resetPassword`. Token de 64 hex chars con validez de 24 h, de un solo uso.
+- Migraciones `014` y `015`: columnas `reset_token` y `reset_expires` en tabla `users`.
+- Login: enlace "¿Olvidaste tu contraseña?" visible bajo el botón Ingresar.
+- Usuarios: botón de llave (solo Admin) para generar enlace manual; copia automática al portapapeles con Toast de confirmación. Tooltips de botones de acción reubicados a la izquierda.
+
+**Integración SMTP:**
+- Nueva pestaña SMTP en Integraciones con formulario completo (servidor, puerto, cifrado, autenticación, remitente) y botón de prueba que envía un correo de verificación.
+- Configuración almacenada encriptada con AES-256 en `data/api_settings.json`.
+- `config/config.php`: nueva constante `APP_BASE_URL` para calcular URLs absolutas correctamente desde cualquier script (incluidos endpoints en `includes/`).
+
+**Accesos rápidos del topbar:**
+- Los 3 enlaces fijos del Dashboard se reemplazaron por una barra dinámica en el topbar (centro, solo íconos con tooltips).
+- Admin puede marcar/desmarcar cualquier página como acceso rápido con el ícono de marcador junto al título de cada página. Máximo 5; al superar el límite se reemplaza el más antiguo con aviso Toast.
+- Almacenamiento en `projectinfo.json`; renderizado en `includes/header.php` con actualización en tiempo real vía JS.
+- Nuevos archivos: `assets/js/quick-links.js`, `includes/quick_links_actions.php`.
+
+**Correcciones:**
+- UNAB: `resource_types` NULL en BD corregido con fallback al JSON de alianzas en `getAlliances()`.
+- Login: credenciales demo solo visibles en entorno local (`localhost`, `127.0.0.1`).
+- `runMigrations()`: try/catch por migración individual; errores de "duplicate column" se marcan como ejecutados en vez de bloquear las migraciones siguientes.
+- `data/api_settings.example.json`: actualizado con campos Gmail y SMTP.
+
+**Archivos**: `assets/css/styles.css`, `assets/js/integrations.js`, `assets/js/quick-links.js`, `assets/js/users.js`, `config/config.php`, `data/api_settings.example.json`, `includes/alliance_actions.php`, `includes/api_settings_actions.php`, `includes/auth.php`, `includes/functions.php`, `includes/header.php`, `includes/mailer.php`, `includes/password_reset_actions.php`, `includes/quick_links_actions.php`, `index.php`, `lang/en/*`, `lang/es/*`, `pages/forgot-password.php`, `pages/home.php`, `pages/integrations.php`, `pages/login.php`, `pages/reset-password.php`, `pages/users.php`
+
 ### Módulo Tareas — jornada laboral y filtro con retraso — 2026-04-28
 
 **Jornada laboral por usuario:**

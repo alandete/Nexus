@@ -30,7 +30,8 @@ return [
         'backups' => 'Backups',
         'system' => 'System',
         'activity' => 'Activity',
-        'docs' => 'Documentation',
+        'docs'    => 'Documentation',
+        'reports' => 'Reports',
     ],
 
     // Header
@@ -40,6 +41,17 @@ return [
         'toggle_menu'   => 'Toggle navigation menu',
         'user_fallback' => 'User',
         'change_lang'   => 'Change language',
+        'quick_links'   => 'Quick access',
+    ],
+
+    // Quick links topbar
+    'quicklinks' => [
+        'added'      => 'Page added to quick access',
+        'removed'    => 'Page removed from quick access',
+        'replaced'   => '"{old}" was replaced in quick access',
+        'error'      => 'Error updating quick access',
+        'btn_add'    => 'Add to quick access',
+        'btn_remove' => 'Remove from quick access',
     ],
 
     // Accessibility
@@ -49,6 +61,37 @@ return [
         'scroll_to_top'   => 'Scroll to top',
         'help'            => 'Help',
         'loading'         => 'Loading content',
+    ],
+
+    // Password recovery
+    'forgot_password' => [
+        'page_title'          => 'Forgot password',
+        'form_title'          => 'Forgot your password?',
+        'form_subtitle'       => 'Enter your email and we will send you a link to reset it.',
+        'field_email'         => 'Email address',
+        'placeholder_email'   => 'email@company.com',
+        'btn_submit'          => 'Send recovery link',
+        'sent_message'        => 'If that email is registered, you will receive a link within a few minutes. Check your spam folder too.',
+        'back_to_login'       => 'Back to login',
+        'error_invalid_email' => 'The email address entered is not valid.',
+    ],
+
+    // Reset password
+    'reset_password' => [
+        'page_title'           => 'New password',
+        'form_title'           => 'Reset password',
+        'form_subtitle'        => 'Enter your new password. It must be at least 6 characters long.',
+        'field_password'       => 'New password',
+        'field_confirm'        => 'Confirm password',
+        'placeholder_password' => 'At least 6 characters',
+        'placeholder_confirm'  => 'Repeat password',
+        'btn_submit'           => 'Save new password',
+        'btn_login'            => 'Go to login',
+        'success_message'      => 'Your password has been updated successfully. You can now log in.',
+        'error_expired'        => 'The link has expired or was already used. Please request a new one.',
+        'error_mismatch'       => 'Passwords do not match.',
+        'error_too_short'      => 'Password must be at least 6 characters.',
+        'request_new'          => 'Request a new link',
     ],
 
     // Login

@@ -147,16 +147,27 @@ function pdfCompressGhostscript(string $tmpFile): array
         return ['success' => false, 'message' => 'Ghostscript no está disponible en este servidor'];
     }
 
+    set_time_limit(180);
+
+    $settings = getApiSettings();
+    $quality  = $settings['gs_quality'] ?? 'ebook';
+    $dpi      = match($quality) {
+        'screen'            => 72,
+        'printer', 'prepress' => 300,
+        default             => 150,
+    };
+
+    $null    = PHP_OS_FAMILY === 'Windows' ? 'NUL' : '/dev/null';
     $outFile = sys_get_temp_dir() . '/nexuspdf_' . uniqid() . '.pdf';
     $cmd = escapeshellarg($gs)
         . ' -dNOPAUSE -dBATCH -dSAFER -sDEVICE=pdfwrite'
-        . ' -dCompatibilityLevel=1.4 -dPDFSETTINGS=/ebook'
+        . ' -dCompatibilityLevel=1.4 -dPDFSETTINGS=/' . $quality
         . ' -dEmbedAllFonts=true -dSubsetFonts=true'
-        . ' -dColorImageDownsampleType=/Bicubic -dColorImageResolution=150'
-        . ' -dGrayImageDownsampleType=/Bicubic -dGrayImageResolution=150'
+        . ' -dColorImageDownsampleType=/Bicubic -dColorImageResolution=' . $dpi
+        . ' -dGrayImageDownsampleType=/Bicubic -dGrayImageResolution=' . $dpi
         . ' -sOutputFile=' . escapeshellarg($outFile)
         . ' ' . escapeshellarg($tmpFile)
-        . ' 2>&1';
+        . ' > ' . $null . ' 2>&1';
 
     @shell_exec($cmd);
 

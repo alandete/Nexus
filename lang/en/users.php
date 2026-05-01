@@ -34,6 +34,7 @@ return [
         'you'                  => 'You',
 
         'btn_edit'             => 'Edit',
+        'btn_reset_link'       => 'Generate recovery link',
         'btn_delete'           => 'Delete',
 
         'empty_filtered_title' => 'No results',

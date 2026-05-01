@@ -89,6 +89,7 @@ if ($action === 'save') {
         'ilp_project'    => $ilpProject,
         'ilp_public_key' => $encPublic,
         'ilp_secret_key' => $encSecret,
+        'gs_quality'     => $current['gs_quality'] ?? 'ebook',
     ];
 
     if (!is_dir(DATA_PATH)) mkdir(DATA_PATH, 0755, true);
@@ -130,6 +131,95 @@ if ($action === 'test') {
     exit;
 }
 
+// ── Guardar calidad Ghostscript ───────────────────────────────────────────
+if ($action === 'save_gs') {
+    $allowed = ['screen', 'ebook', 'printer', 'prepress', 'default'];
+    $quality = trim($_POST['gs_quality'] ?? 'ebook');
+    if (!in_array($quality, $allowed, true)) $quality = 'ebook';
+
+    $current = getApiSettingsRaw();
+    $current['gs_quality'] = $quality;
+
+    if (!is_dir(DATA_PATH)) mkdir(DATA_PATH, 0755, true);
+    $saved = file_put_contents(API_SETTINGS_FILE, json_encode($current, JSON_PRETTY_PRINT), LOCK_EX);
+
+    if ($saved === false) {
+        echo json_encode(['success' => false, 'message' => 'Error al guardar la configuracion']);
+        exit;
+    }
+
+    logActivity('settings', 'update', 'api_settings:gs_quality:' . $quality);
+    echo json_encode(['success' => true, 'message' => 'Calidad de Ghostscript guardada']);
+    exit;
+}
+
+// ── Leer configuracion SMTP ───────────────────────────────────────────────
+if ($action === 'smtp_get') {
+    $raw  = getApiSettingsRaw();
+    $pass = decryptApiValue($raw['smtp_pass'] ?? '');
+    echo json_encode([
+        'success'           => true,
+        'smtp_host'         => $raw['smtp_host']      ?? '',
+        'smtp_port'         => $raw['smtp_port']      ?? 587,
+        'smtp_user'         => $raw['smtp_user']      ?? '',
+        'smtp_pass_preview' => empty($pass) ? '' : str_repeat('*', max(4, strlen($pass) - 2)) . substr($pass, -2),
+        'smtp_has_pass'     => !empty($pass),
+        'smtp_secure'       => $raw['smtp_secure']    ?? 'tls',
+        'smtp_from'         => $raw['smtp_from']      ?? '',
+        'smtp_from_name'    => $raw['smtp_from_name'] ?? '',
+    ]);
+    exit;
+}
+
+// ── Guardar configuracion SMTP ────────────────────────────────────────────
+if ($action === 'smtp_save') {
+    $ok = saveSmtpSettings([
+        'smtp_host'      => trim($_POST['smtp_host']      ?? ''),
+        'smtp_port'      => (int)($_POST['smtp_port']     ?? 587),
+        'smtp_user'      => trim($_POST['smtp_user']      ?? ''),
+        'smtp_pass'      => $_POST['smtp_pass']            ?? '',
+        'smtp_secure'    => trim($_POST['smtp_secure']    ?? 'tls'),
+        'smtp_from'      => trim($_POST['smtp_from']      ?? ''),
+        'smtp_from_name' => trim($_POST['smtp_from_name'] ?? ''),
+    ]);
+
+    if ($ok) {
+        logActivity('settings', 'update', 'api_settings:smtp');
+        echo json_encode(['success' => true, 'message' => 'Configuración SMTP guardada correctamente']);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Error al guardar la configuración SMTP']);
+    }
+    exit;
+}
+
+// ── Probar conexion SMTP ──────────────────────────────────────────────────
+if ($action === 'smtp_test') {
+    $smtp = getSmtpSettings();
+    if (empty($smtp['host']) || empty($smtp['user'])) {
+        echo json_encode(['success' => false, 'message' => 'Configura el servidor SMTP antes de probar']);
+        exit;
+    }
+
+    require_once __DIR__ . '/mailer.php';
+    $mailer = new Mailer($smtp);
+
+    $to      = $smtp['from_email'] ?: $smtp['user'];
+    $appName = defined('APP_NAME') ? APP_NAME : 'Nexus';
+    $ok = $mailer->send(
+        $to,
+        "Prueba SMTP — {$appName}",
+        "<p>La configuración SMTP de <strong>{$appName}</strong> funciona correctamente.</p>",
+        "La configuración SMTP de {$appName} funciona correctamente."
+    );
+
+    if ($ok) {
+        echo json_encode(['success' => true, 'message' => "Correo de prueba enviado a {$to}"]);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Error: ' . $mailer->lastError]);
+    }
+    exit;
+}
+
 echo json_encode(['success' => false, 'message' => 'Accion no valida']);
 
 // ── Funciones auxiliares ───────────────────────────────────────────────────
@@ -137,10 +227,12 @@ echo json_encode(['success' => false, 'message' => 'Accion no valida']);
 /**
  * Lee el JSON crudo sin desencriptar (para conservar valores al guardar parcialmente)
  */
+if (!function_exists('getApiSettingsRaw')) {
 function getApiSettingsRaw(): array
 {
     if (!file_exists(API_SETTINGS_FILE)) return [];
     return json_decode(file_get_contents(API_SETTINGS_FILE), true) ?? [];
+}
 }
 
 /**

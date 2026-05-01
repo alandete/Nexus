@@ -530,8 +530,10 @@ function timerStatus(PDO $db, int $userId): void
 {
     $stmt = $db->prepare("
         SELECT te.id, te.task_id, te.start_time, t.title,
+               t.alliance_id,
                a.name AS alliance_name, a.color AS alliance_color,
-               GROUP_CONCAT(DISTINCT tg.name ORDER BY tg.name SEPARATOR ', ') AS tag_names
+               GROUP_CONCAT(DISTINCT tt.tag_id ORDER BY tt.tag_id SEPARATOR ',') AS tag_ids,
+               GROUP_CONCAT(DISTINCT tg.name   ORDER BY tg.name   SEPARATOR ', ') AS tag_names
         FROM time_entries te
         JOIN tasks t ON te.task_id = t.id
         LEFT JOIN alliances a ON t.alliance_id = a.id

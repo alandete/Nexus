@@ -166,7 +166,18 @@ $canonicalBase = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'http
                     </button>
                 </form>
 
-                <!-- Usuarios demo -->
+                <div style="margin-top: var(--ds-space-200); text-align: center;">
+                    <a href="<?= url('forgot-password') ?>" class="text-sm" style="color: var(--ds-text-subtle);">
+                        <?= __('forgot_password.form_title') ?>
+                    </a>
+                </div>
+
+                <?php
+                $host = $_SERVER['HTTP_HOST'] ?? '';
+                $isLocal = in_array(strtolower(explode(':', $host)[0]), ['localhost', '127.0.0.1', '::1'], true);
+                ?>
+                <?php if ($isLocal): ?>
+                <!-- Usuarios demo (solo entorno local) -->
                 <div class="login-demo">
                     <p class="login-demo-title"><?= __('login.demo_title') ?></p>
                     <ul class="login-demo-list">
@@ -175,6 +186,7 @@ $canonicalBase = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'http
                         <li>Viewer: <code>viewer / password</code></li>
                     </ul>
                 </div>
+                <?php endif; ?>
 
                 <!-- Selector de idioma -->
                 <div class="login-lang">

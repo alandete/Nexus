@@ -568,17 +568,48 @@
             btnCreate.addEventListener('click', () => openUserForm('create'));
         }
 
-        // Edit / Delete (delegation)
+        // Edit / Delete / Reset link (delegation)
         document.addEventListener('click', (e) => {
-            const editBtn = e.target.closest('.btn-edit-user');
+            const editBtn   = e.target.closest('.btn-edit-user');
             const deleteBtn = e.target.closest('.btn-delete-user');
+            const resetBtn  = e.target.closest('.btn-reset-link');
 
             if (editBtn) {
                 openUserForm('edit', editBtn.dataset.username);
             } else if (deleteBtn) {
                 deleteUser(deleteBtn.dataset.username, deleteBtn.dataset.name);
+            } else if (resetBtn) {
+                generateResetLink(resetBtn);
             }
         });
     });
+
+    async function generateResetLink(btn) {
+        if (btn.disabled) return;
+        btn.disabled = true;
+
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+        const fd = new FormData();
+        fd.append('action',      'generate_link');
+        fd.append('username',    btn.dataset.username);
+        fd.append('csrf_token',  csrfToken);
+
+        try {
+            const res    = await fetch('includes/password_reset_actions.php', { method: 'POST', body: fd });
+            const result = await res.json();
+
+            if (!result.success) {
+                Toast.error(result.message || 'No se pudo generar el enlace.');
+                return;
+            }
+
+            await navigator.clipboard.writeText(result.url);
+            Toast.show('Enlace copiado al portapapeles. Compártelo con el usuario.', 'success');
+        } catch {
+            Toast.error('Error al generar el enlace.');
+        } finally {
+            btn.disabled = false;
+        }
+    }
 
 })();

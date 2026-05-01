@@ -174,7 +174,7 @@ function imgCompressAPI(array $file, string $level): array
 // ═════════════════════════════════════════════════════════════════════════════
 function imgHandleResize(): void
 {
-    $file    = imgValidateUpload();
+    $file    = imgValidateUpload(20);
     $percent = (int)($_POST['percent'] ?? 0);
     $newW    = (int)($_POST['width']   ?? 0);
     $newH    = (int)($_POST['height']  ?? 0);

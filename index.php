@@ -58,6 +58,7 @@ $validPages = [
     'settings', 'users', 'manage-alliances', 'manage-tasks', 'application', 'integrations',
     'snapshots', 'system', 'activity',
     'login', 'logout',
+    'forgot-password', 'reset-password',
     '403', '404', '500',
 ];
 
@@ -75,15 +76,15 @@ if ($page === 'logout') {
 }
 
 // Proteger paginas (excepto login y paginas de error)
-$publicPages = ['login', '403', '404', '500'];
+$publicPages = ['login', 'forgot-password', 'reset-password', '403', '404', '500'];
 if (!in_array($page, $publicPages, true) && !isLoggedIn()) {
     header('Location: ' . url('login'));
     exit;
 }
 
-// Login sin layout principal
-if ($page === 'login') {
-    include 'pages/login.php';
+// Páginas de autenticación standalone (sin layout)
+if (in_array($page, ['login', 'forgot-password', 'reset-password'], true)) {
+    include "pages/{$page}.php";
     exit;
 }
 
@@ -110,6 +111,27 @@ if (!empty($projectInfo['maintenance_mode'])) {
         exit;
     }
 }
+// Accesos rápidos del topbar
+$quickLinks  = getQuickLinks();
+$currentUser = getCurrentUser();
+$isAdminUser = ($currentUser['role'] ?? '') === 'admin';
+$quickLinksMeta = [
+    'tasks'            => ['icon' => 'bi-check2-square',     'label' => __('menu.tasks'),           'href' => url('tasks')],
+    'alliances'        => ['icon' => 'bi-building',          'label' => __('menu.alliances'),       'href' => url('alliances')],
+    'utilities-gift'   => ['icon' => 'bi-file-earmark-text', 'label' => __('menu.questions'),       'href' => url('utilities-gift')],
+    'utilities-pdf'    => ['icon' => 'bi-file-earmark-pdf',  'label' => __('menu.pdf_optimizer'),   'href' => url('utilities-pdf')],
+    'utilities-images' => ['icon' => 'bi-image',             'label' => __('menu.image_optimizer'), 'href' => url('utilities-images')],
+    'reports'          => ['icon' => 'bi-bar-chart',         'label' => __('menu.reports'),         'href' => url('reports')],
+    'documentation'    => ['icon' => 'bi-book',              'label' => __('menu.docs'),            'href' => url('documentation')],
+    'users'            => ['icon' => 'bi-people',            'label' => __('menu.users'),           'href' => url('users')],
+    'manage-alliances' => ['icon' => 'bi-building-gear',     'label' => __('menu.manage_alliances'),'href' => url('manage-alliances')],
+    'manage-tasks'     => ['icon' => 'bi-list-check',        'label' => __('menu.manage_tasks'),    'href' => url('manage-tasks')],
+    'application'      => ['icon' => 'bi-app-indicator',     'label' => __('menu.application'),     'href' => url('application')],
+    'integrations'     => ['icon' => 'bi-plug',              'label' => __('menu.integrations'),    'href' => url('integrations')],
+    'snapshots'        => ['icon' => 'bi-cloud-arrow-down',  'label' => __('menu.backups'),         'href' => url('snapshots')],
+    'system'           => ['icon' => 'bi-cpu',               'label' => __('menu.system'),          'href' => url('system')],
+    'activity'         => ['icon' => 'bi-clock-history',     'label' => __('menu.activity'),        'href' => url('activity')],
+];
 ?>
 <!DOCTYPE html>
 <html lang="<?= $lang ?>">
@@ -154,6 +176,11 @@ if (!empty($projectInfo['maintenance_mode'])) {
 
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.min.css" rel="stylesheet">
+
+    <?php if (in_array($page, ['alliances', 'manage-alliances'])): ?>
+    <!-- Flag Icons (SVG, cross-browser) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icons@7.2.3/css/flag-icons.min.css">
+    <?php endif; ?>
 
     <!-- Nexus 2.0 CSS -->
     <link rel="stylesheet" href="assets/css/variables.css?v=<?= filemtime('assets/css/variables.css') ?>">
@@ -293,6 +320,29 @@ if (!empty($projectInfo['maintenance_mode'])) {
 
     <?php if ($page === 'integrations'): ?>
     <script src="assets/js/integrations.js?v=<?= filemtime('assets/js/integrations.js') ?>"></script>
+    <?php endif; ?>
+
+    <script>
+    window.__QUICKLINKS__ = {
+        current: <?= json_encode($page) ?>,
+        isAdmin: <?= $isAdminUser ? 'true' : 'false' ?>,
+        limit: 5,
+        items: <?= json_encode($quickLinks) ?>,
+        meta: <?= json_encode($quickLinksMeta) ?>,
+        csrf: <?= json_encode($_SESSION['csrf_token']) ?>,
+        endpoint: 'includes/quick_links_actions.php',
+        i18n: {
+            added:      <?= json_encode(__('quicklinks.added')) ?>,
+            removed:    <?= json_encode(__('quicklinks.removed')) ?>,
+            replaced:   <?= json_encode(__('quicklinks.replaced')) ?>,
+            error:      <?= json_encode(__('quicklinks.error')) ?>,
+            btn_add:    <?= json_encode(__('quicklinks.btn_add')) ?>,
+            btn_remove: <?= json_encode(__('quicklinks.btn_remove')) ?>,
+        }
+    };
+    </script>
+    <?php if ($isAdminUser): ?>
+    <script src="assets/js/quick-links.js?v=<?= filemtime('assets/js/quick-links.js') ?>"></script>
     <?php endif; ?>
 
     <?php if ($page !== 'tasks'): ?>

@@ -74,5 +74,20 @@ return [
         'gmail_guide_step4'  => 'Asegurate de que el acceso IMAP este habilitado en Gmail: Configuracion > Ver toda la configuracion > Reenvio e IMAP.',
         'gmail_guide_step5'  => 'Pega el correo, la contrasena de app (16 caracteres) y el nombre exacto de la etiqueta en el formulario. Guarda y prueba la conexion.',
         'gmail_guide_note'   => 'Cuando quieras crear una tarea desde un correo, solo aplicale la etiqueta configurada en Gmail y haz clic en "Sincronizar ahora" en Nexus.',
+
+        // SMTP
+        'smtp_title'          => 'Correo saliente (SMTP)',
+        'smtp_description'    => 'Configura el servidor de correo para enviar notificaciones y recuperación de contraseñas.',
+        'smtp_security_note'  => 'La contraseña se almacena encriptada con AES-256. Se recomienda usar una contraseña de aplicación, no la principal.',
+        'smtp_section_server' => 'Servidor',
+        'smtp_section_auth'   => 'Autenticación',
+        'smtp_section_sender' => 'Remitente',
+        'smtp_field_host'     => 'Servidor SMTP',
+        'smtp_field_port'     => 'Puerto',
+        'smtp_field_secure'   => 'Cifrado',
+        'smtp_field_user'     => 'Usuario / correo',
+        'smtp_field_pass'     => 'Contraseña',
+        'smtp_field_from_email' => 'Dirección del remitente',
+        'smtp_field_from_name'  => 'Nombre del remitente',
     ],
 ];

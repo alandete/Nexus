@@ -14,6 +14,11 @@ return [
         'tags_title'              => 'Etiquetas',
         'tags_desc'               => 'Organiza las tareas con etiquetas personalizadas. Una tarea puede tener varias etiquetas.',
         'new_tag_placeholder'     => 'Nueva etiqueta...',
+        'btn_export_tags'         => 'Exportar',
+        'btn_import_tags'         => 'Importar',
+        'import_tags_confirm'          => '¿Importar etiquetas desde este archivo?',
+        'import_tags_confirm_has'      => 'Ya hay',
+        'import_tags_confirm_existing' => 'etiqueta(s) en el sistema. Las que coincidan se actualizarán y las nuevas se agregarán. ¿Continuar?',
 
         'stat_total'  => 'Total',
         'stat_in_use' => 'En uso',

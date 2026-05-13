@@ -14,6 +14,11 @@ return [
         'tags_title'              => 'Tags',
         'tags_desc'               => 'Organize tasks with custom tags. A task can have multiple tags.',
         'new_tag_placeholder'     => 'New tag...',
+        'btn_export_tags'         => 'Export',
+        'btn_import_tags'         => 'Import',
+        'import_tags_confirm'          => 'Import tags from this file?',
+        'import_tags_confirm_has'      => 'There are already',
+        'import_tags_confirm_existing' => 'tag(s) in the system. Matching ones will be updated and new ones added. Continue?',
 
         'stat_total'  => 'Total',
         'stat_in_use' => 'In use',

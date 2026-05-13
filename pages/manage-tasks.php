@@ -88,6 +88,20 @@ if (isDBAvailable()) {
         </div>
     </div>
 
+    <?php if ($canWrite): ?>
+    <div class="d-flex gap-100" style="margin-bottom: var(--space-200);">
+        <a href="includes/tags_export_actions.php" class="btn btn-secondary btn-sm" id="btnExportTags">
+            <i class="bi bi-download" aria-hidden="true"></i>
+            <?= __('manage_tasks.btn_export_tags') ?>
+        </a>
+        <button type="button" class="btn btn-secondary btn-sm" id="btnImportTags">
+            <i class="bi bi-upload" aria-hidden="true"></i>
+            <?= __('manage_tasks.btn_import_tags') ?>
+        </button>
+        <input type="file" id="importTagsInput" accept=".json" style="display:none">
+    </div>
+    <?php endif; ?>
+
     <!-- Tabla de etiquetas inline-editable -->
     <div class="tags-grid" id="tagsGrid"></div>
 </section>

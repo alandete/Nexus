@@ -5,6 +5,13 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [2.0.0-alpha.3] — 2026-04-19 (en desarrollo)
 
+### Etiquetas: exportar e importar — 2026-05-12
+
+- Nuevo `includes/tags_export_actions.php`: descarga etiquetas como JSON (`name`, `color`).
+- Nuevo action `tags_import` en `tasks_actions.php`: inserta etiquetas nuevas y actualiza el color de las existentes por nombre.
+- Botones Exportar/Importar en la pestaña Etiquetas de Administrar tareas.
+- Confirmación contextual antes de importar con conteo de etiquetas existentes.
+
 ### Alianzas: exportar e importar — 2026-05-12
 
 - Nuevo `includes/alliance_export_actions.php`: exporta todas las alianzas como JSON descargable (sin rutas locales de archivos).

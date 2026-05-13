@@ -73,6 +73,7 @@ switch ($action) {
     case 'tags_create':    tagsCreate($db); break;
     case 'tags_update':    tagsUpdate($db); break;
     case 'tags_delete':    tagsDelete($db); break;
+    case 'tags_import':    tagsImport($db, $currentUser); break;
 
     default:
         echo json_encode(['success' => false, 'message' => 'Acción no válida']);
@@ -811,6 +812,49 @@ function daySummaryRange(PDO $db, int $userId): void
 // ═════════════════════════════════════════════════════════════════════════════
 // ETIQUETAS
 // ═════════════════════════════════════════════════════════════════════════════
+
+function tagsImport(PDO $db, array $currentUser): void
+{
+    if (!canEditModule($currentUser, 'tasks')) {
+        echo json_encode(['success' => false, 'message' => 'Sin permisos para importar']);
+        return;
+    }
+
+    $uploadError = $_FILES['file']['error'] ?? -1;
+    if (empty($_FILES['file']) || $uploadError !== UPLOAD_ERR_OK) {
+        $msgs = [1 => 'archivo muy grande (ini)', 2 => 'archivo muy grande (form)', 3 => 'subida incompleta', 4 => 'no se recibió archivo'];
+        echo json_encode(['success' => false, 'message' => 'Error al subir: ' . ($msgs[$uploadError] ?? "código {$uploadError}")]);
+        return;
+    }
+
+    $content = file_get_contents($_FILES['file']['tmp_name']);
+    $imported = json_decode($content, true);
+    if (!is_array($imported) || empty($imported)) {
+        echo json_encode(['success' => false, 'message' => 'JSON inválido o vacío (error: ' . json_last_error_msg() . ')']);
+        return;
+    }
+
+    foreach ($imported as $i => $tag) {
+        if (!isset($tag['name']) || empty(trim($tag['name']))) {
+            echo json_encode(['success' => false, 'message' => "Entrada #{$i} sin nombre"]);
+            return;
+        }
+    }
+
+    try {
+        $stmt = $db->prepare("INSERT INTO tags (name, color) VALUES (?, ?) ON DUPLICATE KEY UPDATE color = VALUES(color)");
+        $count = 0;
+        foreach ($imported as $tag) {
+            $stmt->execute([trim($tag['name']), trim($tag['color'] ?? '') ?: null]);
+            $count++;
+        }
+    } catch (PDOException $e) {
+        echo json_encode(['success' => false, 'message' => 'Error en base de datos: ' . $e->getMessage()]);
+        return;
+    }
+
+    echo json_encode(['success' => true, 'message' => $count . ' etiqueta(s) importada(s) correctamente', 'imported' => $count]);
+}
 
 function tagsList(PDO $db): void
 {

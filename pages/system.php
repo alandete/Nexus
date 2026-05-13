@@ -34,6 +34,51 @@ $depsChecked = $depsCache['checked_at'] ?? null;
 $depsPhp = $depsCache['php'] ?? phpversion();
 $deps = $depsCache['deps'] ?? [];
 
+// Detección en tiempo real cuando no hay cache (ej. primer arranque en servidor Linux)
+if (empty($deps)) {
+    $deps = ['ghostscript' => [], 'imagemagick' => [], 'imagick_ext' => [], 'gd_ext' => []];
+
+    if (extension_loaded('gd')) {
+        $gdInfo = function_exists('gd_info') ? gd_info() : [];
+        $deps['gd_ext']['installed'] = $gdInfo['GD Version'] ?? 'disponible';
+    }
+    if (extension_loaded('imagick')) {
+        $deps['imagick_ext']['installed'] = 'disponible';
+    }
+
+    if (PHP_OS_FAMILY === 'Windows') {
+        foreach (['gswin64c', 'gswin32c', 'gs'] as $cmd) {
+            $out = @shell_exec("where {$cmd} 2>&1");
+            if ($out) { $line = trim(explode("\n", $out)[0]); if (@file_exists($line)) { $deps['ghostscript']['installed'] = $cmd; break; } }
+        }
+        $out = @shell_exec('where magick 2>&1') ?: @shell_exec('where convert 2>&1');
+        if ($out) { $line = trim(explode("\n", $out)[0]); if (@file_exists($line)) $deps['imagemagick']['installed'] = 'disponible'; }
+    } else {
+        $gsCode = -1; $gsOut = [];
+        if (function_exists('exec'))       { @exec('gs --version 2>/dev/null', $gsOut, $gsCode); }
+        if ($gsCode === 0 && !empty($gsOut)) {
+            $deps['ghostscript']['installed'] = trim($gsOut[0]);
+        } elseif (function_exists('shell_exec')) {
+            $o = @shell_exec('gs --version 2>/dev/null');
+            if (trim((string)$o) !== '') $deps['ghostscript']['installed'] = trim($o);
+        }
+
+        $imCode = -1; $imOut = [];
+        if (function_exists('exec'))       { @exec('convert --version 2>/dev/null', $imOut, $imCode); }
+        if ($imCode !== 0 && function_exists('exec')) { @exec('magick --version 2>/dev/null', $imOut, $imCode); }
+        if ($imCode === 0 && !empty($imOut)) {
+            preg_match('/ImageMagick\s+([\d.\-]+)/', $imOut[0], $m);
+            $deps['imagemagick']['installed'] = $m[1] ?? 'disponible';
+        } elseif (function_exists('shell_exec')) {
+            $o = @shell_exec('convert --version 2>/dev/null') ?: @shell_exec('magick --version 2>/dev/null');
+            if (trim((string)$o) !== '') {
+                preg_match('/ImageMagick\s+([\d.\-]+)/', $o, $m);
+                $deps['imagemagick']['installed'] = $m[1] ?? 'disponible';
+            }
+        }
+    }
+}
+
 // Info de PHP y entorno
 $phpExtensions = [
     'json'       => extension_loaded('json'),

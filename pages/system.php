@@ -291,6 +291,7 @@ $writables = [
         </div>
     </div>
 
+    <?php if (PHP_OS_FAMILY === 'Windows'): ?>
     <div class="alert alert-info">
         <i class="bi bi-terminal alert-icon" aria-hidden="true"></i>
         <span class="alert-content">
@@ -298,6 +299,7 @@ $writables = [
             <code>php setup-deps.php</code>
         </span>
     </div>
+    <?php endif; ?>
 </section>
 
 <!-- ============ ENTORNO PHP ============ -->

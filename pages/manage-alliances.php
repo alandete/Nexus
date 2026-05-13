@@ -71,6 +71,10 @@ $billableCount = count(array_filter($alliances, fn($a) => !empty($a['billable'])
     </div>
     <div class="d-flex gap-100">
         <?php if ($canWrite): ?>
+        <button type="button" class="btn btn-primary" id="btnCreateAlliance">
+            <i class="bi bi-plus-lg" aria-hidden="true"></i>
+            <?= __('manage_alliances.btn_create') ?>
+        </button>
         <a href="includes/alliance_export_actions.php" class="btn btn-secondary" id="btnExportAlliances">
             <i class="bi bi-download" aria-hidden="true"></i>
             <?= __('manage_alliances.btn_export') ?>
@@ -80,10 +84,6 @@ $billableCount = count(array_filter($alliances, fn($a) => !empty($a['billable'])
             <?= __('manage_alliances.btn_import') ?>
         </button>
         <input type="file" id="importAlliancesInput" accept=".json" style="display:none">
-        <button type="button" class="btn btn-primary" id="btnCreateAlliance">
-            <i class="bi bi-plus-lg" aria-hidden="true"></i>
-            <?= __('manage_alliances.btn_create') ?>
-        </button>
         <?php endif; ?>
     </div>
 </div>

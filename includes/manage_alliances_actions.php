@@ -38,6 +38,7 @@ match ($action) {
     'delete'      => handleDelete($currentUser),
     'upload-file' => handleUploadFile($currentUser),
     'delete-file' => handleDeleteFile($currentUser),
+    'import'      => handleImport($currentUser),
     default       => respond(false, 'Acción no válida'),
 };
 
@@ -368,6 +369,56 @@ function generateSlug(string $name): string
     ]);
     $slug = preg_replace('/[^a-z0-9]+/', '-', $slug);
     return trim($slug, '-');
+}
+
+/**
+ * Importar alianzas desde JSON
+ */
+function handleImport(array $currentUser): void
+{
+    if (!canEditModule($currentUser, 'settings')) {
+        respond(false, 'Sin permisos para importar');
+    }
+
+    if (empty($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
+        respond(false, 'No se recibió ningún archivo o hubo un error al subirlo');
+    }
+
+    $content = file_get_contents($_FILES['file']['tmp_name']);
+    if ($content === false) {
+        respond(false, 'No se pudo leer el archivo');
+    }
+
+    $imported = json_decode($content, true);
+    if (!is_array($imported) || empty($imported)) {
+        respond(false, 'El archivo no es un JSON de alianzas válido');
+    }
+
+    // Validar que cada entrada tenga al menos un nombre
+    foreach ($imported as $slug => $a) {
+        if (!is_string($slug) || empty($slug) || !isset($a['name'])) {
+            respond(false, "Entrada inválida en el archivo: «{$slug}»");
+        }
+    }
+
+    // Mezclar con las alianzas existentes (actualiza las que ya existen, añade las nuevas)
+    $existing = getAlliances();
+    foreach ($imported as $slug => $a) {
+        $existing[$slug] = array_merge($existing[$slug] ?? [], $a);
+        $existing[$slug]['updated_at'] = date('Y-m-d H:i:s');
+        if (empty($existing[$slug]['created_at'])) {
+            $existing[$slug]['created_at'] = date('Y-m-d H:i:s');
+        }
+    }
+
+    if (!saveAlliances($existing)) {
+        respond(false, 'Error al guardar las alianzas');
+    }
+
+    logActivity('manage_alliances', 'import', count($imported) . ' alianzas');
+    respond(true, count($imported) . ' alianza(s) importada(s) correctamente', [
+        'imported' => count($imported),
+    ]);
 }
 
 /**

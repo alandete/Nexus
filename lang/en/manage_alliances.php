@@ -9,6 +9,9 @@ return [
         'page_title'         => 'Alliances',
         'page_subtitle'      => 'Manage partner institutions and their support files.',
         'btn_create'         => 'New alliance',
+        'btn_export'         => 'Export',
+        'btn_import'         => 'Import',
+        'import_confirm'     => 'Import alliances from this file? Existing alliances with the same identifier will be updated.',
         'btn_edit'           => 'Edit',
         'btn_delete'         => 'Delete',
 

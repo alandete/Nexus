@@ -9,6 +9,9 @@ return [
         'page_title'         => 'Alianzas',
         'page_subtitle'      => 'Gestiona las instituciones aliadas y sus archivos de apoyo.',
         'btn_create'         => 'Nueva alianza',
+        'btn_export'         => 'Exportar',
+        'btn_import'         => 'Importar',
+        'import_confirm'     => '¿Importar alianzas desde este archivo? Las existentes con el mismo identificador se actualizarán.',
         'btn_edit'           => 'Editar',
         'btn_delete'         => 'Eliminar',
 

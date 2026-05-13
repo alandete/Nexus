@@ -584,11 +584,51 @@
      * Bindings
      * ======================================================== */
 
+    async function importAlliances(file) {
+        const confirmed = await Toast.confirm(
+            t('manage_alliances.import_confirm', '¿Importar alianzas desde este archivo? Las alianzas existentes con el mismo identificador se actualizarán.')
+        );
+        if (!confirmed) return;
+
+        const formData = new FormData();
+        formData.append('action', 'import');
+        formData.append('file', file);
+
+        try {
+            const res = await fetch('includes/manage_alliances_actions.php', {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': csrfToken },
+                body: formData,
+            });
+            const data = await res.json();
+            if (data.success) {
+                Toast.success(data.message);
+                setTimeout(() => location.reload(), 1200);
+            } else {
+                Toast.error(data.message || t('common.error', 'Error'));
+            }
+        } catch (e) {
+            Toast.error(t('common.err_network', 'Error de red'));
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         const btnCreate = document.getElementById('btnCreateAlliance');
         const btnCreateEmpty = document.getElementById('btnCreateAllianceEmpty');
         if (btnCreate && canWrite) btnCreate.addEventListener('click', () => openAllianceForm('create'));
         if (btnCreateEmpty && canWrite) btnCreateEmpty.addEventListener('click', () => openAllianceForm('create'));
+
+        const btnImport = document.getElementById('btnImportAlliances');
+        const importInput = document.getElementById('importAlliancesInput');
+        if (btnImport && importInput && canWrite) {
+            btnImport.addEventListener('click', () => importInput.click());
+            importInput.addEventListener('change', () => {
+                if (importInput.files[0]) {
+                    importAlliances(importInput.files[0]);
+                    importInput.value = '';
+                }
+            });
+        }
 
         document.addEventListener('click', (e) => {
             const editBtn = e.target.closest('.btn-edit-alliance');

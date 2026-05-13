@@ -207,33 +207,29 @@ $optDeps = [
         if (PHP_OS_FAMILY === 'Windows') {
             foreach (['gswin64c', 'gswin32c', 'gs'] as $cmd) {
                 $out = @shell_exec("where {$cmd} 2>&1");
-                if ($out) { $line = trim(explode("\n", $out)[0]); if (file_exists($line)) return true; }
-            }
-            foreach (['C:/Program Files/gs/gs*/bin/gswin64c.exe', 'C:/Program Files (x86)/gs/gs*/bin/gswin32c.exe'] as $p) {
-                if (!empty(glob($p))) return true;
+                if ($out) { $line = trim(explode("\n", $out)[0]); if (@file_exists($line)) return true; }
             }
         } else {
-            // Intentar con shell_exec primero
-            $out = @shell_exec('which gs 2>/dev/null');
-            if ($out && file_exists(trim($out))) return true;
-            // Fallback: rutas comunes en Linux (por si shell_exec está deshabilitado en web)
-            foreach (['/usr/bin/gs', '/usr/local/bin/gs', '/bin/gs'] as $path) {
-                if (file_exists($path)) return true;
-            }
+            // Ejecutar directamente (exec/shell_exec ignoran open_basedir)
+            $code = -1;
+            if (function_exists('exec'))       { @exec('gs --version 2>/dev/null', $o, $code); if ($code === 0) return true; }
+            if (function_exists('shell_exec')) { $o = @shell_exec('gs --version 2>/dev/null'); if (trim((string)$o) !== '') return true; }
         }
         return false;
     })(), 'Optimización de PDF vía línea de comandos. Solicítelo al administrador del servidor.'],
     ['ImageMagick CLI', (function() {
         if (PHP_OS_FAMILY === 'Windows') {
-            $out = @shell_exec('where magick 2>&1') ?: @shell_exec('where convert 2>&1');
-            if ($out) { $path = trim(explode("\n", $out)[0]); if (file_exists($path)) return true; }
-        } else {
-            $out = @shell_exec('which magick 2>/dev/null') ?: @shell_exec('which convert 2>/dev/null');
-            if ($out && file_exists(trim($out))) return true;
-            // Fallback: rutas comunes en Linux
-            foreach (['/usr/bin/convert', '/usr/local/bin/convert', '/usr/bin/magick', '/usr/local/bin/magick'] as $path) {
-                if (file_exists($path)) return true;
+            foreach (['magick', 'convert'] as $cmd) {
+                $out = @shell_exec("where {$cmd} 2>&1");
+                if ($out) { $line = trim(explode("\n", $out)[0]); if (@file_exists($line)) return true; }
             }
+        } else {
+            $code = -1;
+            if (function_exists('exec'))       { @exec('convert --version 2>/dev/null', $o, $code); if ($code === 0) return true; }
+            if (function_exists('shell_exec')) { $o = @shell_exec('convert --version 2>/dev/null'); if (trim((string)$o) !== '') return true; }
+            // magick (versiones recientes de ImageMagick 7)
+            $code = -1;
+            if (function_exists('exec'))       { @exec('magick --version 2>/dev/null', $o, $code); if ($code === 0) return true; }
         }
         return false;
     })(), 'Optimización de imágenes vía línea de comandos. Solicítelo al administrador del servidor.'],

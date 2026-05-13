@@ -380,28 +380,29 @@ function handleImport(array $currentUser): void
         respond(false, 'Sin permisos para importar');
     }
 
-    if (empty($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
-        respond(false, 'No se recibió ningún archivo o hubo un error al subirlo');
+    $uploadError = $_FILES['file']['error'] ?? -1;
+    if (empty($_FILES['file']) || $uploadError !== UPLOAD_ERR_OK) {
+        $msgs = [1 => 'archivo muy grande (ini)', 2 => 'archivo muy grande (form)', 3 => 'subida incompleta', 4 => 'no se recibió archivo'];
+        respond(false, 'Error al subir: ' . ($msgs[$uploadError] ?? "código {$uploadError}"));
     }
 
     $content = file_get_contents($_FILES['file']['tmp_name']);
     if ($content === false) {
-        respond(false, 'No se pudo leer el archivo');
+        respond(false, 'No se pudo leer el archivo temporal');
     }
 
     $imported = json_decode($content, true);
     if (!is_array($imported) || empty($imported)) {
-        respond(false, 'El archivo no es un JSON de alianzas válido');
+        respond(false, 'JSON inválido o vacío (error: ' . json_last_error_msg() . ')');
     }
 
-    // Validar que cada entrada tenga al menos un nombre
     foreach ($imported as $slug => $a) {
         if (!is_string($slug) || empty($slug) || !isset($a['name'])) {
             respond(false, "Entrada inválida en el archivo: «{$slug}»");
         }
     }
 
-    // Mezclar con las alianzas existentes (actualiza las que ya existen, añade las nuevas)
+    // Mezclar con las alianzas existentes
     $existing = getAlliances();
     foreach ($imported as $slug => $a) {
         $existing[$slug] = array_merge($existing[$slug] ?? [], $a);
@@ -411,9 +412,45 @@ function handleImport(array $currentUser): void
         }
     }
 
-    if (!saveAlliances($existing)) {
-        respond(false, 'Error al guardar las alianzas');
+    // Guardar con diagnóstico explícito
+    $db = getDB();
+    if ($db) {
+        try {
+            foreach ($existing as $slug => $a) {
+                $db->prepare("INSERT INTO alliances (slug, name, fullname, country, color, website, lms_url, manager, coordinator, migrator, sections, resource_types, config, active, billable, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON DUPLICATE KEY UPDATE name=VALUES(name), fullname=VALUES(fullname), country=VALUES(country),
+                    color=VALUES(color), website=VALUES(website), lms_url=VALUES(lms_url), manager=VALUES(manager),
+                    coordinator=VALUES(coordinator), migrator=VALUES(migrator), sections=VALUES(sections),
+                    resource_types=VALUES(resource_types), config=VALUES(config), active=VALUES(active),
+                    billable=VALUES(billable), updated_at=VALUES(updated_at)")
+                ->execute([
+                    $slug,
+                    $a['name'] ?? $slug,
+                    $a['fullname'] ?? null,
+                    $a['country'] ?? null,
+                    $a['color'] ?? null,
+                    $a['website'] ?? null,
+                    $a['lms_url'] ?? null,
+                    json_encode($a['manager'] ?? null),
+                    json_encode($a['coordinator'] ?? null),
+                    json_encode($a['migrator'] ?? null),
+                    json_encode($a['sections'] ?? []),
+                    json_encode($a['resource_types'] ?? null),
+                    json_encode($a['config'] ?? null),
+                    isset($a['active']) ? ($a['active'] ? 1 : 0) : 1,
+                    isset($a['billable']) ? ($a['billable'] ? 1 : 0) : 1,
+                    $a['created_at'] ?? date('Y-m-d H:i:s'),
+                    $a['updated_at'] ?? date('Y-m-d H:i:s'),
+                ]);
+            }
+        } catch (PDOException $e) {
+            respond(false, 'Error en base de datos: ' . $e->getMessage());
+        }
     }
+
+    // Siempre sincronizar JSON como respaldo
+    @file_put_contents(ALLIANCES_FILE, json_encode($existing, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 
     logActivity('manage_alliances', 'import', count($imported) . ' alianzas');
     respond(true, count($imported) . ' alianza(s) importada(s) correctamente', [

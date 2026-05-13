@@ -5,6 +5,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [2.0.0-alpha.3] — 2026-04-19 (en desarrollo)
 
+### Alianzas: importar con diagnóstico de errores BD — 2026-05-12
+
+- Reescrito `handleImport`: INSERT directo con catch explícito de PDOException (antes `saveAlliances()` los silenciaba).
+- Siempre escribe JSON de respaldo tras el INSERT, independientemente del resultado.
+- Mensajes de error descriptivos para cada código de fallo de subida de archivo.
+
 ### Instalador web + diagnóstico cross-platform — 2026-05-12
 
 **Instalador:**

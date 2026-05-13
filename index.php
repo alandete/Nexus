@@ -176,11 +176,8 @@ $quickLinksMeta = [
 
     <!-- Bootstrap Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.min.css" rel="stylesheet">
-
-    <?php if (in_array($page, ['alliances', 'manage-alliances'])): ?>
     <!-- Flag Icons (SVG, cross-browser) -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icons@7.2.3/css/flag-icons.min.css">
-    <?php endif; ?>
 
     <!-- Nexus 2.0 CSS -->
     <link rel="stylesheet" href="assets/css/variables.css?v=<?= filemtime('assets/css/variables.css') ?>">

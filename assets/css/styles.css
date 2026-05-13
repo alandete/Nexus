@@ -1042,6 +1042,7 @@ select.form-control {
 .page-title {
     font-size: var(--ds-font-size-heading-lg);
     font-weight: var(--ds-font-weight-semibold);
+    line-height: 1;
     color: var(--ds-text);
     margin: 0;
     display: flex;
@@ -1310,22 +1311,11 @@ select.form-control {
     color: var(--ds-text-inverse);
 }
 
-.sidebar-sublink--pending {
-    color: var(--ds-text-subtlest);
-}
-
-.sidebar-pending-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--ds-text-subtlest);
-    flex-shrink: 0;
-    margin-left: auto;
-}
 
 /* Separacion entre el nombre de seccion y sus sub-opciones */
 .sidebar-submenu.show {
-    padding-top: var(--ds-space-050);
+    padding-top: var(--ds-space-075);
+    padding-bottom: var(--ds-space-300);
 }
 
 .sidebar-link-icon {
@@ -1356,25 +1346,28 @@ select.form-control {
 
 .sidebar-submenu {
     list-style: none;
-    margin: 0;
-    padding: 0;
+    margin: 0 0 0 var(--ds-space-150);
+    padding: 0 0 0 var(--ds-space-150);
+    border-left: 1px solid transparent;
     display: flex;
     flex-direction: column;
-    gap: var(--ds-space-050);
+    gap: var(--ds-space-075);
     max-height: 0;
     overflow: hidden;
-    transition: max-height var(--ds-duration-slow) var(--ds-ease-out);
+    transition: max-height var(--ds-duration-slow) var(--ds-ease-out),
+                border-color var(--ds-duration-normal);
 }
 
 .sidebar-submenu.show {
     max-height: 500px;
+    border-left-color: var(--ds-border-subtle);
 }
 
 .sidebar-sublink {
     display: flex;
     align-items: center;
     gap: var(--ds-space-100);
-    padding: var(--ds-space-050) var(--ds-space-150) var(--ds-space-050) var(--ds-space-200);
+    padding: var(--ds-space-075) var(--ds-space-100);
     font-size: var(--ds-font-size-body);
     color: var(--ds-text-subtle);
     text-decoration: none;
@@ -1392,6 +1385,13 @@ select.form-control {
 .sidebar-sublink .sidebar-link-icon {
     font-size: 14px;
     width: 16px;
+}
+
+.sidebar-sublink-flag {
+    width: 16px;
+    height: 12px;
+    flex-shrink: 0;
+    border-radius: 2px;
 }
 
 /* Sidebar footer */
@@ -2755,14 +2755,14 @@ a.stat-card:hover {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 28px;
-    height: 28px;
-    padding: 0;
+    width: 20px;
+    padding: 2px;
+    margin-top: 4px;
     border: none;
     background: transparent;
     border-radius: var(--ds-radius-100);
     color: var(--ds-icon-subtle);
-    font-size: 16px;
+    font-size: 13px;
     cursor: pointer;
     transition: background var(--ds-duration-fast), color var(--ds-duration-fast);
     flex-shrink: 0;

@@ -254,6 +254,7 @@ $docSections = [
                     <li><strong><?= __('docs.sec_sessions_label') ?></strong> — HttpOnly, SameSite=Strict</li>
                     <li><strong><?= __('docs.sec_passwords_label') ?></strong> — bcrypt (password_hash)</li>
                     <li><strong><?= __('docs.sec_api_label') ?></strong> — AES-256-CBC</li>
+                    <li><strong><?= __('docs.sec_password_recovery_label') ?></strong> — <?= __('docs.sec_password_recovery') ?></li>
                     <li><strong>Headers</strong> — nosniff, SAMEORIGIN, referrer-policy, permissions-policy</li>
                 </ul>
             </article>
@@ -501,6 +502,15 @@ Retro incorrecta: La respuesta correcta es Paris.</code></pre>
                         <tr><td><?= __('docs.field_role') ?></td><td><?= __('docs.field_role_desc') ?></td><td>Admin, Editor, Viewer</td></tr>
                     </tbody>
                 </table>
+                <h4 class="mt-300"><?= __('docs.users_recovery_title') ?></h4>
+                <p><?= __('docs.users_recovery_desc') ?></p>
+                <table class="table table-compact">
+                    <thead><tr><th><?= __('docs.col_method') ?></th><th><?= __('docs.col_description') ?></th></tr></thead>
+                    <tbody>
+                        <tr><td><?= __('docs.recovery_email') ?></td><td><?= __('docs.recovery_email_desc') ?></td></tr>
+                        <tr><td><?= __('docs.recovery_admin_link') ?></td><td><?= __('docs.recovery_admin_link_desc') ?></td></tr>
+                    </tbody>
+                </table>
             </article>
 
             <article id="settings-alliances" class="docs-article">
@@ -516,7 +526,19 @@ Retro incorrecta: La respuesta correcta es Paris.</code></pre>
             <article id="settings-apis" class="docs-article">
                 <h3><?= __('docs.settings_apis') ?></h3>
                 <p><?= __('docs.settings_apis_desc') ?></p>
-                <div class="alert alert-warning">
+                <table class="table table-compact">
+                    <thead><tr><th><?= __('docs.col_integration') ?></th><th><?= __('docs.col_purpose') ?></th><th><?= __('docs.col_required') ?></th></tr></thead>
+                    <tbody>
+                        <tr><td>iLovePDF / iLoveIMG</td><td><?= __('docs.api_ilovepdf_purpose') ?></td><td><?= __('docs.api_ilovepdf_req') ?></td></tr>
+                        <tr><td>Gmail IMAP</td><td><?= __('docs.api_gmail_purpose') ?></td><td><?= __('docs.api_gmail_req') ?></td></tr>
+                        <tr><td>SMTP</td><td><?= __('docs.api_smtp_purpose') ?></td><td><?= __('docs.api_smtp_req') ?></td></tr>
+                    </tbody>
+                </table>
+                <div class="alert alert-info mt-200">
+                    <i class="bi bi-info-circle alert-icon" aria-hidden="true"></i>
+                    <span class="alert-content"><?= __('docs.api_smtp_note') ?></span>
+                </div>
+                <div class="alert alert-warning mt-200">
                     <i class="bi bi-exclamation-triangle alert-icon" aria-hidden="true"></i>
                     <span class="alert-content"><?= __('docs.settings_apis_warning') ?></span>
                 </div>

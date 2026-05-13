@@ -419,9 +419,9 @@ function timerStart(PDO $db, int $userId): void
     $db->prepare("UPDATE time_entries SET end_time = NOW(), duration_seconds = TIMESTAMPDIFF(SECOND, start_time, NOW()) WHERE user_id = ? AND end_time IS NULL")
        ->execute([$userId]);
 
-    // Crear nueva entrada
-    $db->prepare("INSERT INTO time_entries (task_id, user_id, start_time) VALUES (?, ?, NOW())")
-       ->execute([$taskId, $userId]);
+    // Crear nueva entrada guardando el status previo para poder revertir en un descarte
+    $db->prepare("INSERT INTO time_entries (task_id, user_id, start_time, prev_task_status) VALUES (?, ?, NOW(), ?)")
+       ->execute([$taskId, $userId, $existingTask['status'] ?? null]);
 
     // Marcar tarea como en progreso
     $db->prepare("UPDATE tasks SET status = 'in_progress' WHERE id = ? AND status != 'cancelled'")->execute([$taskId]);
@@ -555,18 +555,17 @@ function timerStatus(PDO $db, int $userId): void
 
 function timerDiscard(PDO $db, int $userId): void
 {
-    // Obtener el task_id y status del timer activo antes de borrarlo
+    // Obtener task_id y status previo guardado en la entrada activa
     $stmt = $db->prepare("
-        SELECT te.task_id, t.status
+        SELECT te.task_id, te.prev_task_status
         FROM time_entries te
-        JOIN tasks t ON te.task_id = t.id
         WHERE te.user_id = ? AND te.end_time IS NULL
         ORDER BY te.start_time DESC LIMIT 1
     ");
     $stmt->execute([$userId]);
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
     $discardedTaskId = (int) ($row['task_id'] ?? 0);
-    $prevStatus = $row['status'] ?? '';
+    $prevStatus      = $row['prev_task_status'] ?? null;
 
     // Borrar la entrada activa
     $db->prepare("DELETE FROM time_entries WHERE user_id = ? AND end_time IS NULL")->execute([$userId]);
@@ -576,18 +575,15 @@ function timerDiscard(PDO $db, int $userId): void
         $countStmt->execute([$discardedTaskId]);
         $remaining = (int) $countStmt->fetchColumn();
 
-        if ($remaining === 0) {
-            // Sin entries previas. Dos casos:
-            // - La tarea estaba 'in_progress' (timer recien arrancado): eliminarla por completo.
-            //   El usuario solo estaba probando y no quiere que quede como tarea programada.
-            // - La tarea estaba 'paused' o 'pending': resetear status a 'pending' (se conserva la tarea).
-            if ($prevStatus === 'in_progress') {
-                $db->prepare("DELETE FROM task_tags WHERE task_id = ?")->execute([$discardedTaskId]);
-                $db->prepare("DELETE FROM tasks WHERE id = ? AND user_id = ?")->execute([$discardedTaskId, $userId]);
-            } else {
-                $db->prepare("UPDATE tasks SET status = 'pending' WHERE id = ? AND user_id = ? AND status != 'cancelled'")
-                   ->execute([$discardedTaskId, $userId]);
-            }
+        if ($remaining === 0 && $prevStatus === 'in_progress') {
+            // Tarea recien creada desde el rastreador: eliminarla por completo.
+            $db->prepare("DELETE FROM task_tags WHERE task_id = ?")->execute([$discardedTaskId]);
+            $db->prepare("DELETE FROM tasks WHERE id = ? AND user_id = ?")->execute([$discardedTaskId, $userId]);
+        } else {
+            // Revertir al status que tenia antes de iniciar el timer (completed, paused, pending...).
+            $revertTo = in_array($prevStatus, ['pending', 'paused', 'completed']) ? $prevStatus : 'pending';
+            $db->prepare("UPDATE tasks SET status = ? WHERE id = ? AND user_id = ?")
+               ->execute([$revertTo, $discardedTaskId, $userId]);
         }
     }
 

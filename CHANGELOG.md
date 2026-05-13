@@ -5,6 +5,23 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [2.0.0-alpha.3] — 2026-04-19 (en desarrollo)
 
+### Tareas + Sidebar + UI — 2026-05-12
+
+**Tareas:**
+- Corrección: al descartar el timer sobre una tarea con sesiones previas, el estado se revierte al valor anterior (completada, pausada, etc.) en lugar de quedar en progreso. Migración `016`: columna `prev_task_status` en `time_entries` para conservar el estado previo al iniciar.
+- Corrección: registros de tiempo en el panel de edición ahora se validan on-blur (solapamiento y orden); ícono verde/rojo indica el estado. El botón principal guarda tanto los metadatos como los registros modificados en una sola acción.
+- Nuevo: selector de estado (Pendiente / Pausada / Completada) en el panel de edición de tareas.
+- Corrección: `<img>` generadas desde URLs en el parser GIFT/QTI incluyen clases `d-block mx-auto`.
+
+**Sidebar:**
+- Alianzas: solo se muestran las alianzas activas, facturables e implementadas (`readyAlliances`). Se eliminan ítems en desarrollo y no facturables (RRHH Scala).
+- Alianzas: bandera del país con `flag-icons` en cada ítem del submenú.
+- Submenús: línea vertical sutil de jerarquía, mayor separación vertical entre ítems y respecto al siguiente elemento del menú principal.
+- `flag-icons` cargado globalmente (antes solo en páginas de alianzas).
+
+**UI:**
+- Ícono de marcador de página (accesos rápidos) reducido y alineado correctamente con el título `h1`.
+
 ### Recuperación de contraseña + accesos rápidos + correcciones — 2026-05-01
 
 **Recuperación de contraseña:**

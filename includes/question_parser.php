@@ -587,7 +587,7 @@ function procesarImagenes(string $texto): array
     $resultado = preg_replace_callback($pattern, function ($match) use (&$count) {
         $count++;
         $url = htmlspecialchars($match[0], ENT_QUOTES, 'UTF-8');
-        return '<img src="' . $url . '" alt="">';
+        return '<img src="' . $url . '" alt="" class="d-block mx-auto">';
     }, $texto);
 
     return ['texto' => $resultado, 'tieneImagen' => $count > 0, 'count' => $count];

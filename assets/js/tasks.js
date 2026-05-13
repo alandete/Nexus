@@ -464,7 +464,7 @@
         //  - default: tarea del timer activo, valores del state
         let current;
         if (isCreate) {
-            current = { id: null, title: '', description: '', allianceId: null, tagIds: [], priority: 'medium', dueDate: '', isRecurring: false };
+            current = { id: null, title: '', description: '', allianceId: null, tagIds: [], priority: 'medium', dueDate: '', isRecurring: false, status: 'pending' };
         } else if (opts.task) {
             current = {
                 id:          opts.task.id,
@@ -475,6 +475,7 @@
                 priority:    opts.task.priority || 'medium',
                 dueDate:     opts.task.due_date || '',
                 isRecurring: !!parseInt(opts.task.is_recurring || 0),
+                status:      opts.task.status || 'pending',
             };
         } else {
             current = {
@@ -486,6 +487,7 @@
                 priority:    state.priority || 'medium',
                 dueDate:     state.dueDate || '',
                 isRecurring: state.isRecurring || false,
+                status:      'in_progress',
             };
         }
 
@@ -632,10 +634,13 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">${escapeHtml(t('tasks.field_status', 'Estado'))}</label>
-                        <div class="form-static" id="fTaskStatusBadge">
-                            <span class="text-subtle">—</span>
-                        </div>
+                        <label for="fTaskStatus" class="form-label">${escapeHtml(t('tasks.field_status', 'Estado'))}</label>
+                        <select id="fTaskStatus" name="status" class="form-control">
+                            <option value="pending"    ${current.status === 'pending'    ? 'selected' : ''}>${escapeHtml(t('tasks.status_pending',    'Pendiente'))}</option>
+                            <option value="paused"     ${current.status === 'paused'     ? 'selected' : ''}>${escapeHtml(t('tasks.status_paused',     'Pausada'))}</option>
+                            <option value="completed"  ${current.status === 'completed'  ? 'selected' : ''}>${escapeHtml(t('tasks.status_completed',  'Completada'))}</option>
+                            <option value="in_progress" ${current.status === 'in_progress' ? 'selected' : ''} disabled>${escapeHtml(t('tasks.status_in_progress', 'En progreso'))}</option>
+                        </select>
                     </div>
                 </div>
 
@@ -798,11 +803,10 @@
         }
     }
 
-    // Popular los 3 campos readonly: desde, tiempo acumulado y estado
+    // Popular los campos readonly: desde y tiempo acumulado
     function renderFormSummary(task, entries) {
-        const sinceEl  = document.getElementById('fTaskSince');
-        const totalEl  = document.getElementById('fTaskTotal');
-        const statusEl = document.getElementById('fTaskStatusBadge');
+        const sinceEl = document.getElementById('fTaskSince');
+        const totalEl = document.getElementById('fTaskTotal');
 
         // Desde
         if (sinceEl) {
@@ -819,12 +823,6 @@
             totalEl.innerHTML = totalSecs > 0
                 ? formatDuration(totalSecs)
                 : `<span class="text-subtle">—</span>`;
-        }
-
-        // Estado
-        if (statusEl) {
-            const badge = buildStatusBadge(task, entries);
-            statusEl.innerHTML = badge || `<span class="text-subtle">${escapeHtml(t('tasks.no_due_date', 'Sin fecha'))}</span>`;
         }
     }
 
@@ -857,10 +855,7 @@
                 <input type="time" class="form-control form-control-sm task-entry-input" data-field="end" value="${escapeHtml(endHour)}" step="60">
                 <div class="task-entry-duration text-mono" data-role="duration">${dur}</div>
                 <div class="task-entry-actions">
-                    <button type="button" class="btn-icon btn-icon-success" data-action="save-form-entry"
-                            data-tooltip="${t('common.save', 'Guardar')}" data-tooltip-position="top" aria-label="${t('common.save', 'Guardar')}">
-                        <i class="bi bi-check-lg" aria-hidden="true"></i>
-                    </button>
+                    <span class="task-entry-status" data-role="entry-state" aria-live="polite"></span>
                     <button type="button" class="btn-icon btn-icon-danger" data-action="delete-form-entry"
                             data-tooltip="${t('tasks.btn_delete', 'Eliminar')}" data-tooltip-position="top" aria-label="${t('tasks.btn_delete', 'Eliminar')}">
                         <i class="bi bi-trash" aria-hidden="true"></i>
@@ -911,6 +906,14 @@
         }
         if (hasError) return;
 
+        if (document.querySelector('.task-entry-row[data-entry-state="invalid"]')) {
+            const err = document.getElementById('taskEditError');
+            document.getElementById('taskEditErrorText').textContent =
+                t('tasks.entry_err_has_invalid', 'Corrige los registros con errores antes de guardar.');
+            err.classList.remove('d-none');
+            return;
+        }
+
         const isCreate = opts.create === true;
 
         // ID de la tarea que estamos editando (arbitraria o la del timer)
@@ -925,6 +928,23 @@
         if (btnText) btnText.textContent = t('common.saving', 'Guardando...');
 
         try {
+            // Guardar entradas modificadas y validadas antes de los metadatos de la tarea
+            for (const row of document.querySelectorAll('.task-entry-row[data-entry-state="valid"]')) {
+                const entryResult = await api('time_entry_update', {
+                    entry_id:   row.dataset.entryId,
+                    start_time: `${row.dataset.date} ${row.querySelector('[data-field="start"]').value}:00`,
+                    end_time:   `${row.dataset.date} ${row.querySelector('[data-field="end"]').value}:00`,
+                });
+                if (!entryResult.success) {
+                    const err = document.getElementById('taskEditError');
+                    document.getElementById('taskEditErrorText').textContent = entryResult.message
+                        || t('tasks.entry_err_update', 'No se pudo actualizar el registro.');
+                    err.classList.remove('d-none');
+                    return;
+                }
+            }
+
+            const statusVal = form.querySelector('#fTaskStatus')?.value;
             const payload = {
                 title, description,
                 alliance_id: allianceId,
@@ -938,6 +958,7 @@
                 result = await api('create', payload);
             } else {
                 payload.task_id = editingTaskId;
+                if (statusVal) payload.status = statusVal;
                 result = await api('update', payload);
             }
 
@@ -2009,8 +2030,7 @@
             const btn = e.target.closest('[data-action]');
             if (!btn) return;
             const action = btn.dataset.action;
-            if (action === 'save-form-entry') saveFormEntry(btn);
-            else if (action === 'delete-form-entry') deleteFormEntry(btn);
+            if (action === 'delete-form-entry') deleteFormEntry(btn);
         });
 
         // Recalcular duracion en vivo al cambiar inputs de tiempo en el form
@@ -2025,6 +2045,54 @@
             const secs = diffSeconds(s, f);
             durEl.textContent = secs > 0 ? formatDuration(secs) : '—';
         });
+
+        // Validar solapamiento al salir de un campo de tiempo
+        document.addEventListener('blur', (e) => {
+            if (!e.target.matches('.task-entry-input')) return;
+            const row = e.target.closest('.task-entry-row');
+            if (row) validateEntryRow(row);
+        }, true);
+    }
+
+    function validateEntryRow(row) {
+        const startHour = row.querySelector('[data-field="start"]').value;
+        const endHour   = row.querySelector('[data-field="end"]').value;
+
+        if (!startHour || !endHour) {
+            setEntryRowState(row, 'clean');
+            return;
+        }
+        if (diffSeconds(startHour, endHour) <= 0) {
+            setEntryRowState(row, 'invalid', t('tasks.entry_err_order', 'La hora de fin debe ser posterior al inicio.'));
+            return;
+        }
+        const overlap = findOverlappingEntry(row.dataset.date, startHour, endHour, row.dataset.entryId);
+        if (overlap) {
+            const msg = t('tasks.entry_err_overlap', 'Se solapa con otro registro del dia ({task}, {start}-{end})')
+                .replace('{task}',  overlap.task_title || '')
+                .replace('{start}', to12h((overlap.start_time || '').slice(11, 16)))
+                .replace('{end}',   to12h((overlap.end_time   || '').slice(11, 16)));
+            setEntryRowState(row, 'invalid', msg);
+            return;
+        }
+        setEntryRowState(row, 'valid');
+    }
+
+    function setEntryRowState(row, state, errorMsg = '') {
+        const statusEl = row.querySelector('[data-role="entry-state"]');
+        if (!statusEl) return;
+        row.dataset.entryState = state;
+        if (state === 'valid') {
+            statusEl.innerHTML = '<i class="bi bi-check-circle-fill" style="color:var(--ds-text-success)" aria-hidden="true"></i>';
+            statusEl.removeAttribute('data-tooltip');
+        } else if (state === 'invalid') {
+            statusEl.innerHTML = '<i class="bi bi-x-circle-fill" style="color:var(--ds-text-danger)" aria-hidden="true"></i>';
+            statusEl.setAttribute('data-tooltip', errorMsg);
+            statusEl.setAttribute('data-tooltip-position', 'top');
+        } else {
+            statusEl.innerHTML = '';
+            statusEl.removeAttribute('data-tooltip');
+        }
     }
 
     function diffSeconds(hhmmStart, hhmmEnd) {

@@ -276,10 +276,13 @@ function getMigrations(): array
 
         '015_users_add_reset_expires' => "
             ALTER TABLE users ADD COLUMN reset_expires DATETIME DEFAULT NULL",
+        '016_time_entries_add_prev_task_status' => "
+            ALTER TABLE time_entries ADD COLUMN prev_task_status VARCHAR(20) DEFAULT NULL",
     ];
 }
 
 // ── Utilidades generales ────────────────────────────────────────────────────
+
 
 /**
  * Sanitizar entrada

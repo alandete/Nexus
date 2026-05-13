@@ -57,21 +57,22 @@ $isUtilitiesActive = in_array($currentPage, $utilitiesPages);
                 </button>
                 <ul class="sidebar-submenu <?= $currentPage === 'alliances' ? 'show' : '' ?>" id="sidebar-sub-alliances" role="menu">
                     <?php
-                    $currentAlliance = $_GET['alliance'] ?? 'unis';
-                    $readyAlliances  = ['unis', 'unab'];
+                    $currentAlliance  = $_GET['alliance'] ?? 'unis';
+                    $readyAlliances   = ['unis', 'unab'];
                     $sidebarAlliances = getAlliances();
                     foreach ($sidebarAlliances as $aSlug => $aData):
                         if (empty($aData['active'])) continue;
+                        if (empty($aData['billable'])) continue;
+                        if (!in_array($aSlug, $readyAlliances)) continue;
                         $isCurrentAlliance = $currentPage === 'alliances' && $currentAlliance === $aSlug;
-                        $isReady = in_array($aSlug, $readyAlliances);
                     ?>
                     <li role="none">
-                        <a class="sidebar-sublink <?= $isCurrentAlliance ? 'active' : '' ?> <?= !$isReady ? 'sidebar-sublink--pending' : '' ?>"
+                        <a class="sidebar-sublink <?= $isCurrentAlliance ? 'active' : '' ?>"
                            href="<?= url('alliances') ?>?alliance=<?= urlencode($aSlug) ?>" role="menuitem">
-                            <span class="sidebar-link-text"><?= htmlspecialchars($aData['name']) ?></span>
-                            <?php if (!$isReady): ?>
-                            <span class="sidebar-pending-dot" aria-label="En desarrollo"></span>
+                            <?php if (!empty($aData['country'])): ?>
+                            <span class="fi fi-<?= strtolower(htmlspecialchars($aData['country'])) ?> sidebar-sublink-flag" aria-hidden="true"></span>
                             <?php endif; ?>
+                            <span class="sidebar-link-text"><?= htmlspecialchars($aData['name']) ?></span>
                         </a>
                     </li>
                     <?php endforeach; ?>

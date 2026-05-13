@@ -12,7 +12,7 @@ $currentUser = getCurrentUser();
 // Determinar que secciones del sidebar estan expandidas
 $settingsPages  = ['settings', 'users', 'manage-alliances', 'manage-tasks', 'application', 'integrations', 'snapshots', 'system', 'activity'];
 $isSettingsActive  = in_array($currentPage, $settingsPages);
-$utilitiesPages = ['utilities-images', 'utilities-pdf', 'utilities-gift'];
+$utilitiesPages = ['utilities-images', 'utilities-pdf', 'utilities-gift', 'utilities-rise'];
 $isUtilitiesActive = in_array($currentPage, $utilitiesPages);
 ?>
 
@@ -106,6 +106,12 @@ $isUtilitiesActive = in_array($currentPage, $utilitiesPages);
                         <a class="sidebar-sublink <?= $currentPage === 'utilities-images' ? 'active' : '' ?>" href="<?= url('utilities-images') ?>" role="menuitem">
                             <i class="bi bi-image sidebar-link-icon" aria-hidden="true"></i>
                             <span class="sidebar-link-text"><?= __('menu.image_optimizer') ?></span>
+                        </a>
+                    </li>
+                    <li role="none">
+                        <a class="sidebar-sublink <?= $currentPage === 'utilities-rise' ? 'active' : '' ?>" href="<?= url('utilities-rise') ?>" role="menuitem">
+                            <i class="bi bi-file-earmark-code sidebar-link-icon" aria-hidden="true"></i>
+                            <span class="sidebar-link-text"><?= __('menu.rise_corrector') ?></span>
                         </a>
                     </li>
                 </ul>

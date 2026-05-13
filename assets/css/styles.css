@@ -9702,6 +9702,20 @@ a.stat-card:hover {
     color: var(--ds-text-subtle);
 }
 
+/* ── Rise Corrector ──────────────────────────────────────────────────────── */
+
+/* Columnas 60/40: info más ancha, dropzone compacto */
+@media (min-width: 1100px) {
+    .rise-layout {
+        grid-template-columns: 6fr 4fr;
+    }
+}
+
+.rise-info-section {
+    padding-top: var(--ds-space-200);
+    border-top: 1px solid var(--ds-border);
+}
+
 /* ── Gift / Question Converter ───────────────────────────────────────────── */
 
 /* Columnas 60/40: opciones más anchas, dropzone más compacta */

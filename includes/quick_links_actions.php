@@ -32,7 +32,7 @@ if (!validateCsrf()) {
 const MAX_QUICK_LINKS = 5;
 
 $allowedPages = [
-    'tasks', 'alliances', 'utilities-gift', 'utilities-pdf', 'utilities-images',
+    'tasks', 'alliances', 'utilities-gift', 'utilities-pdf', 'utilities-images', 'utilities-rise',
     'reports', 'documentation', 'users', 'manage-alliances', 'manage-tasks',
     'application', 'integrations', 'snapshots', 'system', 'activity',
 ];

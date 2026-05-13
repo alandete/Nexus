@@ -22,6 +22,7 @@ return [
         'questions' => 'Questions',
         'pdf_optimizer' => 'Optimize PDF',
         'image_optimizer' => 'Optimize images',
+        'rise_corrector'  => 'Rise Corrector',
         'users' => 'Users',
         'manage_alliances' => 'Manage alliances',
         'manage_tasks' => 'Manage tasks',

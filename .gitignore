@@ -19,6 +19,7 @@ temp/*
 !temp/.gitkeep
 
 # Datos con info sensible (usar *.example.json como plantilla)
+data/tmp/
 data/users.json
 data/api_settings.json
 data/activity_log.json

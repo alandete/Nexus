@@ -22,6 +22,7 @@ return [
         'questions' => 'Preguntas',
         'pdf_optimizer' => 'Optimizar PDF',
         'image_optimizer' => 'Optimizar imágenes',
+        'rise_corrector'  => 'Corrector Rise',
         'users' => 'Usuarios',
         'manage_alliances' => 'Gestionar alianzas',
         'manage_tasks' => 'Administrar tareas',

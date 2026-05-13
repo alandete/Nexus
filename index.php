@@ -53,7 +53,7 @@ if (empty($_SESSION['lang']) && !empty($projectInfo['default_lang']) && in_array
 $page = isset($_GET['page']) ? sanitize($_GET['page']) : 'home';
 $validPages = [
     'home', 'tasks', 'alliances', 'documentation',
-    'utilities-images', 'utilities-pdf', 'utilities-gift',
+    'utilities-images', 'utilities-pdf', 'utilities-gift', 'utilities-rise',
     'reports',
     'settings', 'users', 'manage-alliances', 'manage-tasks', 'application', 'integrations',
     'snapshots', 'system', 'activity',
@@ -121,6 +121,7 @@ $quickLinksMeta = [
     'utilities-gift'   => ['icon' => 'bi-file-earmark-text', 'label' => __('menu.questions'),       'href' => url('utilities-gift')],
     'utilities-pdf'    => ['icon' => 'bi-file-earmark-pdf',  'label' => __('menu.pdf_optimizer'),   'href' => url('utilities-pdf')],
     'utilities-images' => ['icon' => 'bi-image',             'label' => __('menu.image_optimizer'), 'href' => url('utilities-images')],
+    'utilities-rise'   => ['icon' => 'bi-file-earmark-code', 'label' => __('menu.rise_corrector'),  'href' => url('utilities-rise')],
     'reports'          => ['icon' => 'bi-bar-chart',         'label' => __('menu.reports'),         'href' => url('reports')],
     'documentation'    => ['icon' => 'bi-book',              'label' => __('menu.docs'),            'href' => url('documentation')],
     'users'            => ['icon' => 'bi-people',            'label' => __('menu.users'),           'href' => url('users')],
@@ -313,6 +314,23 @@ $quickLinksMeta = [
 
     <?php if ($page === 'utilities-pdf'): ?>
     <script src="assets/js/pdf-optimizer.js?v=<?= filemtime('assets/js/pdf-optimizer.js') ?>"></script>
+    <?php endif; ?>
+
+    <?php if ($page === 'utilities-rise'): ?>
+    <script>
+    window.__RISE_I18N__ = {
+        rise_drop_title:         <?= json_encode(__('utilities.rise_drop_title')) ?>,
+        rise_drop_subtitle:      <?= json_encode(__('utilities.rise_drop_subtitle')) ?>,
+        rise_err_not_zip:        <?= json_encode(__('utilities.rise_err_not_zip')) ?>,
+        rise_files_modified:     <?= json_encode(__('utilities.rise_files_modified')) ?>,
+        rise_na_detail:          <?= json_encode(__('utilities.rise_na_detail')) ?>,
+        rise_btn_download:       <?= json_encode(__('utilities.rise_btn_download')) ?>,
+        rise_status_patched_loz: <?= json_encode($lang === 'en' ? 'Fixed' : 'Corregido') ?>,
+        rise_status_already_loz: <?= json_encode($lang === 'en' ? 'Already fixed' : 'Ya corregido') ?>,
+        rise_status_na_loz:      <?= json_encode($lang === 'en' ? 'Not applicable' : 'No aplica') ?>,
+    };
+    </script>
+    <script src="assets/js/rise-patch.js?v=<?= filemtime('assets/js/rise-patch.js') ?>"></script>
     <?php endif; ?>
 
     <?php if ($page === 'integrations'): ?>

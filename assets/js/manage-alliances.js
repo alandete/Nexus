@@ -584,32 +584,32 @@
      * Bindings
      * ======================================================== */
 
-    async function importAlliances(file) {
-        const confirmed = await Toast.confirm(
-            t('manage_alliances.import_confirm', '¿Importar alianzas desde este archivo? Las alianzas existentes con el mismo identificador se actualizarán.')
-        );
-        if (!confirmed) return;
+    function importAlliances(file) {
+        Toast.confirm(
+            t('manage_alliances.import_confirm', '¿Importar alianzas desde este archivo? Las alianzas existentes con el mismo identificador se actualizarán.'),
+            async () => {
+                const formData = new FormData();
+                formData.append('action', 'import');
+                formData.append('file', file);
 
-        const formData = new FormData();
-        formData.append('action', 'import');
-        formData.append('file', file);
-
-        try {
-            const res = await fetch('includes/manage_alliances_actions.php', {
-                method: 'POST',
-                headers: { 'X-CSRF-TOKEN': csrfToken },
-                body: formData,
-            });
-            const data = await res.json();
-            if (data.success) {
-                Toast.success(data.message);
-                setTimeout(() => location.reload(), 1200);
-            } else {
-                Toast.error(data.message || t('common.error', 'Error'));
+                try {
+                    const res = await fetch('includes/manage_alliances_actions.php', {
+                        method: 'POST',
+                        headers: { 'X-CSRF-TOKEN': csrfToken },
+                        body: formData,
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        Toast.success(data.message);
+                        setTimeout(() => location.reload(), 1200);
+                    } else {
+                        Toast.error(data.message || t('common.error', 'Error'));
+                    }
+                } catch (e) {
+                    Toast.error(t('common.err_network', 'Error de red'));
+                }
             }
-        } catch (e) {
-            Toast.error(t('common.err_network', 'Error de red'));
-        }
+        );
     }
 
     document.addEventListener('DOMContentLoaded', () => {

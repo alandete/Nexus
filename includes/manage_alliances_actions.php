@@ -412,8 +412,12 @@ function handleImport(array $currentUser): void
         }
     }
 
+    $debug = [];
+
     // Guardar con diagnóstico explícito
     $db = getDB();
+    $debug['db'] = $db !== null;
+
     if ($db) {
         try {
             foreach ($existing as $slug => $a) {
@@ -444,17 +448,20 @@ function handleImport(array $currentUser): void
                     $a['updated_at'] ?? date('Y-m-d H:i:s'),
                 ]);
             }
+            $debug['db_rows'] = (int) $db->query("SELECT COUNT(*) FROM alliances")->fetchColumn();
         } catch (PDOException $e) {
             respond(false, 'Error en base de datos: ' . $e->getMessage());
         }
     }
 
     // Siempre sincronizar JSON como respaldo
-    @file_put_contents(ALLIANCES_FILE, json_encode($existing, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    $jsonResult = file_put_contents(ALLIANCES_FILE, json_encode($existing, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    $debug['json'] = $jsonResult !== false ? $jsonResult : 'fail (' . error_get_last()['message'] . ')';
 
     logActivity('manage_alliances', 'import', count($imported) . ' alianzas');
-    respond(true, count($imported) . ' alianza(s) importada(s) correctamente', [
+    respond(true, count($imported) . ' alianza(s) importada(s). Debug: ' . json_encode($debug), [
         'imported' => count($imported),
+        'debug'    => $debug,
     ]);
 }
 

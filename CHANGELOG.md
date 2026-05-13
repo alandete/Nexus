@@ -5,11 +5,13 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [2.0.0-alpha.3] — 2026-04-19 (en desarrollo)
 
-### Alianzas: importar con diagnóstico de errores BD — 2026-05-12
+### Alianzas: exportar e importar — 2026-05-12
 
-- Reescrito `handleImport`: INSERT directo con catch explícito de PDOException (antes `saveAlliances()` los silenciaba).
-- Siempre escribe JSON de respaldo tras el INSERT, independientemente del resultado.
-- Mensajes de error descriptivos para cada código de fallo de subida de archivo.
+- Nuevo `includes/alliance_export_actions.php`: exporta todas las alianzas como JSON descargable (sin rutas locales de archivos).
+- Nuevo botón Importar en `manage-alliances`: sube JSON, valida estructura, mezcla con alianzas existentes (actualiza las que coinciden por slug, agrega las nuevas).
+- Confirmación contextual antes de importar: muestra cuántas alianzas ya existen en el sistema.
+- `handleImport` reescrito con INSERT directo y catch explícito de PDOException; siempre escribe JSON de respaldo.
+- Orden de botones corregido: Nueva alianza (primario) → Exportar → Importar.
 
 ### Instalador web + diagnóstico cross-platform — 2026-05-12
 

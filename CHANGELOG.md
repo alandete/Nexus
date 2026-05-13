@@ -5,6 +5,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [2.0.0-alpha.3] — 2026-04-19 (en desarrollo)
 
+### Import de tareas: deduplicación por día — 2026-05-12
+
+- Corregido: el import ahora crea una instancia de tarea por (alianza + título + fecha), igual que el comportamiento del timer en local. Antes agrupaba todas las entradas de una misma tarea en un solo registro sin importar el día, causando que el reporte del servidor mostrara menos tareas que local.
+
 ### Etiquetas: exportar e importar — 2026-05-12
 
 - Nuevo `includes/tags_export_actions.php`: descarga etiquetas como JSON (`name`, `color`).

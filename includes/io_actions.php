@@ -221,17 +221,19 @@ function handleImport(PDO $db, int $userId): void
             }
             $tagIds = array_unique(array_filter($tagIds));
 
-            // Buscar o crear tarea por (user + alliance + título)
-            $cacheKey = "{$allianceId}:" . mb_strtolower($taskTitle);
+            // Buscar o crear tarea por (user + alliance + título + fecha)
+            // Una entrada por día = instancia separada, igual que el comportamiento del timer
+            $entryDate = substr($startTime, 0, 10);
+            $cacheKey  = "{$allianceId}:" . mb_strtolower($taskTitle) . ":{$entryDate}";
             if (!isset($taskCache[$cacheKey])) {
-                $ts = $db->prepare("SELECT id FROM tasks WHERE user_id = ? AND alliance_id = ? AND LOWER(title) = ? LIMIT 1");
-                $ts->execute([$userId, $allianceId, mb_strtolower($taskTitle)]);
+                $ts = $db->prepare("SELECT id FROM tasks WHERE user_id = ? AND alliance_id = ? AND LOWER(title) = ? AND due_date = ? LIMIT 1");
+                $ts->execute([$userId, $allianceId, mb_strtolower($taskTitle), $entryDate]);
                 $existTaskId = $ts->fetchColumn();
                 if ($existTaskId) {
                     $taskCache[$cacheKey] = (int) $existTaskId;
                 } else {
                     $db->prepare("INSERT INTO tasks (user_id, alliance_id, title, status, due_date) VALUES (?, ?, ?, 'completed', ?)")
-                       ->execute([$userId, $allianceId, $taskTitle, substr($startTime, 0, 10)]);
+                       ->execute([$userId, $allianceId, $taskTitle, $entryDate]);
                     $taskCache[$cacheKey] = (int) $db->lastInsertId();
                 }
             }

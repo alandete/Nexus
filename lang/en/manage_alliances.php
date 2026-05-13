@@ -11,7 +11,9 @@ return [
         'btn_create'         => 'New alliance',
         'btn_export'         => 'Export',
         'btn_import'         => 'Import',
-        'import_confirm'     => 'Import alliances from this file? Existing alliances with the same identifier will be updated.',
+        'import_confirm'          => 'Import alliances from this file?',
+        'import_confirm_has_data' => 'There are already',
+        'import_confirm_existing' => 'alliance(s) in the system. Matching ones will be updated and new ones added. Continue?',
         'btn_edit'           => 'Edit',
         'btn_delete'         => 'Delete',
 

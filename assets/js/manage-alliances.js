@@ -585,8 +585,12 @@
      * ======================================================== */
 
     function importAlliances(file) {
-        Toast.confirm(
-            t('manage_alliances.import_confirm', '¿Importar alianzas desde este archivo? Las alianzas existentes con el mismo identificador se actualizarán.'),
+        const existingCount = Object.keys(alliancesData).length;
+        const msg = existingCount > 0
+            ? `${t('manage_alliances.import_confirm_has_data', 'Ya hay')} ${existingCount} ${t('manage_alliances.import_confirm_existing', 'alianza(s) en el sistema. Las que coincidan por identificador se actualizarán y las nuevas se agregarán. ¿Continuar?')}`
+            : t('manage_alliances.import_confirm', '¿Importar alianzas desde este archivo?');
+
+        Toast.confirm(msg,
             async () => {
                 const formData = new FormData();
                 formData.append('action', 'import');

@@ -11,7 +11,9 @@ return [
         'btn_create'         => 'Nueva alianza',
         'btn_export'         => 'Exportar',
         'btn_import'         => 'Importar',
-        'import_confirm'     => '¿Importar alianzas desde este archivo? Las existentes con el mismo identificador se actualizarán.',
+        'import_confirm'          => '¿Importar alianzas desde este archivo?',
+        'import_confirm_has_data' => 'Ya hay',
+        'import_confirm_existing' => 'alianza(s) en el sistema. Las que coincidan por identificador se actualizarán y las nuevas se agregarán. ¿Continuar?',
         'btn_edit'           => 'Editar',
         'btn_delete'         => 'Eliminar',
 

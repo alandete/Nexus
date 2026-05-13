@@ -77,6 +77,14 @@ if (empty($deps)) {
             }
         }
     }
+
+    // Persistir para no re-detectar en cada carga
+    @file_put_contents($depsCachePath, json_encode([
+        'checked_at' => date('Y-m-d H:i:s'),
+        'php'        => phpversion(),
+        'deps'       => $deps,
+    ], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    $depsChecked = date('Y-m-d H:i:s');
 }
 
 // Info de PHP y entorno
@@ -220,15 +228,21 @@ $writables = [
             <h2 class="system-section-title" id="sec-deps-title"><?= __('system.sec_dependencies') ?></h2>
             <p class="system-section-desc"><?= __('system.sec_dependencies_desc') ?></p>
         </div>
-        <?php if ($depsChecked): ?>
-        <span class="text-subtle text-sm" title="<?= htmlspecialchars($depsChecked) ?>">
-            <i class="bi bi-clock" aria-hidden="true"></i>
-            <?= htmlspecialchars(relativeTime($depsChecked)) ?>
-        </span>
-        <?php endif; ?>
+        <div style="display:flex;align-items:center;gap:12px">
+            <?php if ($depsChecked): ?>
+            <span class="text-subtle text-sm" id="depsCheckedAt" title="<?= htmlspecialchars($depsChecked) ?>">
+                <i class="bi bi-clock" aria-hidden="true"></i>
+                <?= htmlspecialchars(relativeTime($depsChecked)) ?>
+            </span>
+            <?php endif; ?>
+            <button type="button" class="btn btn-secondary btn-sm" id="btnCheckDeps">
+                <i class="bi bi-arrow-repeat" aria-hidden="true"></i>
+                <span class="btn-text"><?= __('system.btn_check_deps') ?></span>
+            </button>
+        </div>
     </header>
 
-    <div class="system-deps-grid">
+    <div class="system-deps-grid" id="depsGrid">
         <?php
         $depItems = [
             'ghostscript' => ['label' => 'Ghostscript',            'use' => __('system.deps_use_pdf'),  'icon' => 'bi-file-earmark-pdf'],
@@ -240,7 +254,7 @@ $writables = [
             $installed = $deps[$key]['installed'] ?? null;
             $isOk = !empty($installed);
         ?>
-        <div class="system-dep <?= $isOk ? 'system-dep-ok' : 'system-dep-missing' ?>">
+        <div class="system-dep <?= $isOk ? 'system-dep-ok' : 'system-dep-missing' ?>" data-dep="<?= $key ?>">
             <i class="bi <?= $info['icon'] ?> system-dep-icon" aria-hidden="true"></i>
             <div class="system-dep-body">
                 <div class="system-dep-name"><?= $info['label'] ?></div>

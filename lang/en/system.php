@@ -39,6 +39,10 @@ return [
         'deps_use_img'        => 'Required by the image optimizer',
         'deps_use_db'         => 'Required for tasks, users and activity',
         'deps_install_hint'   => 'To install missing components, run in the terminal:',
+        'btn_check_deps'      => 'Verify',
+        'checking_deps'       => 'Checking...',
+        'deps_checked'        => 'Verification complete.',
+        'err_check_deps'      => 'Could not verify dependencies.',
 
         'php_version'    => 'PHP version',
         'memory_limit'   => 'Memory',

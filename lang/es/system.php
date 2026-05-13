@@ -42,6 +42,10 @@ return [
         'deps_use_img'        => 'Requerido por el optimizador de imágenes',
         'deps_use_db'         => 'Requerido para tareas, usuarios y actividad',
         'deps_install_hint'   => 'Para instalar componentes faltantes, ejecuta en la terminal:',
+        'btn_check_deps'      => 'Verificar',
+        'checking_deps'       => 'Verificando...',
+        'deps_checked'        => 'Verificación completada.',
+        'err_check_deps'      => 'No se pudo verificar las dependencias.',
 
         // PHP
         'php_version'    => 'Versión de PHP',

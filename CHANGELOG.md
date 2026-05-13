@@ -5,6 +5,21 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [2.0.0-alpha.3] — 2026-04-19 (en desarrollo)
 
+### Instalador web + diagnóstico cross-platform — 2026-05-12
+
+**Instalador:**
+- Nuevo `install.php`: wizard en 3 pasos (requisitos, BD, cuenta admin). Se bloquea automáticamente una vez instalado.
+- Verificación de requisitos PHP, extensiones y permisos de escritura.
+- Prueba de conexión a BD existente (sin crearla automáticamente).
+- Escritura de `config/database.php` y `config/secret.php` con clave generada vía `random_bytes`.
+- Copia automática de archivos `.example.json` a sus versiones reales en `data/`.
+- Ejecución de migraciones y creación del usuario administrador inicial.
+
+**Diagnóstico (Sistema):**
+- Detección de Ghostscript e ImageMagick CLI corregida para Linux: usa `which` con fallback a rutas fijas (`/usr/bin/gs`, `/usr/bin/convert`, etc.).
+- Agregados GD (PHP) e ImageMagick CLI como dependencias opcionales visibles.
+- Mensajes de corrección adaptados a entornos de hosting compartido.
+
 ### Tareas + Sidebar + UI — 2026-05-12
 
 **Tareas:**

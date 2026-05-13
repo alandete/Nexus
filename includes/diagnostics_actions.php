@@ -201,16 +201,42 @@ $checks[] = [
 // ── Dependencias opcionales ─────────────────────────────────────────────────
 
 $optDeps = [
-    ['Imagick (PHP)', extension_loaded('imagick'), 'Optimización avanzada de imágenes. Instale con: php setup-deps.php'],
-    ['Ghostscript', (function() {
-        foreach (['gswin64c', 'gswin32c', 'gs'] as $cmd) {
-            $out = @shell_exec("where {$cmd} 2>&1");
-            if ($out) { $line = trim(explode("\n", $out)[0]); if (file_exists($line)) return true; }
+    ['Imagick (PHP)', extension_loaded('imagick'), 'Optimización avanzada de imágenes. Active la extensión imagick en cPanel > Select PHP Version.'],
+    ['GD (PHP)',      extension_loaded('gd'),       'Procesamiento básico de imágenes. Active la extensión gd en cPanel > Select PHP Version.'],
+    ['Ghostscript',  (function() {
+        if (PHP_OS_FAMILY === 'Windows') {
+            foreach (['gswin64c', 'gswin32c', 'gs'] as $cmd) {
+                $out = @shell_exec("where {$cmd} 2>&1");
+                if ($out) { $line = trim(explode("\n", $out)[0]); if (file_exists($line)) return true; }
+            }
+            foreach (['C:/Program Files/gs/gs*/bin/gswin64c.exe', 'C:/Program Files (x86)/gs/gs*/bin/gswin32c.exe'] as $p) {
+                if (!empty(glob($p))) return true;
+            }
+        } else {
+            // Intentar con shell_exec primero
+            $out = @shell_exec('which gs 2>/dev/null');
+            if ($out && file_exists(trim($out))) return true;
+            // Fallback: rutas comunes en Linux (por si shell_exec está deshabilitado en web)
+            foreach (['/usr/bin/gs', '/usr/local/bin/gs', '/bin/gs'] as $path) {
+                if (file_exists($path)) return true;
+            }
         }
-        $patterns = ['C:/Program Files/gs/gs*/bin/gswin64c.exe', 'C:/Program Files (x86)/gs/gs*/bin/gswin64c.exe', 'C:/Program Files/gs/gs*/bin/gswin32c.exe', 'C:/Program Files (x86)/gs/gs*/bin/gswin32c.exe'];
-        foreach ($patterns as $p) { $m = glob($p); if (!empty($m)) return true; }
         return false;
-    })(), 'Optimización de PDF vía línea de comandos. Instale con: php setup-deps.php'],
+    })(), 'Optimización de PDF vía línea de comandos. Solicítelo al administrador del servidor.'],
+    ['ImageMagick CLI', (function() {
+        if (PHP_OS_FAMILY === 'Windows') {
+            $out = @shell_exec('where magick 2>&1') ?: @shell_exec('where convert 2>&1');
+            if ($out) { $path = trim(explode("\n", $out)[0]); if (file_exists($path)) return true; }
+        } else {
+            $out = @shell_exec('which magick 2>/dev/null') ?: @shell_exec('which convert 2>/dev/null');
+            if ($out && file_exists(trim($out))) return true;
+            // Fallback: rutas comunes en Linux
+            foreach (['/usr/bin/convert', '/usr/local/bin/convert', '/usr/bin/magick', '/usr/local/bin/magick'] as $path) {
+                if (file_exists($path)) return true;
+            }
+        }
+        return false;
+    })(), 'Optimización de imágenes vía línea de comandos. Solicítelo al administrador del servidor.'],
 ];
 foreach ($optDeps as [$name, $available, $fix]) {
     $checks[] = [

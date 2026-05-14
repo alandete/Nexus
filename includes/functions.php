@@ -112,8 +112,10 @@ function runMigrations(): bool
                 // Columna/tabla ya existe: el esquema ya es correcto, marcar como ejecutada
                 $schemaOk = str_contains($msg, 'duplicate column')
                          || str_contains($msg, 'already exists')
+                         || str_contains($msg, "can't drop")
                          || (int) $e->getCode() === 1060   // Duplicate column name
-                         || (int) $e->getCode() === 1050;  // Table already exists
+                         || (int) $e->getCode() === 1050   // Table already exists
+                         || (int) $e->getCode() === 1091;  // Index/key doesn't exist
             }
 
             if ($schemaOk) {
@@ -141,7 +143,7 @@ function getMigrations(): array
                 username VARCHAR(50) NOT NULL UNIQUE,
                 password VARCHAR(255) NOT NULL,
                 name VARCHAR(100) NOT NULL,
-                email VARCHAR(150) NOT NULL UNIQUE,
+                email VARCHAR(150) NOT NULL,
                 role VARCHAR(20) NOT NULL DEFAULT 'viewer',
                 lang VARCHAR(5) NOT NULL DEFAULT 'es',
                 photo VARCHAR(255) DEFAULT NULL,
@@ -278,6 +280,8 @@ function getMigrations(): array
             ALTER TABLE users ADD COLUMN reset_expires DATETIME DEFAULT NULL",
         '016_time_entries_add_prev_task_status' => "
             ALTER TABLE time_entries ADD COLUMN prev_task_status VARCHAR(20) DEFAULT NULL",
+        '017_users_drop_email_unique' => "
+            ALTER TABLE users DROP INDEX email",
     ];
 }
 

@@ -9711,6 +9711,34 @@ a.stat-card:hover {
     }
 }
 
+.rise-steps {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-space-075);
+}
+
+.rise-step {
+    display: flex;
+    align-items: center;
+    gap: var(--ds-space-150);
+    font-size: var(--ds-font-size-small, 0.875rem);
+    color: var(--ds-text-subtlest, #8993a5);
+    transition: color var(--ds-duration-fast, 0.1s);
+}
+
+.rise-step-icon {
+    width: 18px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.rise-step.is-active  { color: var(--ds-text); font-weight: 500; }
+.rise-step.is-done    { color: var(--ds-text-success, #216e4e); }
+.rise-step.is-error   { color: var(--ds-text-danger, #ae2a19); }
+.rise-step.is-skipped { color: var(--ds-text-subtlest, #8993a5); }
+
 .rise-info-section {
     padding-top: var(--ds-space-200);
     border-top: 1px solid var(--ds-border);

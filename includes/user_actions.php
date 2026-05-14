@@ -129,13 +129,7 @@ if ($action === 'create') {
         exit;
     }
 
-    // Verificar si el email ya existe
-    foreach ($users as $user) {
-        if ($user['email'] === $email) {
-            echo json_encode(['success' => false, 'message' => 'El email ya está registrado']);
-            exit;
-        }
-    }
+
 
     // Obtener el siguiente ID
     $maxId = 0;
@@ -217,13 +211,7 @@ if ($action === 'update') {
         exit;
     }
 
-    // Verificar si el email ya existe en otro usuario
-    foreach ($users as $uname => $user) {
-        if ($uname !== $username && $user['email'] === $email) {
-            echo json_encode(['success' => false, 'message' => 'El email ya está registrado']);
-            exit;
-        }
-    }
+
 
     // Actualizar datos
     $users[$username]['name'] = $name;

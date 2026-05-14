@@ -317,6 +317,7 @@ $quickLinksMeta = [
     <?php endif; ?>
 
     <?php if ($page === 'utilities-rise'): ?>
+    <script src="assets/js/vendor/jszip.min.js"></script>
     <script>
     window.__RISE_I18N__ = {
         rise_drop_title:         <?= json_encode(__('utilities.rise_drop_title')) ?>,
@@ -328,6 +329,14 @@ $quickLinksMeta = [
         rise_status_patched_loz: <?= json_encode($lang === 'en' ? 'Fixed' : 'Corregido') ?>,
         rise_status_already_loz: <?= json_encode($lang === 'en' ? 'Already fixed' : 'Ya corregido') ?>,
         rise_status_na_loz:      <?= json_encode($lang === 'en' ? 'Not applicable' : 'No aplica') ?>,
+        rise_step_uploading:     <?= json_encode(__('utilities.rise_step_uploading')) ?>,
+        rise_step_uploaded:      <?= json_encode(__('utilities.rise_step_uploaded')) ?>,
+        rise_step_scanning:      <?= json_encode(__('utilities.rise_step_scanning')) ?>,
+        rise_step_scanned:       <?= json_encode(__('utilities.rise_step_scanned')) ?>,
+        rise_step_packing:       <?= json_encode(__('utilities.rise_step_packing')) ?>,
+        rise_step_packed:        <?= json_encode(__('utilities.rise_step_packed')) ?>,
+        rise_err_timeout:        <?= json_encode(__('utilities.rise_err_timeout')) ?>,
+        rise_lang:               <?= json_encode($lang) ?>,
     };
     </script>
     <script src="assets/js/rise-patch.js?v=<?= filemtime('assets/js/rise-patch.js') ?>"></script>

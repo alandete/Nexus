@@ -1,8 +1,8 @@
 (function () {
     'use strict';
 
-    const ENDPOINT  = 'includes/rise_patch_actions.php';
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
+    const PATRON = 'window.parent.RiseLMSInterface';
+    const PARCHE = '(function(){try{return window.parent.RiseLMSInterface}catch(e){return void 0}})()';
 
     let riseFile = null;
 
@@ -67,26 +67,124 @@
         document.getElementById('riseResult').hidden     = true;
     }
 
-    // ── Patch ──────────────────────────────────────────────────────────────────
+    // ── Progress steps ─────────────────────────────────────────────────────────
+
+    function renderSteps(file) {
+        const wrap    = document.getElementById('riseResult');
+        const content = document.getElementById('riseResultContent');
+        if (!wrap || !content) return;
+
+        wrap.hidden = false;
+        content.innerHTML =
+            `<div class="rise-steps">` +
+            makeStep('upload', i18n('rise_step_uploading', 'Leyendo el archivo...') + ' &mdash; ' + escHtml(formatBytes(file.size))) +
+            makeStep('scan',   i18n('rise_step_scanning',  'Analizando contenido...')) +
+            makeStep('pack',   i18n('rise_step_packing',   'Corrigiendo y empaquetando...')) +
+            `</div><div id="riseOutput" class="mt-150"></div>`;
+    }
+
+    function makeStep(key, label) {
+        return `<div class="rise-step is-pending" id="rise-step-${key}">
+            <span class="rise-step-icon"><i class="bi bi-circle" aria-hidden="true"></i></span>
+            <span class="rise-step-label">${label}</span>
+        </div>`;
+    }
+
+    function setStepState(key, state, label) {
+        const el = document.getElementById(`rise-step-${key}`);
+        if (!el) return;
+        el.className = `rise-step is-${state}`;
+        const iconEl  = el.querySelector('.rise-step-icon');
+        const labelEl = el.querySelector('.rise-step-label');
+        if (label && labelEl) labelEl.innerHTML = label;
+        const icons = {
+            active:  '<span class="spinner spinner-sm" aria-hidden="true"></span>',
+            done:    '<i class="bi bi-check-circle-fill" aria-hidden="true"></i>',
+            error:   '<i class="bi bi-x-circle-fill" aria-hidden="true"></i>',
+            skipped: '<i class="bi bi-dash-circle" aria-hidden="true"></i>',
+            pending: '<i class="bi bi-circle" aria-hidden="true"></i>',
+        };
+        if (iconEl) iconEl.innerHTML = icons[state] ?? icons.pending;
+    }
+
+    function setOutput(html) {
+        const el = document.getElementById('riseOutput');
+        if (el) el.innerHTML = html;
+    }
+
+    // ── Patch — procesamiento 100% en el navegador con JSZip ──────────────────
 
     async function doPatch() {
-        if (!riseFile) return;
+        if (!riseFile || typeof JSZip === 'undefined') return;
 
         const btn = document.getElementById('btnRisePatch');
         btn.disabled = true;
         btn.classList.add('is-loading');
 
+        renderSteps(riseFile);
+
         try {
-            const fd = new FormData();
-            fd.append('action', 'patch');
-            fd.append('zip_file', riseFile);
+            // ── Paso 1: leer el ZIP desde el disco local ───────────────────────
+            setStepState('upload', 'active');
 
-            const res  = await fetch(ENDPOINT, { method: 'POST', headers: { 'X-CSRF-TOKEN': csrfToken }, body: fd });
-            const data = await res.json();
+            const zip = await JSZip.loadAsync(riseFile);
 
-            showResult(data);
-        } catch {
-            Toast.error(i18n('rise_err_network', 'Error de red. Intenta de nuevo.'));
+            setStepState('upload', 'done', i18n('rise_step_uploaded', 'Archivo cargado') +
+                ' &mdash; ' + escHtml(formatBytes(riseFile.size)));
+
+            // ── Paso 2: escanear archivos JS ───────────────────────────────────
+            setStepState('scan', 'active');
+
+            let alreadyPatched = false;
+            const patches = {};
+
+            for (const [path, entry] of Object.entries(zip.files)) {
+                if (entry.dir || !path.toLowerCase().endsWith('.js')) continue;
+
+                const content = await entry.async('string');
+
+                if (content.includes(PARCHE)) { alreadyPatched = true; continue; }
+                if (content.includes(PATRON))  { patches[path] = content.split(PATRON).join(PARCHE); }
+            }
+
+            const modified = Object.keys(patches);
+
+            if (modified.length === 0) {
+                setStepState('scan', 'done');
+                setStepState('pack', 'skipped');
+                const status = alreadyPatched ? 'already_patched' : 'not_applicable';
+                const statusMap = {
+                    already_patched: { cls: 'lozenge-warning', loz: i18n('rise_status_already_loz', 'Ya corregido') },
+                    not_applicable:  { cls: 'lozenge-default', loz: i18n('rise_status_na_loz',      'No aplica')   },
+                };
+                const s = statusMap[status];
+                setOutput(`<div style="display:flex;align-items:center;gap:var(--ds-space-150);">
+                    <span class="lozenge ${escHtml(s.cls)}">${escHtml(s.loz)}</span>
+                </div>`);
+                return;
+            }
+
+            setStepState('scan', 'done',
+                i18n('rise_step_scanned', 'Análisis completado') + ` &mdash; ${modified.length} archivo(s)`);
+
+            // ── Paso 3: aplicar parches y generar ZIP ──────────────────────────
+            setStepState('pack', 'active');
+
+            for (const [path, content] of Object.entries(patches)) {
+                zip.file(path, content);
+            }
+
+            const blob = await zip.generateAsync({ type: 'blob' });
+
+            setStepState('pack', 'done', i18n('rise_step_packed', 'Listo'));
+
+            showResult(modified, blob);
+
+        } catch (err) {
+            const activeStep = document.querySelector('.rise-step.is-active');
+            const activeKey  = activeStep?.id?.replace('rise-step-', '') ?? 'upload';
+            setStepState(activeKey, 'error');
+            setOutput(errorHtml(err.message || i18n('rise_err_network', 'Error inesperado. Intenta de nuevo.')));
         } finally {
             btn.disabled = false;
             btn.classList.remove('is-loading');
@@ -95,86 +193,45 @@
 
     // ── Result ─────────────────────────────────────────────────────────────────
 
-    function showResult(data) {
-        const wrap    = document.getElementById('riseResult');
-        const content = document.getElementById('riseResultContent');
-        if (!wrap || !content) return;
+    function showResult(modified, blob) {
+        let html = '';
 
-        wrap.hidden = false;
-
-        if (!data.success) {
-            content.innerHTML = `<div class="alert alert-danger">
-                <i class="bi bi-x-circle alert-icon"></i>
-                <span class="alert-content">${escHtml(data.message)}</span>
-            </div>`;
-            return;
-        }
-
-        const statusMap = {
-            patched:         { cls: 'lozenge-success', label: i18n('rise_status_patched_loz', 'Corregido') },
-            already_patched: { cls: 'lozenge-warning', label: i18n('rise_status_already_loz', 'Ya corregido') },
-            not_applicable:  { cls: 'lozenge-default', label: i18n('rise_status_na_loz', 'No aplica')  },
-        };
-        const s = statusMap[data.status] ?? { cls: 'lozenge-default', label: data.status };
-
-        let html = `
-            <div style="display:flex; align-items:center; gap: var(--ds-space-150); margin-bottom: var(--ds-space-200);">
-                <span class="lozenge ${escHtml(s.cls)}">${escHtml(s.label)}</span>
-                <span class="text-subtle text-sm">${escHtml(data.message)}</span>
-            </div>`;
-
-        if (data.files_modified?.length) {
-            html += `<p class="text-sm" style="margin-bottom: var(--ds-space-100);"><strong>${i18n('rise_files_modified', 'Archivos modificados')}:</strong></p>
-            <ul class="text-sm" style="margin: 0 0 var(--ds-space-200) var(--ds-space-200); padding:0;">`;
-            for (const f of data.files_modified) {
-                html += `<li style="font-family: monospace;">${escHtml(f)}</li>`;
+        if (modified.length) {
+            html += `<p class="text-sm mt-150" style="margin-bottom:var(--ds-space-075);">
+                <strong>${i18n('rise_files_modified', 'Archivos modificados')}:</strong></p>
+            <ul class="text-sm" style="margin:0 0 var(--ds-space-200) var(--ds-space-200);padding:0;">`;
+            for (const f of modified) {
+                html += `<li style="font-family:monospace;">${escHtml(f)}</li>`;
             }
             html += '</ul>';
         }
 
-        if (data.status === 'patched' && data.data && data.filename) {
-            html += `<button type="button" class="btn btn-primary" id="btnRiseDownload">
-                <i class="bi bi-download" aria-hidden="true"></i>
-                ${i18n('rise_btn_download', 'Descargar ZIP corregido')}
-            </button>`;
-        }
+        const suffix   = i18n('rise_lang', 'es') === 'en' ? '_fixed' : '_corregido';
+        const filename = riseFile.name.replace(/\.zip$/i, '') + suffix + '.zip';
 
-        if (data.status === 'not_applicable') {
-            html += `<div class="alert alert-info" style="margin-top: var(--ds-space-150);">
-                <i class="bi bi-info-circle alert-icon"></i>
-                <span class="alert-content">${i18n('rise_na_detail', 'Este paquete fue exportado antes de mayo 2025 y no contiene el código problemático.')}</span>
-            </div>`;
-        }
+        const url = URL.createObjectURL(blob);
+        html += `<a href="${url}" class="btn btn-primary" download="${escHtml(filename)}">
+            <i class="bi bi-download" aria-hidden="true"></i>
+            ${i18n('rise_btn_download', 'Descargar ZIP corregido')}
+        </a>`;
 
-        content.innerHTML = html;
+        setTimeout(() => URL.revokeObjectURL(url), 120000);
 
-        if (data.status === 'patched') {
-            document.getElementById('btnRiseDownload')?.addEventListener('click', () => {
-                downloadBase64(data.data, data.filename, 'application/zip');
-            });
-        }
+        setOutput(html);
     }
 
     // ── Helpers ────────────────────────────────────────────────────────────────
 
-    function downloadBase64(b64, filename, mime) {
-        const binary = atob(b64);
-        const bytes  = new Uint8Array(binary.length);
-        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-        const blob = new Blob([bytes], { type: mime });
-        const url  = URL.createObjectURL(blob);
-        const a    = document.createElement('a');
-        a.href     = url;
-        a.download = filename;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        setTimeout(() => URL.revokeObjectURL(url), 5000);
+    function errorHtml(msg) {
+        return `<div class="alert alert-danger mt-150">
+            <i class="bi bi-x-circle alert-icon" aria-hidden="true"></i>
+            <span class="alert-content">${escHtml(msg)}</span>
+        </div>`;
     }
 
     function formatBytes(bytes) {
-        if (bytes < 1024)       return bytes + ' B';
-        if (bytes < 1048576)    return (bytes / 1024).toFixed(1) + ' KB';
+        if (bytes < 1024)    return bytes + ' B';
+        if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
         return (bytes / 1048576).toFixed(1) + ' MB';
     }
 

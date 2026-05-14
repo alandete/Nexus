@@ -5,6 +5,14 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [2.0.0-alpha.3] — 2026-04-19 (en desarrollo)
 
+### Corrector Rise: procesamiento client-side + usuarios sin email único — 2026-05-13
+
+- Corrector Rise reescrito para procesar el ZIP completamente en el navegador usando JSZip, eliminando la dependencia de PHP para el procesamiento de archivos grandes. Resuelve el bloqueo por Windows Defender en Laragon y timeouts de servidor.
+- JSZip 3.10.1 añadido como vendor local (`assets/js/vendor/jszip.min.js`).
+- Email de usuario ya no es único globalmente: la misma dirección puede usarse para cuentas de distinto rol (ej. admin + editor para la misma persona).
+- Migración `017_users_drop_email_unique`: elimina el UNIQUE KEY del email en instancias existentes.
+- Código 1091 (índice inexistente) añadido a los errores aceptables del sistema de migraciones.
+
 ### Import de tareas: deduplicación por día — 2026-05-12
 
 - Corregido: el import ahora crea una instancia de tarea por (alianza + título + fecha), igual que el comportamiento del timer en local. Antes agrupaba todas las entradas de una misma tarea en un solo registro sin importar el día, causando que el reporte del servidor mostrara menos tareas que local.

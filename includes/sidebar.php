@@ -10,7 +10,8 @@ $currentPage = isset($_GET['page']) ? $_GET['page'] : 'home';
 $currentUser = getCurrentUser();
 
 // Determinar que secciones del sidebar estan expandidas
-$settingsPages  = ['settings', 'users', 'manage-alliances', 'manage-tasks', 'application', 'integrations', 'snapshots', 'system', 'activity'];
+$settingsPages  = ['settings', 'users', 'manage-alliances', 'manage-tasks', 'application', 'integrations', 'my-integrations', 'snapshots', 'system', 'activity'];
+$isAdmin        = ($currentUser['role'] ?? '') === 'admin';
 $isSettingsActive  = in_array($currentPage, $settingsPages);
 $utilitiesPages = ['utilities-images', 'utilities-pdf', 'utilities-gift', 'utilities-rise'];
 $isUtilitiesActive = in_array($currentPage, $utilitiesPages);
@@ -158,10 +159,18 @@ $isUtilitiesActive = in_array($currentPage, $utilitiesPages);
                             <span class="sidebar-link-text"><?= __('menu.application') ?></span>
                         </a>
                     </li>
+                    <?php if ($isAdmin): ?>
                     <li role="none">
                         <a class="sidebar-sublink <?= $currentPage === 'integrations' ? 'active' : '' ?>" href="<?= url('integrations') ?>" role="menuitem">
                             <i class="bi bi-plug sidebar-link-icon" aria-hidden="true"></i>
                             <span class="sidebar-link-text"><?= __('menu.integrations') ?></span>
+                        </a>
+                    </li>
+                    <?php endif; ?>
+                    <li role="none">
+                        <a class="sidebar-sublink <?= $currentPage === 'my-integrations' ? 'active' : '' ?>" href="<?= url('my-integrations') ?>" role="menuitem">
+                            <i class="bi bi-key sidebar-link-icon" aria-hidden="true"></i>
+                            <span class="sidebar-link-text"><?= __('menu.my_integrations') ?></span>
                         </a>
                     </li>
                     <?php if (canAccessModule($currentUser, 'backup')): ?>
@@ -172,6 +181,7 @@ $isUtilitiesActive = in_array($currentPage, $utilitiesPages);
                         </a>
                     </li>
                     <?php endif; ?>
+                    <?php if ($isAdmin): ?>
                     <li role="none">
                         <a class="sidebar-sublink <?= $currentPage === 'system' ? 'active' : '' ?>" href="<?= url('system') ?>" role="menuitem">
                             <i class="bi bi-cpu sidebar-link-icon" aria-hidden="true"></i>
@@ -184,6 +194,7 @@ $isUtilitiesActive = in_array($currentPage, $utilitiesPages);
                             <span class="sidebar-link-text"><?= __('menu.activity') ?></span>
                         </a>
                     </li>
+                    <?php endif; ?>
                 </ul>
             </li>
             <?php endif; ?>

@@ -5,6 +5,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [2.0.0-alpha.3] — 2026-04-19 (en desarrollo)
 
+### Sidebar: ocultar páginas admin-only para no-admin — 2026-05-14
+
+- `sidebar.php`: Integraciones, Sistema y Actividad solo visibles para admin (igual que Backups que ya usaba `canAccessModule`).
+- Añadido "Mis claves API" al sidebar para todos los usuarios con acceso a Ajustes.
+- `$settingsPages` actualizado con `my-integrations` para que el grupo Ajustes quede activo al navegar a esa página.
+
 ### Mis claves API + espaciado Aplicación — 2026-05-14
 
 - Nueva página `pages/my-integrations.php`: cualquier usuario configura sus propias claves iLovePDF/iLoveIMG. Accesible desde Ajustes para todos los roles.

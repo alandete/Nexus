@@ -97,43 +97,41 @@ function canEditUsers($user) {
 /**
  * Iniciar sesión
  */
-function login($username, $password) {
+function login(string $username, string $password, bool $remember = false): array
+{
     $users = getUsers();
 
-    // Verificar si el usuario existe
     if (!isset($users[$username])) {
         return ['success' => false, 'message' => 'Usuario o contraseña incorrectos'];
     }
 
     $user = $users[$username];
 
-    // Verificar si el usuario está activo
     if (!$user['active']) {
         return ['success' => false, 'message' => 'Usuario desactivado'];
     }
 
-    // Verificar contraseña
     if (!password_verify($password, $user['password'])) {
         return ['success' => false, 'message' => 'Usuario o contraseña incorrectos'];
     }
 
-    // Iniciar sesión
     $_SESSION['user'] = [
-        'id' => $user['id'],
+        'id'       => $user['id'],
         'username' => $user['username'],
-        'name' => $user['name'],
-        'email' => $user['email'],
-        'role' => $user['role'],
-        'photo' => $user['photo'] ?? null,
-        'lang' => $user['lang'] ?? 'es',
+        'name'     => $user['name'],
+        'email'    => $user['email'],
+        'role'     => $user['role'],
+        'photo'    => $user['photo'] ?? null,
+        'lang'     => $user['lang'] ?? 'es',
     ];
-
-    // Cargar idioma preferido del usuario
     $_SESSION['lang'] = $user['lang'] ?? 'es';
 
-    // Actualizar último login
     $users[$username]['last_login'] = date('Y-m-d H:i:s');
     saveUsers($users);
+
+    if ($remember) {
+        rememberSetCookie((int) $user['id']);
+    }
 
     return ['success' => true, 'message' => 'Sesión iniciada correctamente'];
 }
@@ -141,9 +139,184 @@ function login($username, $password) {
 /**
  * Cerrar sesión
  */
-function logout() {
+function logout(): void
+{
+    $userId = (int) ($_SESSION['user']['id'] ?? 0);
+    if ($userId) {
+        rememberRevoke($userId);
+    }
     unset($_SESSION['user']);
     session_destroy();
+    rememberClearCookie();
+}
+
+// ── Remember me ────────────────────────────────────────────────────────────
+
+const REMEMBER_COOKIE   = 'nexus_remember';
+const REMEMBER_DAYS     = 7;
+
+/**
+ * Crea la tabla si no existe (tolerante a ejecuciones repetidas)
+ */
+function rememberEnsureTable(): void
+{
+    $db = getDB();
+    if (!$db) return;
+    try {
+        $db->exec("CREATE TABLE IF NOT EXISTS user_remember_tokens (
+            id         INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+            user_id    INT UNSIGNED NOT NULL,
+            token_hash VARCHAR(64)  NOT NULL,
+            expires_at DATETIME     NOT NULL,
+            created_at DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_token_hash (token_hash),
+            INDEX idx_user_id    (user_id)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+    } catch (PDOException $e) {}
+}
+
+/**
+ * Genera un token, lo almacena hasheado en BD y lo escribe en cookie
+ */
+function rememberSetCookie(int $userId): void
+{
+    rememberEnsureTable();
+    $db = getDB();
+    if (!$db) return;
+
+    $raw       = bin2hex(random_bytes(32));
+    $hash      = hash('sha256', $raw);
+    $expires   = date('Y-m-d H:i:s', time() + REMEMBER_DAYS * 86400);
+    $cookieExp = time() + REMEMBER_DAYS * 86400;
+
+    try {
+        $db->prepare("INSERT INTO user_remember_tokens (user_id, token_hash, expires_at) VALUES (?, ?, ?)")
+           ->execute([$userId, $hash, $expires]);
+    } catch (PDOException $e) {
+        return;
+    }
+
+    $isHttps = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on';
+    setcookie(REMEMBER_COOKIE, $userId . ':' . $raw, [
+        'expires'  => $cookieExp,
+        'path'     => '/',
+        'secure'   => $isHttps,
+        'httponly' => true,
+        'samesite' => 'Lax',
+    ]);
+}
+
+/**
+ * Valida la cookie, restaura la sesión y rota el token.
+ * Devuelve true si la sesión fue restaurada.
+ */
+function rememberCheckCookie(): bool
+{
+    $cookie = $_COOKIE[REMEMBER_COOKIE] ?? '';
+    if (empty($cookie)) return false;
+
+    $parts = explode(':', $cookie, 2);
+    if (count($parts) !== 2) {
+        rememberClearCookie();
+        return false;
+    }
+
+    [$userId, $raw] = $parts;
+    $userId = (int) $userId;
+    if ($userId <= 0 || empty($raw)) {
+        rememberClearCookie();
+        return false;
+    }
+
+    rememberEnsureTable();
+    $db = getDB();
+    if (!$db) return false;
+
+    $hash = hash('sha256', $raw);
+
+    try {
+        $stmt = $db->prepare(
+            "SELECT id FROM user_remember_tokens
+             WHERE user_id = ? AND token_hash = ? AND expires_at > NOW()
+             LIMIT 1"
+        );
+        $stmt->execute([$userId, $hash]);
+        $row = $stmt->fetch();
+    } catch (PDOException $e) {
+        return false;
+    }
+
+    if (!$row) {
+        rememberClearCookie();
+        return false;
+    }
+
+    // Token válido: revocar el actual y emitir uno nuevo (rotación)
+    try {
+        $db->prepare("DELETE FROM user_remember_tokens WHERE id = ?")->execute([$row['id']]);
+    } catch (PDOException $e) {}
+
+    // Cargar datos del usuario
+    $users = getUsers();
+    $user  = null;
+    foreach ($users as $u) {
+        if ((int) $u['id'] === $userId) { $user = $u; break; }
+    }
+
+    if (!$user || empty($user['active'])) {
+        rememberClearCookie();
+        return false;
+    }
+
+    // Restaurar sesión
+    $_SESSION['user'] = [
+        'id'       => $user['id'],
+        'username' => $user['username'],
+        'name'     => $user['name'],
+        'email'    => $user['email'],
+        'role'     => $user['role'],
+        'photo'    => $user['photo'] ?? null,
+        'lang'     => $user['lang'] ?? 'es',
+    ];
+    $_SESSION['lang'] = $user['lang'] ?? 'es';
+
+    session_regenerate_id(true);
+    $_SESSION['_created'] = time();
+
+    // Emitir nuevo token (rotación)
+    rememberSetCookie($userId);
+
+    return true;
+}
+
+/**
+ * Revoca todos los tokens persistentes de un usuario (logout o cambio de contraseña)
+ */
+function rememberRevoke(int $userId): void
+{
+    rememberEnsureTable();
+    $db = getDB();
+    if (!$db) return;
+    try {
+        $db->prepare("DELETE FROM user_remember_tokens WHERE user_id = ?")->execute([$userId]);
+    } catch (PDOException $e) {}
+}
+
+/**
+ * Borra la cookie del navegador
+ */
+function rememberClearCookie(): void
+{
+    $isHttps = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on';
+    if (isset($_COOKIE[REMEMBER_COOKIE])) {
+        setcookie(REMEMBER_COOKIE, '', [
+            'expires'  => time() - 3600,
+            'path'     => '/',
+            'secure'   => $isHttps,
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ]);
+    }
 }
 
 /**

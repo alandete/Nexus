@@ -109,6 +109,7 @@ return [
         'placeholder_user' => 'Enter your username',
         'placeholder_pass' => 'Enter your password',
         'btn_submit'       => 'Sign In',
+        'remember_me'      => 'Keep me signed in',
         'error_empty'      => 'Please enter username and password',
         'demo_title'       => 'Demo users:',
     ],

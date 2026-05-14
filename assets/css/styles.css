@@ -867,7 +867,7 @@ select.form-control {
 
 .avatar img {
     width: 100%;
-    height: 100%;
+    height: auto;
     object-fit: cover;
     display: block;
 }
@@ -1176,7 +1176,7 @@ select.form-control {
 
 .topbar-avatar {
     width: 28px;
-    height: 28px;
+    height: auto;
     border-radius: var(--ds-radius-round);
     object-fit: cover;
     display: block;
@@ -2056,6 +2056,28 @@ select.form-control {
 
 .login-field:last-of-type {
     margin-bottom: var(--ds-space-300);
+}
+
+.login-remember {
+    margin-bottom: var(--ds-space-300);
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: var(--ds-space-100);
+    cursor: pointer;
+    font-size: var(--ds-font-size-body-sm);
+    color: var(--ds-text-subtle);
+    user-select: none;
+}
+
+.checkbox-label input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--app-brand);
+    cursor: pointer;
+    flex-shrink: 0;
 }
 
 .login-submit {

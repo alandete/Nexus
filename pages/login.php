@@ -26,7 +26,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (empty($username) || empty($password)) {
             $error = __('login.error_empty');
         } else {
-            $result = login($username, $password);
+            $remember = isset($_POST['remember_me']);
+            $result = login($username, $password, $remember);
             if ($result['success']) {
                 logActivity('auth', 'login', $username);
                 header('Location: ' . url('home'));
@@ -159,6 +160,14 @@ $canonicalBase = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'http
                                autocomplete="current-password"
                                required
                                <?php if ($error): ?>aria-invalid="true" aria-describedby="login-error"<?php endif; ?>>
+                    </div>
+
+                    <div class="login-remember">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="remember_me" value="1"
+                                   <?= isset($_POST['remember_me']) ? 'checked' : '' ?>>
+                            <span><?= __('login.remember_me') ?></span>
+                        </label>
                     </div>
 
                     <button type="submit" class="btn btn-primary login-submit">

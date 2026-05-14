@@ -109,6 +109,7 @@ return [
         'placeholder_user' => 'Ingrese su usuario',
         'placeholder_pass' => 'Ingrese su contraseña',
         'btn_submit'       => 'Ingresar',
+        'remember_me'      => 'Mantener sesión iniciada',
         'error_empty'      => 'Por favor ingrese usuario y contraseña',
         'demo_title'       => 'Usuarios de demostración:',
     ],

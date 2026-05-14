@@ -3,6 +3,17 @@
 Todos los cambios relevantes del proyecto se documentan en este archivo.
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+## [2.0.0-alpha.4] — en desarrollo
+
+### Recordarme en login — 2026-05-14
+
+- `pages/login.php`: checkbox "Mantener sesión iniciada" en el formulario de login.
+- `includes/auth.php`: token persistente con rotación — `rememberSetCookie()`, `rememberCheckCookie()`, `rememberRevoke()`, `rememberClearCookie()`. Token aleatorio de 32 bytes, almacenado como SHA-256 en BD. Rotación en cada uso (previene replay attacks). Revocación automática en logout y (pendiente) cambio de contraseña.
+- `config/config.php`: llama a `rememberCheckCookie()` al inicio de cada request si hay cookie y no hay sesión activa.
+- BD: tabla `user_remember_tokens` creada automáticamente si no existe.
+- CSS: `.login-remember` y `.checkbox-label` para el checkbox del login.
+- Duración: 7 días.
+
 ## [2.0.0-alpha.3] — 2026-05-14
 
 ### Integraciones unificadas por usuario — 2026-05-14

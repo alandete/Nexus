@@ -345,6 +345,142 @@
     }
 
     /** ========================================================
+     * Backup automático (schedule)
+     * ======================================================== */
+
+    async function postSchedule(data) {
+        const fd = new FormData();
+        Object.keys(data).forEach(k => fd.append(k, data[k] ?? ''));
+        const res = await fetch('includes/backup_schedule_actions.php', {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': csrfToken },
+            body: fd,
+        });
+        return res.json();
+    }
+
+    function getSchedFreqCron(freq) {
+        return { daily: '0 2 * * *', weekly: '0 2 * * 0', monthly: '0 2 1 * *' }[freq] || '0 2 * * *';
+    }
+
+    function buildCronCmd(token, freq) {
+        const sched = window.__SCHEDULE__ || {};
+        if (!token || !sched.baseUrl) return '';
+        const url = sched.baseUrl + '?token=' + encodeURIComponent(token);
+        return getSchedFreqCron(freq) + ' curl -s "' + url + '" > /dev/null 2>&1';
+    }
+
+    function updateCronInput(token, freq) {
+        const input = document.getElementById('cronCmdInput');
+        if (input) input.value = buildCronCmd(token, freq);
+    }
+
+    function initSchedule() {
+        const sched     = window.__SCHEDULE__ || {};
+        let currentToken = sched.token || '';
+
+        const freqSel   = document.getElementById('schedFrequency');
+        const saveBtn   = document.getElementById('btnSaveSchedule');
+        const regenBtn  = document.getElementById('btnRegenToken');
+        const copyBtn   = document.getElementById('btnCopyCron');
+        const enabledCk = document.getElementById('schedEnabled');
+
+        if (freqSel) {
+            freqSel.addEventListener('change', () => updateCronInput(currentToken, freqSel.value));
+        }
+
+        if (copyBtn) {
+            copyBtn.addEventListener('click', () => {
+                const input = document.getElementById('cronCmdInput');
+                if (!input || !input.value) return;
+                navigator.clipboard.writeText(input.value).then(() => {
+                    Toast.success(t('snapshots.schedule_copied', 'Copiado'));
+                }).catch(() => {
+                    input.select();
+                    document.execCommand('copy');
+                    Toast.success(t('snapshots.schedule_copied', 'Copiado'));
+                });
+            });
+        }
+
+        if (saveBtn) {
+            saveBtn.addEventListener('click', async () => {
+                saveBtn.disabled = true;
+                saveBtn.classList.add('is-loading');
+
+                const activeType = document.querySelector('[data-sched-type].chip-active');
+                try {
+                    const result = await postSchedule({
+                        action:    'save',
+                        enabled:   enabledCk?.checked ? '1' : '0',
+                        type:      activeType?.dataset.schedType || 'data',
+                        frequency: freqSel?.value || 'daily',
+                    });
+                    if (result.success) {
+                        currentToken = result.token || currentToken;
+                        updateCronInput(currentToken, freqSel?.value || 'daily');
+
+                        // Mostrar input si no existía (primer guardado genera token)
+                        if (!document.getElementById('cronCmdInput') && currentToken) {
+                            window.location.reload();
+                            return;
+                        }
+                        Toast.success(t('snapshots.schedule_saved', 'Configuración guardada.'));
+                    } else {
+                        Toast.error(result.message || t('snapshots.schedule_err_save', 'Error al guardar.'));
+                    }
+                } catch {
+                    Toast.error(t('common.err_network', 'Error de red.'));
+                } finally {
+                    saveBtn.disabled = false;
+                    saveBtn.classList.remove('is-loading');
+                }
+            });
+        }
+
+        if (regenBtn) {
+            regenBtn.addEventListener('click', async () => {
+                regenBtn.disabled = true;
+                try {
+                    const result = await postSchedule({ action: 'regen_token' });
+                    if (result.success) {
+                        currentToken = result.token;
+                        updateCronInput(currentToken, freqSel?.value || 'daily');
+                        Toast.success(t('snapshots.schedule_token_regenned', 'Token regenerado. Actualiza tu cron.'));
+                    } else {
+                        Toast.error(result.message || t('snapshots.schedule_err_regen', 'Error al regenerar.'));
+                    }
+                } catch {
+                    Toast.error(t('common.err_network', 'Error de red.'));
+                } finally {
+                    regenBtn.disabled = false;
+                }
+            });
+        }
+
+        // Chips de tipo
+        document.querySelectorAll('[data-sched-type]').forEach(chip => {
+            chip.addEventListener('click', () => {
+                document.querySelectorAll('[data-sched-type]').forEach(c => c.classList.remove('chip-active'));
+                chip.classList.add('chip-active');
+            });
+        });
+
+        // Toggle tooltip
+        if (enabledCk) {
+            enabledCk.addEventListener('change', () => {
+                const label = enabledCk.closest('.toggle');
+                if (label) {
+                    label.setAttribute('data-tooltip',
+                        enabledCk.checked
+                            ? t('snapshots.schedule_enabled', 'Activado')
+                            : t('snapshots.schedule_disabled', 'Desactivado'));
+                }
+            });
+        }
+    }
+
+    /** ========================================================
      * Bindings
      * ======================================================== */
 
@@ -355,6 +491,8 @@
             if (btn1) btn1.addEventListener('click', openCreateForm);
             if (btn2) btn2.addEventListener('click', openCreateForm);
         }
+
+        initSchedule();
 
         document.addEventListener('click', (e) => {
             const favBtn = e.target.closest('.btn-favorite');

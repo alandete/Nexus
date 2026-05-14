@@ -117,8 +117,9 @@ $adminCount = count(array_filter($users, fn($u) => ($u['role'] ?? '') === 'admin
                     <td>
                         <div class="user-cell">
                             <?php if (!empty($user['photo'])): ?>
-                                <img src="assets/uploads/avatars/<?= htmlspecialchars($user['photo']) ?>"
-                                     alt="" class="avatar avatar-md">
+                                <span class="avatar avatar-md" aria-hidden="true">
+                                    <img src="assets/uploads/avatars/<?= htmlspecialchars($user['photo']) ?>" alt="">
+                                </span>
                             <?php else: ?>
                                 <span class="avatar avatar-md" aria-hidden="true"><?= $initial ?></span>
                             <?php endif; ?>

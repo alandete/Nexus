@@ -7,6 +7,24 @@ defined('APP_ACCESS') or die('Acceso directo no permitido');
 
 $currentUser = getCurrentUser();
 
+// Configuración de backup automático
+$scheduleFile      = DATA_PATH . '/backup_schedule.json';
+$schedule          = [];
+if (file_exists($scheduleFile)) {
+    $decoded = json_decode(file_get_contents($scheduleFile), true);
+    if (is_array($decoded)) $schedule = $decoded;
+}
+$schedEnabled   = !empty($schedule['enabled']);
+$schedType      = $schedule['type']      ?? 'data';
+$schedFrequency = $schedule['frequency'] ?? 'daily';
+$schedToken     = $schedule['token']     ?? '';
+$schedLastRun   = $schedule['last_run']  ?? null;
+
+$cronFreqMap = ['daily' => '0 2 * * *', 'weekly' => '0 2 * * 0', 'monthly' => '0 2 1 * *'];
+$cronTime    = $cronFreqMap[$schedFrequency] ?? '0 2 * * *';
+$cronUrl     = rtrim(APP_BASE_URL, '/') . '/cron/backup_cron.php?token=' . urlencode($schedToken);
+$cronCmd     = $schedToken ? ($cronTime . ' curl -s "' . $cronUrl . '" > /dev/null 2>&1') : '';
+
 // Helpers locales para leer metadata sin cargar todo backup_actions.php
 $__getFavorites = function (): array {
     $f = BACKUP_PATH . '/favorites.json';
@@ -152,6 +170,88 @@ $nonFavFull = count(array_filter($backups, fn($b) => $b['type'] === 'full' && !$
     </div>
 </div>
 
+<!-- Backup automático -->
+<?php if ($canCreate): ?>
+<section class="card schedule-card" id="scheduleCard">
+    <div class="card-header d-flex items-center justify-between">
+        <div class="d-flex items-center gap-150">
+            <i class="bi bi-clock-history" aria-hidden="true"></i>
+            <div>
+                <h2 class="card-title"><?= __('snapshots.schedule_title') ?></h2>
+                <p class="card-subtitle"><?= __('snapshots.schedule_desc') ?></p>
+            </div>
+        </div>
+        <label class="toggle" data-tooltip="<?= $schedEnabled ? __('snapshots.schedule_enabled') : __('snapshots.schedule_disabled') ?>" data-tooltip-position="left">
+            <input type="checkbox" id="schedEnabled" <?= $schedEnabled ? 'checked' : '' ?>>
+            <span class="toggle-slider"></span>
+        </label>
+    </div>
+
+    <div class="card-body schedule-body">
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label"><?= __('snapshots.field_sched_type') ?></label>
+                <div class="chip-group">
+                    <button type="button" class="chip <?= $schedType === 'data' ? 'chip-active' : '' ?>" data-sched-type="data">
+                        <i class="bi bi-database" aria-hidden="true"></i>
+                        <?= __('snapshots.type_data') ?>
+                    </button>
+                    <button type="button" class="chip <?= $schedType === 'full' ? 'chip-active' : '' ?>" data-sched-type="full">
+                        <i class="bi bi-hdd" aria-hidden="true"></i>
+                        <?= __('snapshots.type_full') ?>
+                    </button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label" for="schedFrequency"><?= __('snapshots.field_sched_freq') ?></label>
+                <select class="form-control" id="schedFrequency" style="max-width:180px;">
+                    <option value="daily"   <?= $schedFrequency === 'daily'   ? 'selected' : '' ?>><?= __('snapshots.freq_daily') ?></option>
+                    <option value="weekly"  <?= $schedFrequency === 'weekly'  ? 'selected' : '' ?>><?= __('snapshots.freq_weekly') ?></option>
+                    <option value="monthly" <?= $schedFrequency === 'monthly' ? 'selected' : '' ?>><?= __('snapshots.freq_monthly') ?></option>
+                </select>
+            </div>
+        </div>
+
+        <?php if ($schedToken): ?>
+        <div class="form-group mt-150">
+            <label class="form-label"><?= __('snapshots.cron_cmd_label') ?></label>
+            <div class="d-flex gap-100 items-start">
+                <input type="text" class="form-control font-mono text-sm" id="cronCmdInput"
+                       value="<?= htmlspecialchars($cronCmd) ?>" readonly style="flex:1;">
+                <button type="button" class="btn btn-default btn-sm" id="btnCopyCron" data-tooltip="<?= __('snapshots.btn_copy_cron') ?>">
+                    <i class="bi bi-clipboard" aria-hidden="true"></i>
+                </button>
+            </div>
+            <p class="form-helper"><?= __('snapshots.cron_cmd_help') ?></p>
+        </div>
+        <?php endif; ?>
+
+        <div class="d-flex items-center justify-between flex-wrap gap-150 mt-200">
+            <div class="text-subtle text-sm">
+                <?php if ($schedLastRun): ?>
+                    <?= __('snapshots.schedule_last_run') ?>:
+                    <strong><?= htmlspecialchars(relativeTime($schedLastRun)) ?></strong>
+                    <span class="text-subtle">(<?= htmlspecialchars($schedLastRun) ?>)</span>
+                <?php else: ?>
+                    <?= __('snapshots.schedule_last_run') ?>: <strong><?= __('snapshots.schedule_never') ?></strong>
+                <?php endif; ?>
+            </div>
+            <div class="d-flex gap-100">
+                <?php if ($schedToken): ?>
+                <button type="button" class="btn btn-subtle btn-sm" id="btnRegenToken">
+                    <i class="bi bi-arrow-repeat" aria-hidden="true"></i>
+                    <?= __('snapshots.btn_regen_token') ?>
+                </button>
+                <?php endif; ?>
+                <button type="button" class="btn btn-primary btn-sm" id="btnSaveSchedule">
+                    <?= __('snapshots.btn_save_schedule') ?>
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+<?php endif; ?>
+
 <!-- Filtros -->
 <div class="filter-bar" role="search">
     <div class="filter-bar-search">
@@ -290,4 +390,9 @@ $nonFavFull = count(array_filter($backups, fn($b) => $b['type'] === 'full' && !$
 <script>
 window.__SNAPSHOTS_CAN_CREATE__  = <?= $canCreate ? 'true' : 'false' ?>;
 window.__SNAPSHOTS_CAN_RESTORE__ = <?= $canRestore ? 'true' : 'false' ?>;
+window.__SCHEDULE__ = {
+    token:     <?= json_encode($schedToken) ?>,
+    frequency: <?= json_encode($schedFrequency) ?>,
+    baseUrl:   <?= json_encode(rtrim(APP_BASE_URL, '/') . '/cron/backup_cron.php') ?>,
+};
 </script>

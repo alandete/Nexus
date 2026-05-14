@@ -5,6 +5,16 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [2.0.0-alpha.3] — 2026-04-19 (en desarrollo)
 
+### Backups automáticos vía cron + fix foto de usuario distorsionada — 2026-05-13
+
+- Nuevo `includes/backup_core.php`: funciones puras de backup extraídas de `backup_actions.php` y reutilizables sin contexto HTTP.
+- Nuevo `cron/backup_cron.php`: endpoint HTTP seguro con token para ejecutar backups desde cron (cPanel/Task Scheduler). Soporta también llamada CLI. Valida token con `hash_equals`, verifica frecuencia mínima entre ejecuciones y actualiza `last_run`.
+- Nuevo `includes/backup_schedule_actions.php`: AJAX para guardar configuración de schedule y regenerar token.
+- UI en Copias de seguridad: nueva sección "Backup automático" con toggle, tipo, frecuencia, comando cron listo para copiar y registro del último backup automático.
+- `data/backup_schedule.json` añadido a `.gitignore` (contiene token secreto).
+- `backup_actions.php` simplificado: ahora delega en `ejecutarBackupDirecto()` de `backup_core.php`.
+- Fix: foto de usuario se mostraba distorsionada en la tabla de usuarios porque el `<img>` era directamente `.avatar` en vez de ser hijo de `<span class="avatar">`. La regla CSS `.avatar img { object-fit: cover }` no se aplicaba.
+
 ### Corrector Rise: procesamiento client-side + usuarios sin email único — 2026-05-13
 
 - Corrector Rise reescrito para procesar el ZIP completamente en el navegador usando JSZip, eliminando la dependencia de PHP para el procesamiento de archivos grandes. Resuelve el bloqueo por Windows Defender en Laragon y timeouts de servidor.

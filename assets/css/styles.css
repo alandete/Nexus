@@ -585,6 +585,17 @@ select.form-control {
     margin: 0;
 }
 
+.card-subtitle {
+    font-size: var(--ds-font-size-small);
+    color: var(--ds-text-subtle);
+    margin: 2px 0 0;
+}
+
+.font-mono {
+    font-family: ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, Consolas, monospace;
+    font-size: var(--ds-font-size-small);
+}
+
 .card-body {
     font-size: var(--ds-font-size-body);
     color: var(--ds-text);

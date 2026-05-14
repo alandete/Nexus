@@ -27,6 +27,7 @@ data/alliances.json
 data/projectinfo.json
 data/roles.json
 data/stages.json
+data/backup_schedule.json
 
 # Cache y diagnostico
 data/deps_check.json

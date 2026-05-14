@@ -5,6 +5,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [2.0.0-alpha.3] — 2026-04-19 (en desarrollo)
 
+### Backup automático: selector de hora de ejecución — 2026-05-13
+
+- Añadido selector de hora (00:00–23:00) en la configuración de backup automático.
+- El comando cron se regenera al cambiar hora o frecuencia. Default: 23:00.
+
 ### Backups automáticos vía cron + fix foto de usuario distorsionada — 2026-05-13
 
 - Nuevo `includes/backup_core.php`: funciones puras de backup extraídas de `backup_actions.php` y reutilizables sin contexto HTTP.

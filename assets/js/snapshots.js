@@ -359,20 +359,18 @@
         return res.json();
     }
 
-    function getSchedFreqCron(freq) {
-        return { daily: '0 2 * * *', weekly: '0 2 * * 0', monthly: '0 2 1 * *' }[freq] || '0 2 * * *';
-    }
-
-    function buildCronCmd(token, freq) {
+    function buildCronCmd(token, freq, hour) {
         const sched = window.__SCHEDULE__ || {};
         if (!token || !sched.baseUrl) return '';
+        const h   = String(hour ?? 23).padStart(2, '0');
+        const day = { daily: '* * *', weekly: '* * 0', monthly: '1 * *' }[freq] || '* * *';
         const url = sched.baseUrl + '?token=' + encodeURIComponent(token);
-        return getSchedFreqCron(freq) + ' curl -s "' + url + '" > /dev/null 2>&1';
+        return '0 ' + h + ' ' + day + ' curl -s "' + url + '" > /dev/null 2>&1';
     }
 
-    function updateCronInput(token, freq) {
+    function updateCronInput(token, freq, hour) {
         const input = document.getElementById('cronCmdInput');
-        if (input) input.value = buildCronCmd(token, freq);
+        if (input) input.value = buildCronCmd(token, freq, hour);
     }
 
     function initSchedule() {
@@ -380,13 +378,19 @@
         let currentToken = sched.token || '';
 
         const freqSel   = document.getElementById('schedFrequency');
+        const hourSel   = document.getElementById('schedHour');
         const saveBtn   = document.getElementById('btnSaveSchedule');
         const regenBtn  = document.getElementById('btnRegenToken');
         const copyBtn   = document.getElementById('btnCopyCron');
         const enabledCk = document.getElementById('schedEnabled');
 
+        const getHour = () => parseInt(hourSel?.value ?? sched.hour ?? 23, 10);
+
         if (freqSel) {
-            freqSel.addEventListener('change', () => updateCronInput(currentToken, freqSel.value));
+            freqSel.addEventListener('change', () => updateCronInput(currentToken, freqSel.value, getHour()));
+        }
+        if (hourSel) {
+            hourSel.addEventListener('change', () => updateCronInput(currentToken, freqSel?.value || 'daily', getHour()));
         }
 
         if (copyBtn) {
@@ -415,10 +419,11 @@
                         enabled:   enabledCk?.checked ? '1' : '0',
                         type:      activeType?.dataset.schedType || 'data',
                         frequency: freqSel?.value || 'daily',
+                        hour:      String(getHour()),
                     });
                     if (result.success) {
                         currentToken = result.token || currentToken;
-                        updateCronInput(currentToken, freqSel?.value || 'daily');
+                        updateCronInput(currentToken, freqSel?.value || 'daily', getHour());
 
                         // Mostrar input si no existía (primer guardado genera token)
                         if (!document.getElementById('cronCmdInput') && currentToken) {
@@ -445,7 +450,7 @@
                     const result = await postSchedule({ action: 'regen_token' });
                     if (result.success) {
                         currentToken = result.token;
-                        updateCronInput(currentToken, freqSel?.value || 'daily');
+                        updateCronInput(currentToken, freqSel?.value || 'daily', getHour());
                         Toast.success(t('snapshots.schedule_token_regenned', 'Token regenerado. Actualiza tu cron.'));
                     } else {
                         Toast.error(result.message || t('snapshots.schedule_err_regen', 'Error al regenerar.'));

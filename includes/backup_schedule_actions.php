@@ -35,7 +35,7 @@ $scheduleFile = DATA_PATH . '/backup_schedule.json';
 function loadScheduleConfig(string $file): array
 {
     if (!file_exists($file)) {
-        return ['enabled' => false, 'token' => '', 'type' => 'data', 'frequency' => 'daily', 'last_run' => null];
+        return ['enabled' => false, 'token' => '', 'type' => 'data', 'frequency' => 'daily', 'hour' => 23, 'last_run' => null];
     }
     $d = json_decode(file_get_contents($file), true);
     return is_array($d) ? $d : [];
@@ -58,6 +58,7 @@ if ($action === 'save') {
     $schedule['type']      = in_array($_POST['type'] ?? '', ['data', 'full'], true) ? $_POST['type'] : 'data';
     $schedule['frequency'] = in_array($_POST['frequency'] ?? '', ['daily', 'weekly', 'monthly'], true)
         ? $_POST['frequency'] : 'daily';
+    $schedule['hour']      = max(0, min(23, (int) ($_POST['hour'] ?? 23)));
 
     if (empty($schedule['token'])) {
         $schedule['token'] = generateCronToken();

@@ -17,11 +17,12 @@ if (file_exists($scheduleFile)) {
 $schedEnabled   = !empty($schedule['enabled']);
 $schedType      = $schedule['type']      ?? 'data';
 $schedFrequency = $schedule['frequency'] ?? 'daily';
+$schedHour      = (int) ($schedule['hour'] ?? 23);
 $schedToken     = $schedule['token']     ?? '';
 $schedLastRun   = $schedule['last_run']  ?? null;
 
-$cronFreqMap = ['daily' => '0 2 * * *', 'weekly' => '0 2 * * 0', 'monthly' => '0 2 1 * *'];
-$cronTime    = $cronFreqMap[$schedFrequency] ?? '0 2 * * *';
+$cronDayPart = ['daily' => '* * *', 'weekly' => '* * 0', 'monthly' => '1 * *'];
+$cronTime    = '0 ' . $schedHour . ' ' . ($cronDayPart[$schedFrequency] ?? '* * *');
 $cronUrl     = rtrim(APP_BASE_URL, '/') . '/cron/backup_cron.php?token=' . urlencode($schedToken);
 $cronCmd     = $schedToken ? ($cronTime . ' curl -s "' . $cronUrl . '" > /dev/null 2>&1') : '';
 
@@ -210,6 +211,16 @@ $nonFavFull = count(array_filter($backups, fn($b) => $b['type'] === 'full' && !$
                     <option value="monthly" <?= $schedFrequency === 'monthly' ? 'selected' : '' ?>><?= __('snapshots.freq_monthly') ?></option>
                 </select>
             </div>
+            <div class="form-group">
+                <label class="form-label" for="schedHour"><?= __('snapshots.field_sched_hour') ?></label>
+                <select class="form-control" id="schedHour" style="max-width:120px;">
+                    <?php for ($h = 0; $h <= 23; $h++): ?>
+                    <option value="<?= $h ?>" <?= $schedHour === $h ? 'selected' : '' ?>>
+                        <?= str_pad($h, 2, '0', STR_PAD_LEFT) ?>:00
+                    </option>
+                    <?php endfor; ?>
+                </select>
+            </div>
         </div>
 
         <?php if ($schedToken): ?>
@@ -393,6 +404,7 @@ window.__SNAPSHOTS_CAN_RESTORE__ = <?= $canRestore ? 'true' : 'false' ?>;
 window.__SCHEDULE__ = {
     token:     <?= json_encode($schedToken) ?>,
     frequency: <?= json_encode($schedFrequency) ?>,
+    hour:      <?= $schedHour ?>,
     baseUrl:   <?= json_encode(rtrim(APP_BASE_URL, '/') . '/cron/backup_cron.php') ?>,
 };
 </script>

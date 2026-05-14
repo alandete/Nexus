@@ -5,6 +5,17 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [2.0.0-alpha.3] — 2026-04-19 (en desarrollo)
 
+### Fix permisos rol editor + página 403 + avatares — 2026-05-14
+
+- Creada `pages/403.php`: pantalla de acceso denegado con diseño `empty-state`. Su ausencia causaba páginas en blanco en todas las rutas restringidas.
+- `pages/application.php`: cambiado el guard de `canEditModule` (solo escritura) a `hasPermission(..., 'read')` para que el editor pueda ver la página. Controles envueltos en `<fieldset disabled>` cuando el rol es solo lectura; botones de acción ocultos.
+- `pages/settings.php`: secciones Integraciones, Sistema y Actividad ahora solo se incluyen si el rol es admin.
+- `pages/users.php`: botón de editar fila corregido — usaba `$canEditOwn` global (siempre true) en lugar de `$isSelf` por fila.
+- `pages/system.php` y `pages/activity.php`: corregido include de `pages/error.php` (no existía) a `pages/403.php`.
+- `includes/user_actions.php`: acción `delete` ahora ejecuta `DELETE FROM users WHERE username = ?` explícito; `saveUsers()` solo hace INSERT/UPDATE. Añadida validación de email duplicado en `update`.
+- `includes/api_settings_actions.php`: `getApiSettingsRaw()` declarada como función de nivel superior (sin guardia `function_exists`) para evitar fatal error por definición condicional no hoisteable.
+- Avatares: reemplazado `height: Xpx` por `aspect-ratio: 1 / 1` en `.avatar-sm/md/lg/xl` y `.topbar-avatar`. El alto se calcula desde el ancho; `display: block` añadido a `.avatar img` para evitar distorsión por reset inline.
+
 ### Fix: redeclaración de formatFileSize en backup_core — 2026-05-13
 
 - Eliminada `formatFileSize()` de `backup_core.php`; ya estaba definida en `functions.php` con guardia `function_exists`. La duplicación causaba fatal error al crear backups desde la UI.

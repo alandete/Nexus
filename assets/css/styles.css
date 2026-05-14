@@ -869,12 +869,13 @@ select.form-control {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    display: block;
 }
 
-.avatar-sm  { width: 24px; height: 24px; font-size: 11px; }
-.avatar-md  { width: 32px; height: 32px; font-size: var(--ds-font-size-body-sm); }
-.avatar-lg  { width: 40px; height: 40px; font-size: var(--ds-font-size-body); }
-.avatar-xl  { width: 48px; height: 48px; font-size: var(--ds-font-size-body-lg); }
+.avatar-sm  { width: 24px; aspect-ratio: 1 / 1; font-size: 11px; }
+.avatar-md  { width: 32px; aspect-ratio: 1 / 1; font-size: var(--ds-font-size-body-sm); }
+.avatar-lg  { width: 40px; aspect-ratio: 1 / 1; font-size: var(--ds-font-size-body); }
+.avatar-xl  { width: 48px; aspect-ratio: 1 / 1; font-size: var(--ds-font-size-body-lg); }
 
 /* ============================================
    TOOLTIP
@@ -1175,9 +1176,10 @@ select.form-control {
 
 .topbar-avatar {
     width: 28px;
-    height: 28px;
+    aspect-ratio: 1 / 1;
     border-radius: var(--ds-radius-round);
     object-fit: cover;
+    display: block;
 }
 
 .topbar-avatar-fallback {

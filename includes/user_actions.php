@@ -143,8 +143,6 @@ if ($action === 'create') {
         exit;
     }
 
-
-
     // Obtener el siguiente ID
     $maxId = 0;
     foreach ($users as $user) {
@@ -225,7 +223,13 @@ if ($action === 'update') {
         exit;
     }
 
-
+    // Verificar email único (excluyendo el propio usuario)
+    foreach ($users as $uname => $existingUser) {
+        if ($uname !== $username && strtolower($existingUser['email'] ?? '') === strtolower($email)) {
+            echo json_encode(['success' => false, 'message' => 'Este email ya está en uso por otro usuario']);
+            exit;
+        }
+    }
 
     // Actualizar datos
     $users[$username]['name'] = $name;
@@ -315,15 +319,23 @@ if ($action === 'delete') {
     // Eliminar foto de perfil
     deleteUserPhoto($username);
 
-    // Eliminar usuario
+    // Eliminar usuario del array
     unset($users[$username]);
 
-    if (saveUsers($users)) {
-        logActivity('users', 'delete', $username);
-        echo json_encode(['success' => true, 'message' => 'Usuario eliminado exitosamente']);
-    } else {
-        echo json_encode(['success' => false, 'message' => 'Error al eliminar el usuario']);
+    // Eliminar de BD explícitamente (saveUsers solo hace INSERT/UPDATE, nunca DELETE)
+    $db = getDB();
+    if ($db) {
+        try {
+            $db->prepare("DELETE FROM users WHERE username = ?")->execute([$username]);
+        } catch (PDOException $e) {}
     }
+
+    // Sincronizar JSON
+    if (!is_dir(DATA_PATH)) mkdir(DATA_PATH, 0755, true);
+    file_put_contents(USERS_FILE, json_encode($users, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+
+    logActivity('users', 'delete', $username);
+    echo json_encode(['success' => true, 'message' => 'Usuario eliminado exitosamente']);
     exit;
 }
 

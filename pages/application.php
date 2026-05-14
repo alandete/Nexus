@@ -52,6 +52,9 @@ $timezoneGroups = [
 </div>
 
 <form id="applicationForm" class="application-form" enctype="multipart/form-data" novalidate>
+<?php if (!$canWrite): ?>
+<fieldset disabled style="border:none;padding:0;margin:0;">
+<?php endif; ?>
 
     <!-- ============ IDENTIDAD ============ -->
     <section class="card application-section" aria-labelledby="sec-identity-title">
@@ -340,7 +343,12 @@ $timezoneGroups = [
         <span class="alert-content" id="applicationFormErrorText"></span>
     </div>
 
+<?php if (!$canWrite): ?>
+</fieldset>
+<?php endif; ?>
+
     <!-- Barra de acciones (sticky) -->
+    <?php if ($canWrite): ?>
     <div class="application-actions">
         <button type="button" class="btn btn-subtle" id="applicationResetBtn">
             <?= __('common.cancel') ?>
@@ -350,5 +358,6 @@ $timezoneGroups = [
             <span class="btn-text"><?= __('application.btn_save') ?></span>
         </button>
     </div>
+    <?php endif; ?>
 
 </form>

@@ -32,50 +32,64 @@ $action = $_POST['action'] ?? '';
  */
 function processPhotoUpload(string $username): ?string
 {
-    if (!isset($_FILES['photo']) || $_FILES['photo']['error'] === UPLOAD_ERR_NO_FILE) {
+    try {
+        if (!isset($_FILES['photo']) || $_FILES['photo']['error'] === UPLOAD_ERR_NO_FILE) {
+            return null;
+        }
+
+        $file = $_FILES['photo'];
+
+        if ($file['error'] !== UPLOAD_ERR_OK) {
+            return null;
+        }
+
+        // Validar tamaño (2 MB)
+        if ($file['size'] > 2 * 1024 * 1024) {
+            return null;
+        }
+
+        // Validar tipo MIME — con finfo si está disponible, sino por extensión
+        $allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+        $allowedExts  = ['jpg' => 'jpg', 'jpeg' => 'jpg', 'png' => 'png', 'webp' => 'webp'];
+
+        if (class_exists('finfo')) {
+            $finfo    = new finfo(FILEINFO_MIME_TYPE);
+            $mimeType = $finfo->file($file['tmp_name']);
+            if (!in_array($mimeType, $allowedTypes, true)) return null;
+            $extensions = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
+            $ext = $extensions[$mimeType];
+        } else {
+            $origExt = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+            if (!isset($allowedExts[$origExt])) return null;
+            $ext = $allowedExts[$origExt];
+        }
+
+        // Crear directorio si no existe
+        if (!is_dir(AVATARS_PATH)) {
+            mkdir(AVATARS_PATH, 0755, true);
+        }
+
+        if (!is_writable(AVATARS_PATH)) {
+            return null;
+        }
+
+        // Eliminar foto anterior del usuario (cualquier extensión)
+        deleteUserPhoto($username);
+
+        // Guardar con nombre del usuario
+        $filename    = $username . '.' . $ext;
+        $destination = AVATARS_PATH . '/' . $filename;
+
+        if (move_uploaded_file($file['tmp_name'], $destination)) {
+            return $filename;
+        }
+
+        return null;
+
+    } catch (\Throwable $e) {
+        error_log('processPhotoUpload error: ' . $e->getMessage());
         return null;
     }
-
-    $file = $_FILES['photo'];
-
-    if ($file['error'] !== UPLOAD_ERR_OK) {
-        return null;
-    }
-
-    // Validar tamaño (2 MB)
-    if ($file['size'] > 2 * 1024 * 1024) {
-        return null;
-    }
-
-    // Validar tipo MIME
-    $allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
-    $finfo = new finfo(FILEINFO_MIME_TYPE);
-    $mimeType = $finfo->file($file['tmp_name']);
-    if (!in_array($mimeType, $allowedTypes, true)) {
-        return null;
-    }
-
-    // Extensión según MIME
-    $extensions = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/webp' => 'webp'];
-    $ext = $extensions[$mimeType];
-
-    // Crear directorio si no existe
-    if (!is_dir(AVATARS_PATH)) {
-        mkdir(AVATARS_PATH, 0755, true);
-    }
-
-    // Eliminar foto anterior del usuario (cualquier extensión)
-    deleteUserPhoto($username);
-
-    // Guardar con nombre del usuario
-    $filename = $username . '.' . $ext;
-    $destination = AVATARS_PATH . '/' . $filename;
-
-    if (move_uploaded_file($file['tmp_name'], $destination)) {
-        return $filename;
-    }
-
-    return null;
 }
 
 /**

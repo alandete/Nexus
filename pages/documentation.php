@@ -36,6 +36,7 @@ $docSections = [
             'utilities-questions' => __('docs.utilities_questions'),
             'utilities-pdf'       => __('docs.utilities_pdf'),
             'utilities-images'    => __('docs.utilities_images'),
+            'utilities-rise'      => __('docs.utilities_rise'),
         ],
     ],
     'tasks' => [
@@ -255,6 +256,7 @@ $docSections = [
                     <li><strong><?= __('docs.sec_passwords_label') ?></strong> — bcrypt (password_hash)</li>
                     <li><strong><?= __('docs.sec_api_label') ?></strong> — AES-256-CBC</li>
                     <li><strong><?= __('docs.sec_password_recovery_label') ?></strong> — <?= __('docs.sec_password_recovery') ?></li>
+                    <li><strong><?= __('docs.sec_remember_me_label') ?></strong> — <?= __('docs.sec_remember_me') ?></li>
                     <li><strong>Headers</strong> — nosniff, SAMEORIGIN, referrer-policy, permissions-policy</li>
                 </ul>
             </article>
@@ -380,6 +382,25 @@ Retro incorrecta: La respuesta correcta es Paris.</code></pre>
                         <tr><td><?= __('docs.img_convert') ?></td><td><?= __('docs.img_convert_desc') ?></td><td>JPEG, PNG, WebP</td></tr>
                     </tbody>
                 </table>
+            </article>
+
+            <article id="utilities-rise" class="docs-article">
+                <h3><?= __('docs.utilities_rise') ?></h3>
+                <p><?= __('docs.utilities_rise_desc') ?></p>
+
+                <h4><?= __('docs.rise_problem_title') ?></h4>
+                <p><?= __('docs.rise_problem_desc') ?></p>
+
+                <h4><?= __('docs.rise_solution_title') ?></h4>
+                <ol class="docs-list docs-steps">
+                    <li><?= __('docs.rise_step1') ?></li>
+                    <li><?= __('docs.rise_step2') ?></li>
+                    <li><?= __('docs.rise_step3') ?></li>
+                </ol>
+                <div class="alert alert-info mt-200">
+                    <i class="bi bi-info-circle alert-icon" aria-hidden="true"></i>
+                    <span class="alert-content"><?= __('docs.rise_note') ?></span>
+                </div>
             </article>
         </section>
 
@@ -526,12 +547,28 @@ Retro incorrecta: La respuesta correcta es Paris.</code></pre>
             <article id="settings-apis" class="docs-article">
                 <h3><?= __('docs.settings_apis') ?></h3>
                 <p><?= __('docs.settings_apis_desc') ?></p>
-                <table class="table table-compact">
-                    <thead><tr><th><?= __('docs.col_integration') ?></th><th><?= __('docs.col_purpose') ?></th><th><?= __('docs.col_required') ?></th></tr></thead>
+
+                <h4><?= __('docs.settings_apis_per_user') ?></h4>
+                <p><?= __('docs.settings_apis_per_user_desc') ?></p>
+
+                <table class="table table-compact mt-200">
+                    <thead><tr><th><?= __('docs.col_integration') ?></th><th><?= __('docs.col_purpose') ?></th><th><?= __('docs.col_scope') ?></th></tr></thead>
                     <tbody>
-                        <tr><td>iLovePDF / iLoveIMG</td><td><?= __('docs.api_ilovepdf_purpose') ?></td><td><?= __('docs.api_ilovepdf_req') ?></td></tr>
-                        <tr><td>Gmail IMAP</td><td><?= __('docs.api_gmail_purpose') ?></td><td><?= __('docs.api_gmail_req') ?></td></tr>
-                        <tr><td>SMTP</td><td><?= __('docs.api_smtp_purpose') ?></td><td><?= __('docs.api_smtp_req') ?></td></tr>
+                        <tr>
+                            <td>iLovePDF / iLoveIMG</td>
+                            <td><?= __('docs.api_ilovepdf_purpose') ?></td>
+                            <td><span class="lozenge lozenge-info"><?= __('docs.api_ilovepdf_scope') ?></span></td>
+                        </tr>
+                        <tr>
+                            <td>Gmail IMAP</td>
+                            <td><?= __('docs.api_gmail_purpose') ?></td>
+                            <td><span class="lozenge lozenge-info"><?= __('docs.api_gmail_scope') ?></span></td>
+                        </tr>
+                        <tr>
+                            <td>SMTP</td>
+                            <td><?= __('docs.api_smtp_purpose') ?></td>
+                            <td><span class="lozenge lozenge-default"><?= __('docs.api_smtp_scope') ?></span></td>
+                        </tr>
                     </tbody>
                 </table>
                 <div class="alert alert-info mt-200">

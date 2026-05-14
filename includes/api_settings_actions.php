@@ -3,6 +3,21 @@
  * S4Learning - API Settings Actions
  * Gestiona la lectura y guardado de claves de APIs externas (encriptadas)
  */
+ini_set('display_errors', '0');
+ob_start();
+register_shutdown_function(function () {
+    $error = error_get_last();
+    if ($error && in_array($error['type'], [E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR], true)) {
+        ob_end_clean();
+        if (!headers_sent()) {
+            header('Content-Type: application/json; charset=utf-8');
+        }
+        echo json_encode(['success' => false, 'message' => 'Error: ' . $error['message']]);
+    } else {
+        ob_end_flush();
+    }
+});
+
 define('APP_ACCESS', true);
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/functions.php';

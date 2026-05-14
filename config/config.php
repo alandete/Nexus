@@ -100,8 +100,3 @@ if (is_dir($langDir)) {
 
 // Cargar sistema de autenticación
 require_once BASE_PATH . '/includes/auth.php';
-
-// Restaurar sesión desde cookie "Recordarme" si no hay sesión activa
-if (!isset($_SESSION['user']) && isset($_COOKIE['nexus_remember'])) {
-    rememberCheckCookie();
-}

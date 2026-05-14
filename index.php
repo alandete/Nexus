@@ -13,6 +13,11 @@ define('APP_NAME', 'Nexus');
 require_once __DIR__ . '/config/config.php';
 require_once __DIR__ . '/includes/functions.php';
 
+// Restaurar sesión desde cookie "Recordarme" si no hay sesión activa
+if (!isset($_SESSION['user']) && isset($_COOKIE['nexus_remember'])) {
+    rememberCheckCookie();
+}
+
 // Migraciones de BD
 runMigrations();
 

@@ -758,28 +758,39 @@ function getApiSettings(): array
 }
 
 /**
- * Devuelve las claves iLovePDF efectivas para un usuario:
- * primero las propias del usuario; si no tiene, las globales del sistema.
+ * Devuelve las claves iLovePDF efectivas para un usuario.
+ * - Si el usuario tiene claves propias → las usa.
+ * - Si no las tiene y es admin → cae a las claves globales (son suyas).
+ * - Si no las tiene y no es admin → API no disponible (claves vacías).
  */
-function getEffectiveApiSettings(string $username = ''): array
+function getEffectiveApiSettings(string $username = '', string $role = ''): array
 {
+    $global = getApiSettings();
+
     if ($username !== '') {
-        $safe = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $username);
+        $safe     = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $username);
         $userFile = DATA_PATH . '/user_api_' . $safe . '.json';
         if (file_exists($userFile)) {
             $raw = json_decode(file_get_contents($userFile), true) ?? [];
             $pub = decryptApiValue($raw['ilp_public_key'] ?? '');
             $sec = decryptApiValue($raw['ilp_secret_key'] ?? '');
             if (!empty($pub) && !empty($sec)) {
-                $global = getApiSettings();
                 return array_merge($global, [
                     'ilp_public_key' => $pub,
                     'ilp_secret_key' => $sec,
                 ]);
             }
         }
+        // Sin claves propias: solo admin accede a las globales
+        if ($role !== 'admin') {
+            return array_merge($global, [
+                'ilp_public_key' => '',
+                'ilp_secret_key' => '',
+            ]);
+        }
     }
-    return getApiSettings();
+
+    return $global;
 }
 
 /**

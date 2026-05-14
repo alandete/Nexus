@@ -55,7 +55,7 @@ $validPages = [
     'home', 'tasks', 'alliances', 'documentation',
     'utilities-images', 'utilities-pdf', 'utilities-gift', 'utilities-rise',
     'reports',
-    'settings', 'users', 'manage-alliances', 'manage-tasks', 'application', 'integrations',
+    'settings', 'users', 'manage-alliances', 'manage-tasks', 'application', 'integrations', 'my-integrations',
     'snapshots', 'system', 'activity',
     'login', 'logout',
     'forgot-password', 'reset-password',

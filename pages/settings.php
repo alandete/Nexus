@@ -39,6 +39,13 @@ $settingsSections[] = [
     'desc'  => __('settings_overview.application_desc'),
 ];
 
+$settingsSections[] = [
+    'url'   => url('my-integrations'),
+    'icon'  => 'bi-key',
+    'title' => __('menu.my_integrations'),
+    'desc'  => __('settings_overview.my_integrations_desc'),
+];
+
 if (($currentUser['role'] ?? '') === 'admin') {
     $settingsSections[] = [
         'url'   => url('integrations'),

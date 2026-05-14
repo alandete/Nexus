@@ -5,6 +5,16 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [2.0.0-alpha.3] — 2026-04-19 (en desarrollo)
 
+### Mis claves API + espaciado Aplicación — 2026-05-14
+
+- Nueva página `pages/my-integrations.php`: cualquier usuario configura sus propias claves iLovePDF/iLoveIMG. Accesible desde Ajustes para todos los roles.
+- `pages/settings.php`: card "Mis claves API" visible para todos los usuarios (no solo admin).
+- `index.php`: ruta `my-integrations` registrada.
+- `lang/es|en/my_integrations.php`: nuevos archivos de traducciones.
+- `lang/es|en/common.php`: claves `menu.my_integrations` y `settings_overview.my_integrations_desc`.
+- CSS Aplicación: gap entre secciones 24px→40px, padding header 24px→32px horizontal, padding body 24px→32px, gap interno 16px→24px.
+- `getEffectiveApiSettings()`: sin claves propias + rol no-admin = API no disponible (evita consumir tokens del admin).
+
 ### iLovePDF claves por usuario — 2026-05-14
 
 - Nueva función `getEffectiveApiSettings(username)` en `functions.php`: usa claves propias del usuario si las tiene, o las globales del sistema como fallback.

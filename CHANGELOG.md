@@ -5,6 +5,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [2.0.0-alpha.3] — 2026-04-19 (en desarrollo)
 
+### Fix: redeclaración de formatFileSize en backup_core — 2026-05-13
+
+- Eliminada `formatFileSize()` de `backup_core.php`; ya estaba definida en `functions.php` con guardia `function_exists`. La duplicación causaba fatal error al crear backups desde la UI.
+
 ### Backup automático: ajustes de UI y badge origen — 2026-05-13
 
 - Selectores de configuración (Tipo, Frecuencia, Hora) en línea horizontal con label a la izquierda de cada control y gap-300 entre grupos.

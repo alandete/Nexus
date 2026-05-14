@@ -230,13 +230,6 @@ function getBackupType(string $filename): string
     return strpos($filename, 'nexusapp-full-') === 0 ? 'full' : 'data';
 }
 
-function formatFileSize(int $bytes): string
-{
-    if ($bytes >= 1048576) return round($bytes / 1048576, 1) . ' MB';
-    if ($bytes >= 1024)    return round($bytes / 1024, 1) . ' KB';
-    return $bytes . ' B';
-}
-
 function addDirectoryToZip(ZipArchive $zip, string $dirPath, string $zipBasePath): void
 {
     $iterator = new RecursiveIteratorIterator(

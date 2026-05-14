@@ -89,6 +89,12 @@ Archivo: {file}',
         'err_delete'   => 'No se pudo eliminar.',
         'err_favorite' => 'No se pudo actualizar el favorito.',
 
+        // Origen del backup
+        'source_auto'           => 'Automático',
+        'source_auto_tooltip'   => 'Creado por el cron automático.',
+        'source_manual'         => 'Manual',
+        'source_manual_tooltip' => 'Creado manualmente desde la interfaz.',
+
         // Backup automático
         'schedule_title'        => 'Backup automático',
         'schedule_desc'         => 'Configura un cron para ejecutar backups periódicamente vía URL segura.',

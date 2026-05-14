@@ -5,6 +5,13 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [2.0.0-alpha.3] — 2026-04-19 (en desarrollo)
 
+### Backup automático: ajustes de UI y badge origen — 2026-05-13
+
+- Selectores de configuración (Tipo, Frecuencia, Hora) en línea horizontal con label a la izquierda de cada control y gap-300 entre grupos.
+- Margen inferior añadido a la card de backup automático para que la sombra no quede cortada.
+- Badge de origen en cada backup: lozenge verde "Automático" (cron) o gris "Manual" (interfaz).
+- `sources.json` en backups/: registra el origen de cada backup; se limpia al rotar o eliminar.
+
 ### Backup automático: selector de hora de ejecución — 2026-05-13
 
 - Añadido selector de hora (00:00–23:00) en la configuración de backup automático.

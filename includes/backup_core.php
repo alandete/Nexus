@@ -14,7 +14,7 @@ defined('APP_ACCESS') or die('Acceso directo no permitido');
  * Crea un backup sin depender de sesión, $_POST ni salida HTTP.
  * Retorna array con success, message, filename, size.
  */
-function ejecutarBackupDirecto(string $type = 'data'): array
+function ejecutarBackupDirecto(string $type = 'data', string $source = 'auto'): array
 {
     if (!class_exists('ZipArchive')) {
         return ['success' => false, 'message' => 'La extensión ZipArchive no está disponible'];
@@ -49,6 +49,11 @@ function ejecutarBackupDirecto(string $type = 'data'): array
 
     $zip->close();
     rotateBackups($type);
+
+    $sources = getSources();
+    $sources[$filename] = $source;
+    saveSources($sources);
+
     logActivity('backup', 'create', $filename);
 
     return [
@@ -158,14 +163,32 @@ function rotateBackups(string $type = 'data'): void
 
     sort($nonFavorites);
     $toDelete = array_slice($nonFavorites, 0, count($nonFavorites) - MAX_BACKUPS);
-    foreach ($toDelete as $file) {
-        unlink($file);
+    if ($toDelete) {
+        $sources = getSources();
+        foreach ($toDelete as $file) {
+            unlink($file);
+            unset($sources[basename($file)]);
+        }
+        saveSources($sources);
     }
 }
 
 // ============================================================
 // FAVORITOS Y NOTAS
 // ============================================================
+
+function getSources(): array
+{
+    $file = BACKUP_PATH . '/sources.json';
+    if (!file_exists($file)) return [];
+    $data = json_decode(file_get_contents($file), true);
+    return is_array($data) ? $data : [];
+}
+
+function saveSources(array $sources): void
+{
+    file_put_contents(BACKUP_PATH . '/sources.json', json_encode($sources, JSON_PRETTY_PRINT));
+}
 
 function getFavorites(): array
 {

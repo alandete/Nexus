@@ -61,6 +61,13 @@ if (is_dir(BACKUP_PATH)) {
 
 $favorites = $__getFavorites();
 $notes     = $__getNotes();
+$__getSources = function (): array {
+    $f = BACKUP_PATH . '/sources.json';
+    if (!file_exists($f)) return [];
+    $d = json_decode(file_get_contents($f), true);
+    return is_array($d) ? $d : [];
+};
+$sources = $__getSources();
 
 // Construir array con metadata
 $backups = [];
@@ -87,6 +94,7 @@ foreach ($files as $f) {
         'date_ts'    => $date,
         'favorite'   => in_array($f, $favorites, true),
         'note'       => $notes[$f] ?? '',
+        'source'     => $sources[$f] ?? 'manual',
     ];
 }
 
@@ -173,7 +181,7 @@ $nonFavFull = count(array_filter($backups, fn($b) => $b['type'] === 'full' && !$
 
 <!-- Backup automático -->
 <?php if ($canCreate): ?>
-<section class="card schedule-card" id="scheduleCard">
+<section class="card" id="scheduleCard" style="margin-bottom:var(--ds-space-300);">
     <div class="card-header d-flex items-center justify-between">
         <div class="d-flex items-center gap-150">
             <i class="bi bi-clock-history" aria-hidden="true"></i>
@@ -188,10 +196,10 @@ $nonFavFull = count(array_filter($backups, fn($b) => $b['type'] === 'full' && !$
         </label>
     </div>
 
-    <div class="card-body schedule-body">
-        <div class="form-row">
-            <div class="form-group">
-                <label class="form-label"><?= __('snapshots.field_sched_type') ?></label>
+    <div class="card-body">
+        <div class="d-flex gap-300 flex-wrap items-center">
+            <div class="d-flex items-center gap-100">
+                <label class="form-label" style="margin:0;white-space:nowrap;"><?= __('snapshots.field_sched_type') ?></label>
                 <div class="chip-group">
                     <button type="button" class="chip <?= $schedType === 'data' ? 'chip-active' : '' ?>" data-sched-type="data">
                         <i class="bi bi-database" aria-hidden="true"></i>
@@ -203,17 +211,17 @@ $nonFavFull = count(array_filter($backups, fn($b) => $b['type'] === 'full' && !$
                     </button>
                 </div>
             </div>
-            <div class="form-group">
-                <label class="form-label" for="schedFrequency"><?= __('snapshots.field_sched_freq') ?></label>
-                <select class="form-control" id="schedFrequency" style="max-width:180px;">
+            <div class="d-flex items-center gap-100">
+                <label class="form-label" for="schedFrequency" style="margin:0;white-space:nowrap;"><?= __('snapshots.field_sched_freq') ?></label>
+                <select class="form-control" id="schedFrequency" style="width:150px;">
                     <option value="daily"   <?= $schedFrequency === 'daily'   ? 'selected' : '' ?>><?= __('snapshots.freq_daily') ?></option>
                     <option value="weekly"  <?= $schedFrequency === 'weekly'  ? 'selected' : '' ?>><?= __('snapshots.freq_weekly') ?></option>
                     <option value="monthly" <?= $schedFrequency === 'monthly' ? 'selected' : '' ?>><?= __('snapshots.freq_monthly') ?></option>
                 </select>
             </div>
-            <div class="form-group">
-                <label class="form-label" for="schedHour"><?= __('snapshots.field_sched_hour') ?></label>
-                <select class="form-control" id="schedHour" style="max-width:120px;">
+            <div class="d-flex items-center gap-100">
+                <label class="form-label" for="schedHour" style="margin:0;white-space:nowrap;"><?= __('snapshots.field_sched_hour') ?></label>
+                <select class="form-control" id="schedHour" style="width:100px;">
                     <?php for ($h = 0; $h <= 23; $h++): ?>
                     <option value="<?= $h ?>" <?= $schedHour === $h ? 'selected' : '' ?>>
                         <?= str_pad($h, 2, '0', STR_PAD_LEFT) ?>:00
@@ -308,6 +316,7 @@ $nonFavFull = count(array_filter($backups, fn($b) => $b['type'] === 'full' && !$
         $icon = $b['type'] === 'full' ? 'bi-hdd-fill' : 'bi-database-fill';
         $typeLabel = $b['type'] === 'full' ? __('snapshots.type_full') : __('snapshots.type_data');
         $typeLozenge = $b['type'] === 'full' ? 'lozenge-discovery' : 'lozenge-info';
+        $isAuto = ($b['source'] ?? 'manual') === 'auto';
     ?>
     <article class="snapshot-card <?= $b['favorite'] ? 'is-favorite' : '' ?>"
              data-filename="<?= htmlspecialchars($b['filename']) ?>"
@@ -321,6 +330,17 @@ $nonFavFull = count(array_filter($backups, fn($b) => $b['type'] === 'full' && !$
         <div class="snapshot-body">
             <div class="snapshot-header">
                 <span class="lozenge <?= $typeLozenge ?>"><?= $typeLabel ?></span>
+                <?php if ($isAuto): ?>
+                <span class="lozenge lozenge-success" data-tooltip="<?= __('snapshots.source_auto_tooltip') ?>">
+                    <i class="bi bi-clock-history" aria-hidden="true"></i>
+                    <?= __('snapshots.source_auto') ?>
+                </span>
+                <?php else: ?>
+                <span class="lozenge lozenge-default" data-tooltip="<?= __('snapshots.source_manual_tooltip') ?>">
+                    <i class="bi bi-hand-index" aria-hidden="true"></i>
+                    <?= __('snapshots.source_manual') ?>
+                </span>
+                <?php endif; ?>
                 <?php if ($b['favorite']): ?>
                 <span class="lozenge lozenge-warning" data-protected="1" data-tooltip="<?= __('snapshots.protected_tooltip') ?>">
                     <i class="bi bi-shield-fill" aria-hidden="true"></i>

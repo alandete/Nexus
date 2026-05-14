@@ -67,7 +67,7 @@ function crearBackup(array $currentUser): void
     }
 
     $type   = $_POST['type'] ?? 'data';
-    $result = ejecutarBackupDirecto($type);
+    $result = ejecutarBackupDirecto($type, 'manual');
 
     if ($result['success']) {
         $notes = trim($_POST['notes'] ?? '');
@@ -213,6 +213,11 @@ function eliminarBackup(array $currentUser): void
         if (isset($allNotes[$filename])) {
             unset($allNotes[$filename]);
             saveNotes($allNotes);
+        }
+        $sources = getSources();
+        if (isset($sources[$filename])) {
+            unset($sources[$filename]);
+            saveSources($sources);
         }
         logActivity('backup', 'delete', $filename);
         echo json_encode(['success' => true, 'message' => 'Backup eliminado exitosamente']);

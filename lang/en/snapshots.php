@@ -79,6 +79,12 @@ File: {file}',
         'err_delete'   => 'Could not delete.',
         'err_favorite' => 'Could not update favorite.',
 
+        // Backup source
+        'source_auto'           => 'Automatic',
+        'source_auto_tooltip'   => 'Created by the automatic cron job.',
+        'source_manual'         => 'Manual',
+        'source_manual_tooltip' => 'Created manually from the interface.',
+
         // Automatic backup schedule
         'schedule_title'        => 'Automatic backup',
         'schedule_desc'         => 'Configure a cron job to run backups periodically via a secure URL.',

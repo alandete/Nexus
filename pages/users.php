@@ -15,7 +15,7 @@ if (!canAccessModule($currentUser, 'users')) {
 
 $canWrite = canEditModule($currentUser, 'users');
 $canDelete = canDeleteModule($currentUser, 'users');
-$canEditOwn = canEditOwnProfile($currentUser, $currentUser['id'] ?? 0);
+$canEditOwn = true;
 
 $users = getUsers();
 $roles = getRoles();
@@ -157,7 +157,7 @@ $adminCount = count(array_filter($users, fn($u) => ($u['role'] ?? '') === 'admin
                         <?php endif; ?>
                     </td>
                     <td class="data-table-col-actions">
-                        <?php if ($canWrite || $canEditOwn): ?>
+                        <?php if ($canWrite || $isSelf): ?>
                         <button type="button" class="btn-icon btn-edit-user"
                                 data-username="<?= htmlspecialchars($username) ?>"
                                 data-tooltip="<?= __('users.btn_edit') ?>"

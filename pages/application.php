@@ -7,11 +7,13 @@ defined('APP_ACCESS') or die('Acceso directo no permitido');
 
 $currentUser = getCurrentUser();
 
-if (!canEditModule($currentUser, 'settings')) {
+if (!hasPermission($currentUser, 'settings', 'read')) {
     http_response_code(403);
     include 'pages/403.php';
     return;
 }
+
+$canWrite = canEditModule($currentUser, 'settings');
 
 $info = getProjectInfo();
 

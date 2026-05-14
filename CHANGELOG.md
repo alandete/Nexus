@@ -5,6 +5,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [2.0.0-alpha.4] — en desarrollo
 
+### Fix avatar círculo — 2026-05-14
+
+- `.avatar img`: restaurado `height: 100%` (dentro del contenedor flex, `auto` no llena el alto y rompe el círculo).
+- `.form-field-photo-preview`: separadas las reglas para `img` directo y `.avatar img` interior. Para un círculo CSS se requieren dimensiones iguales; `object-fit: cover` maneja el recorte sin distorsión.
+
 ### Recordarme en login — 2026-05-14
 
 - `pages/login.php`: checkbox "Mantener sesión iniciada" en el formulario de login.

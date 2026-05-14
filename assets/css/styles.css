@@ -867,7 +867,7 @@ select.form-control {
 
 .avatar img {
     width: 100%;
-    height: auto;
+    height: 100%;
     object-fit: cover;
     display: block;
 }
@@ -3597,12 +3597,27 @@ a.stat-card:hover {
     height: 80px;
 }
 
-.form-field-photo-preview img,
+/* Contenedor .avatar (div): dimensiones y recorte circular */
 .form-field-photo-preview .avatar {
     width: 80px !important;
     height: 80px !important;
     font-size: 28px;
     border-radius: var(--ds-radius-round);
+}
+
+/* Imagen directa (sin .avatar): ocupa el contenedor y se recorta sin distorsión */
+.form-field-photo-preview img {
+    width: 80px;
+    height: 80px;
+    border-radius: var(--ds-radius-round);
+    object-fit: cover;
+    display: block;
+}
+
+/* Imagen dentro del .avatar: llena el contenedor sin distorsión */
+.form-field-photo-preview .avatar img {
+    width: 100%;
+    height: 100%;
     object-fit: cover;
 }
 

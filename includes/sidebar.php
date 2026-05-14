@@ -167,12 +167,14 @@ $isUtilitiesActive = in_array($currentPage, $utilitiesPages);
                         </a>
                     </li>
                     <?php endif; ?>
+                    <?php if (!$isAdmin): ?>
                     <li role="none">
                         <a class="sidebar-sublink <?= $currentPage === 'my-integrations' ? 'active' : '' ?>" href="<?= url('my-integrations') ?>" role="menuitem">
                             <i class="bi bi-key sidebar-link-icon" aria-hidden="true"></i>
                             <span class="sidebar-link-text"><?= __('menu.my_integrations') ?></span>
                         </a>
                     </li>
+                    <?php endif; ?>
                     <?php if (canAccessModule($currentUser, 'backup')): ?>
                     <li role="none">
                         <a class="sidebar-sublink <?= $currentPage === 'snapshots' ? 'active' : '' ?>" href="<?= url('snapshots') ?>" role="menuitem">

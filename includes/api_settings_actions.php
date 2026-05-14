@@ -242,12 +242,10 @@ echo json_encode(['success' => false, 'message' => 'Accion no valida']);
 /**
  * Lee el JSON crudo sin desencriptar (para conservar valores al guardar parcialmente)
  */
-if (!function_exists('getApiSettingsRaw')) {
 function getApiSettingsRaw(): array
 {
     if (!file_exists(API_SETTINGS_FILE)) return [];
     return json_decode(file_get_contents(API_SETTINGS_FILE), true) ?? [];
-}
 }
 
 /**

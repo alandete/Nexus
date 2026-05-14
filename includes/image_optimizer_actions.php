@@ -28,6 +28,8 @@ if (!hasPermission($currentUser, 'utilities', 'write')) {
     imgOut(['success' => false, 'message' => 'Sin permiso']);
 }
 
+$GLOBALS['_nexus_username'] = $currentUser['username'] ?? '';
+
 // ── Router ────────────────────────────────────────────────────────────────────
 $action = $_POST['action'] ?? '';
 match ($action) {
@@ -43,7 +45,7 @@ match ($action) {
 // ═════════════════════════════════════════════════════════════════════════════
 function imgHandleStatus(): void
 {
-    $apiSettings = getApiSettings();
+    $apiSettings = getEffectiveApiSettings($GLOBALS['_nexus_username'] ?? '');
     imgOut([
         'success' => true,
         'methods' => [
@@ -140,7 +142,7 @@ function imgCompressAPI(array $file, string $level): array
     $levelMap = ['high' => 'low', 'medium' => 'recommended', 'low' => 'extreme'];
     $compressionLevel = $levelMap[$level] ?? 'recommended';
 
-    $settings = getApiSettings();
+    $settings = getEffectiveApiSettings($GLOBALS['_nexus_username'] ?? '');
     if (empty($settings['ilp_public_key']) || empty($settings['ilp_secret_key'])) {
         return ['success' => false, 'message' => 'API no configurada'];
     }

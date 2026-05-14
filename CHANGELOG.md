@@ -5,6 +5,15 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [2.0.0-alpha.3] — 2026-04-19 (en desarrollo)
 
+### iLovePDF claves por usuario — 2026-05-14
+
+- Nueva función `getEffectiveApiSettings(username)` en `functions.php`: usa claves propias del usuario si las tiene, o las globales del sistema como fallback.
+- Nuevo `includes/user_api_actions.php`: endpoint para get/save/test/clear de claves iLovePDF por usuario. Cualquier usuario autenticado gestiona las suyas; admin puede gestionar las de otros.
+- `pdf_optimizer_actions.php` e `image_optimizer_actions.php`: reemplazadas todas las llamadas a `getApiSettings()` por `getEffectiveApiSettings()` usando `$GLOBALS['_nexus_username']`.
+- `assets/js/users.js`: sección colapsable "Claves iLovePDF / iLoveIMG" en el modal de edición de usuario. Incluye guardar, probar y borrar claves, indicador de estado por clave.
+- `.gitignore`: añadido `data/user_api_*.json`.
+- CSS: nuevos estilos `.user-api-section`, `.user-api-summary`, `.user-api-body`, `.user-api-actions`.
+
 ### Fix permisos rol editor + página 403 + avatares — 2026-05-14
 
 - Creada `pages/403.php`: pantalla de acceso denegado con diseño `empty-state`. Su ausencia causaba páginas en blanco en todas las rutas restringidas.

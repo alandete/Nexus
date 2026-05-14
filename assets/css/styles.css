@@ -5181,6 +5181,60 @@ a.stat-card:hover {
     font-weight: 500;
 }
 
+/* ---- Sección iLovePDF por usuario ---- */
+.user-api-section {
+    border: 1px solid var(--ds-border);
+    border-radius: var(--ds-radius-200);
+    margin-top: var(--ds-space-300);
+}
+
+.user-api-summary {
+    display: flex;
+    align-items: center;
+    gap: var(--ds-space-100);
+    padding: var(--ds-space-150) var(--ds-space-200);
+    cursor: pointer;
+    font-weight: var(--ds-font-weight-medium);
+    font-size: var(--ds-font-size-body);
+    color: var(--ds-text);
+    list-style: none;
+    user-select: none;
+}
+
+.user-api-summary::-webkit-details-marker { display: none; }
+.user-api-summary::after {
+    content: '';
+    display: inline-block;
+    width: 0; height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 5px solid var(--ds-text-subtle);
+    margin-left: auto;
+    transition: transform var(--ds-duration-fast);
+}
+.user-api-section[open] .user-api-summary::after { transform: rotate(180deg); }
+
+.user-api-body {
+    padding: var(--ds-space-200);
+    border-top: 1px solid var(--ds-border);
+}
+
+.user-api-result {
+    margin: var(--ds-space-150) 0 0;
+}
+
+.user-api-actions {
+    display: flex;
+    gap: var(--ds-space-100);
+    margin-top: var(--ds-space-200);
+    flex-wrap: wrap;
+}
+
+.user-api-key-status {
+    vertical-align: middle;
+    margin-left: var(--ds-space-100);
+}
+
 /* ---- Jornada laboral (formulario de usuario) ---- */
 .user-schedule {
     display: flex;

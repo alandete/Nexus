@@ -25,6 +25,7 @@ if (!hasPermission($currentUser, 'utilities', 'write')) {
     pdfOut(['success' => false, 'message' => 'Sin permiso']);
 }
 
+$GLOBALS['_nexus_username'] = $currentUser['username'] ?? '';
 $action = $_POST['action'] ?? '';
 match ($action) {
     'status'  => pdfHandleStatus(),
@@ -37,7 +38,7 @@ match ($action) {
 // ═════════════════════════════════════════════════════════════════════════════
 function pdfHandleStatus(): void
 {
-    $settings = getApiSettings();
+    $settings = getEffectiveApiSettings($GLOBALS['_nexus_username'] ?? '');
     pdfOut([
         'success' => true,
         'methods' => [
@@ -149,7 +150,7 @@ function pdfCompressGhostscript(string $tmpFile): array
 
     set_time_limit(180);
 
-    $settings = getApiSettings();
+    $settings = getEffectiveApiSettings($GLOBALS['_nexus_username'] ?? '');
     $quality  = $settings['gs_quality'] ?? 'ebook';
     $dpi      = match($quality) {
         'screen'            => 72,
@@ -188,7 +189,7 @@ function pdfCompressGhostscript(string $tmpFile): array
 // ═════════════════════════════════════════════════════════════════════════════
 function pdfCompressAPI(string $tmpFile, string $originalName): array
 {
-    $settings = getApiSettings();
+    $settings = getEffectiveApiSettings($GLOBALS['_nexus_username'] ?? '');
     if (empty($settings['ilp_public_key']) || empty($settings['ilp_secret_key'])) {
         return ['success' => false, 'message' => 'La API de iLovePDF no está configurada'];
     }

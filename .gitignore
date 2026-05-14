@@ -22,6 +22,7 @@ temp/*
 data/tmp/
 data/users.json
 data/api_settings.json
+data/user_api_*.json
 data/activity_log.json
 data/alliances.json
 data/projectinfo.json

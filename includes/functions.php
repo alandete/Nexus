@@ -737,7 +737,7 @@ function sendPasswordResetEmail(string $to, string $name, string $token, string 
 }
 
 /**
- * Obtiene la configuracion de APIs externas (desencriptada)
+ * Obtiene la configuracion global de APIs externas (desencriptada)
  */
 function getApiSettings(): array
 {
@@ -755,6 +755,31 @@ function getApiSettings(): array
         'ilp_secret_key' => decryptApiValue($raw['ilp_secret_key'] ?? ''),
         'gs_quality'     => $raw['gs_quality'] ?? 'ebook',
     ];
+}
+
+/**
+ * Devuelve las claves iLovePDF efectivas para un usuario:
+ * primero las propias del usuario; si no tiene, las globales del sistema.
+ */
+function getEffectiveApiSettings(string $username = ''): array
+{
+    if ($username !== '') {
+        $safe = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $username);
+        $userFile = DATA_PATH . '/user_api_' . $safe . '.json';
+        if (file_exists($userFile)) {
+            $raw = json_decode(file_get_contents($userFile), true) ?? [];
+            $pub = decryptApiValue($raw['ilp_public_key'] ?? '');
+            $sec = decryptApiValue($raw['ilp_secret_key'] ?? '');
+            if (!empty($pub) && !empty($sec)) {
+                $global = getApiSettings();
+                return array_merge($global, [
+                    'ilp_public_key' => $pub,
+                    'ilp_secret_key' => $sec,
+                ]);
+            }
+        }
+    }
+    return getApiSettings();
 }
 
 /**

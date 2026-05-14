@@ -311,6 +311,52 @@
                     <input type="hidden" name="work_schedule" id="workScheduleInput">
                 </div>
 
+                ${!isCreate ? `
+                <!-- iLovePDF por usuario -->
+                <details class="user-api-section" id="userApiSection">
+                    <summary class="user-api-summary">
+                        <i class="bi bi-plug" aria-hidden="true"></i>
+                        ${t('users.ilp_section_title', 'Claves iLovePDF / iLoveIMG')}
+                        <span class="user-api-status d-none" id="userApiStatus"></span>
+                    </summary>
+                    <div class="user-api-body">
+                        <p class="form-helper">${t('users.ilp_section_help', 'Claves propias. Si las configuras, se usan en Optimizar PDF e Imágenes en lugar de las del sistema.')}</p>
+                        <div class="form-grid-2">
+                            <div class="form-group">
+                                <label for="fIlpPublic" class="form-label">${t('users.ilp_public_key', 'Public Key')} <span class="user-api-key-status d-none lozenge lozenge-success" id="ilpPublicStatus">${t('users.ilp_saved', 'Guardada')}</span></label>
+                                <div class="password-field">
+                                    <input type="password" id="fIlpPublic" class="form-control" autocomplete="off" placeholder="project_public_...">
+                                    <button type="button" class="password-toggle" id="toggleIlpPublic" aria-label="${t('users.ilp_show', 'Mostrar')}">
+                                        <i class="bi bi-eye" aria-hidden="true"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="fIlpSecret" class="form-label">${t('users.ilp_secret_key', 'Secret Key')} <span class="user-api-key-status d-none lozenge lozenge-success" id="ilpSecretStatus">${t('users.ilp_saved', 'Guardada')}</span></label>
+                                <div class="password-field">
+                                    <input type="password" id="fIlpSecret" class="form-control" autocomplete="off" placeholder="secret_key_...">
+                                    <button type="button" class="password-toggle" id="toggleIlpSecret" aria-label="${t('users.ilp_show', 'Mostrar')}">
+                                        <i class="bi bi-eye" aria-hidden="true"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="user-api-result d-none" id="userApiResult" role="status" aria-live="polite"></div>
+                        <div class="user-api-actions">
+                            <button type="button" class="btn btn-subtle btn-sm" id="userApiTestBtn">
+                                <i class="bi bi-wifi" aria-hidden="true"></i> ${t('users.ilp_btn_test', 'Probar')}
+                            </button>
+                            <button type="button" class="btn btn-subtle btn-sm" id="userApiClearBtn">
+                                <i class="bi bi-trash" aria-hidden="true"></i> ${t('users.ilp_btn_clear', 'Borrar claves')}
+                            </button>
+                            <button type="button" class="btn btn-primary btn-sm" id="userApiSaveBtn">
+                                <i class="bi bi-check2" aria-hidden="true"></i> ${t('users.ilp_btn_save', 'Guardar claves')}
+                            </button>
+                        </div>
+                    </div>
+                </details>
+                ` : ''}
+
                 <!-- Alert de error general -->
                 <div class="alert alert-danger d-none" id="formError" role="alert">
                     <i class="bi bi-exclamation-triangle-fill alert-icon" aria-hidden="true"></i>
@@ -428,6 +474,125 @@
                 handleUserSubmit(e, mode);
             }
         });
+
+        // iLovePDF por usuario
+        if (mode === 'edit') {
+            const targetUsername = form.original_username.value;
+            setupUserApiHandlers(targetUsername);
+        }
+    }
+
+    async function userApiPost(data) {
+        const fd = new FormData();
+        fd.append('csrf_token', csrfToken);
+        Object.keys(data).forEach(k => fd.append(k, data[k] ?? ''));
+        const res = await fetch('includes/user_api_actions.php', {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': csrfToken },
+            body: fd,
+        });
+        return res.json();
+    }
+
+    function setupUserApiHandlers(targetUsername) {
+        const showResult = (msg, ok) => {
+            const el = document.getElementById('userApiResult');
+            if (!el) return;
+            el.className = 'user-api-result ' + (ok ? 'alert alert-success' : 'alert alert-danger');
+            el.innerHTML = `<i class="bi ${ok ? 'bi-check-circle' : 'bi-exclamation-triangle-fill'} alert-icon"></i><span class="alert-content">${msg}</span>`;
+            el.classList.remove('d-none');
+        };
+
+        const setBtnLoading = (btn, loading) => {
+            if (!btn) return;
+            btn.disabled = loading;
+            const icon = btn.querySelector('i');
+            if (icon) icon.className = loading ? 'spinner' : btn.dataset.icon;
+        };
+
+        // Cargar estado actual
+        userApiPost({ action: 'get', username: targetUsername }).then(res => {
+            if (!res.success) return;
+            if (res.has_public) {
+                document.getElementById('ilpPublicStatus')?.classList.remove('d-none');
+                document.getElementById('fIlpPublic').placeholder = '(guardada — dejar vacío para no cambiar)';
+            }
+            if (res.has_secret) {
+                document.getElementById('ilpSecretStatus')?.classList.remove('d-none');
+                document.getElementById('fIlpSecret').placeholder = '(guardada — dejar vacío para no cambiar)';
+            }
+        }).catch(() => {});
+
+        // Toggle mostrar/ocultar claves
+        ['toggleIlpPublic', 'toggleIlpSecret'].forEach(id => {
+            const btn = document.getElementById(id);
+            const inputId = id === 'toggleIlpPublic' ? 'fIlpPublic' : 'fIlpSecret';
+            if (!btn) return;
+            btn.addEventListener('click', () => {
+                const input = document.getElementById(inputId);
+                if (!input) return;
+                const show = input.type === 'password';
+                input.type = show ? 'text' : 'password';
+                btn.querySelector('i').className = show ? 'bi bi-eye-slash' : 'bi bi-eye';
+            });
+        });
+
+        // Guardar
+        const saveBtn = document.getElementById('userApiSaveBtn');
+        if (saveBtn) {
+            saveBtn.dataset.icon = 'bi bi-check2';
+            saveBtn.addEventListener('click', async () => {
+                const pub = document.getElementById('fIlpPublic')?.value.trim() || '';
+                const sec = document.getElementById('fIlpSecret')?.value.trim() || '';
+                if (!pub && !sec) { showResult('Ingresa al menos una clave para guardar.', false); return; }
+                setBtnLoading(saveBtn, true);
+                try {
+                    const res = await userApiPost({ action: 'save', username: targetUsername, ilp_public_key: pub, ilp_secret_key: sec });
+                    showResult(res.message, res.success);
+                    if (res.success) {
+                        if (pub) document.getElementById('ilpPublicStatus')?.classList.remove('d-none');
+                        if (sec) document.getElementById('ilpSecretStatus')?.classList.remove('d-none');
+                    }
+                } catch { showResult('Error de red.', false); }
+                setBtnLoading(saveBtn, false);
+            });
+        }
+
+        // Probar
+        const testBtn = document.getElementById('userApiTestBtn');
+        if (testBtn) {
+            testBtn.dataset.icon = 'bi bi-wifi';
+            testBtn.addEventListener('click', async () => {
+                setBtnLoading(testBtn, true);
+                try {
+                    const res = await userApiPost({ action: 'test', username: targetUsername });
+                    showResult(res.message, res.success);
+                } catch { showResult('Error de red.', false); }
+                setBtnLoading(testBtn, false);
+            });
+        }
+
+        // Borrar
+        const clearBtn = document.getElementById('userApiClearBtn');
+        if (clearBtn) {
+            clearBtn.dataset.icon = 'bi bi-trash';
+            clearBtn.addEventListener('click', async () => {
+                setBtnLoading(clearBtn, true);
+                try {
+                    const res = await userApiPost({ action: 'clear', username: targetUsername });
+                    showResult(res.message, res.success);
+                    if (res.success) {
+                        document.getElementById('ilpPublicStatus')?.classList.add('d-none');
+                        document.getElementById('ilpSecretStatus')?.classList.add('d-none');
+                        document.getElementById('fIlpPublic').placeholder = 'project_public_...';
+                        document.getElementById('fIlpSecret').placeholder = 'secret_key_...';
+                        document.getElementById('fIlpPublic').value = '';
+                        document.getElementById('fIlpSecret').value = '';
+                    }
+                } catch { showResult('Error de red.', false); }
+                setBtnLoading(clearBtn, false);
+            });
+        }
     }
 
     function clearFieldErrors() {

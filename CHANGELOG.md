@@ -3,7 +3,7 @@
 Todos los cambios relevantes del proyecto se documentan en este archivo.
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
-## [2.0.0-alpha.3] — 2026-04-19 (en desarrollo)
+## [2.0.0-alpha.3] — 2026-05-14
 
 ### Integraciones unificadas por usuario — 2026-05-14
 
@@ -16,6 +16,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 - `pages/my-integrations.php`: redirige a Integraciones (página unificada).
 - `assets/js/integrations.js`: iLovePDF save/test apuntan a `user_api_actions.php`; SMTP/GS siguen en `api_settings_actions.php`. Agregado botón "Eliminar mis claves" con confirmación. Tabs calculados dinámicamente según rol.
 - `lang/es|en/integrations.php`: claves `btn_clear` y `confirm_clear`.
+
+### Fix visual: avatar y espaciado Aplicación — 2026-05-14
+
+- CSS avatar: reemplazado `aspect-ratio: 1/1` por `height` explícito en `.avatar-sm/md/lg/xl` y `.topbar-avatar`. El `aspect-ratio` causaba distorsión; `height: auto` (el valor implícito original) era correcto.
+- CSS Aplicación: añadido `margin-bottom: var(--ds-space-400)` directo en `.application-section` además del `gap` del flex container, para asegurar separación entre secciones independientemente de elementos intermedios en el DOM.
 
 ### Sidebar: ocultar páginas admin-only para no-admin — 2026-05-14
 

@@ -39,12 +39,14 @@ $settingsSections[] = [
     'desc'  => __('settings_overview.application_desc'),
 ];
 
-$settingsSections[] = [
-    'url'   => url('integrations'),
-    'icon'  => 'bi-plug',
-    'title' => __('menu.integrations'),
-    'desc'  => __('settings_overview.integrations_desc'),
-];
+if (($currentUser['role'] ?? '') === 'admin') {
+    $settingsSections[] = [
+        'url'   => url('integrations'),
+        'icon'  => 'bi-plug',
+        'title' => __('menu.integrations'),
+        'desc'  => __('settings_overview.integrations_desc'),
+    ];
+}
 
 if (canAccessModule($currentUser, 'backup')) {
     $settingsSections[] = [
@@ -55,19 +57,23 @@ if (canAccessModule($currentUser, 'backup')) {
     ];
 }
 
-$settingsSections[] = [
-    'url'   => url('system'),
-    'icon'  => 'bi-cpu',
-    'title' => __('menu.system'),
-    'desc'  => __('settings_overview.system_desc'),
-];
+if (($currentUser['role'] ?? '') === 'admin') {
+    $settingsSections[] = [
+        'url'   => url('system'),
+        'icon'  => 'bi-cpu',
+        'title' => __('menu.system'),
+        'desc'  => __('settings_overview.system_desc'),
+    ];
+}
 
-$settingsSections[] = [
-    'url'   => url('activity'),
-    'icon'  => 'bi-clock-history',
-    'title' => __('menu.activity'),
-    'desc'  => __('settings_overview.activity_desc'),
-];
+if (($currentUser['role'] ?? '') === 'admin') {
+    $settingsSections[] = [
+        'url'   => url('activity'),
+        'icon'  => 'bi-clock-history',
+        'title' => __('menu.activity'),
+        'desc'  => __('settings_overview.activity_desc'),
+    ];
+}
 ?>
 
 <div class="page-header">

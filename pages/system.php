@@ -9,7 +9,7 @@ $currentUser = getCurrentUser();
 
 if (($currentUser['role'] ?? '') !== 'admin') {
     http_response_code(403);
-    include 'pages/error.php';
+    include 'pages/403.php';
     return;
 }
 

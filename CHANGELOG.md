@@ -5,6 +5,15 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [2.0.0-alpha.4] — en desarrollo
 
+### Varios fixes — 2026-05-14
+
+- **Avatar nítido**: `.avatar img`, `.form-field-photo-preview img` y `.avatar img` interior usan `height: auto` — el contenedor `.avatar` con `overflow: hidden` mantiene el círculo sin que la altura fija cause pixelación.
+- **`.topbar-avatar`**: `height: 28px` (igual al ancho) para mantener forma circular en el topbar, donde el `img` no tiene contenedor padre que haga el recorte.
+- **Perfil propio sin `users.write`**: nuevo action `update_own` en `user_actions.php` — cualquier usuario autenticado puede guardar su nombre, email, foto, idioma y horario laboral sin necesitar permiso de escritura sobre usuarios.
+- **Panel perfil**: la sección de claves iLovePDF en el slide panel de usuario solo se muestra cuando un admin edita a otro usuario; al editar el propio perfil se omite (ya está en Integraciones).
+- **Reportes — preset "Este mes"**: añadido como primer preset en el date picker personalizado (del día 1 del mes actual a hoy).
+- **PDF reporte sin timer floater**: `.timer-floater` añadido al bloque `@media print`; ya no aparece en el PDF exportado cuando hay una tarea corriendo.
+
 ### Fix avatar círculo — 2026-05-14
 
 - `.avatar img`: restaurado `height: 100%` (dentro del contenedor flex, `auto` no llena el alto y rompe el círculo).

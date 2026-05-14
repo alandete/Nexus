@@ -189,7 +189,7 @@
 
         const html = `
             <form id="userForm" novalidate autocomplete="off">
-                <input type="hidden" name="action" value="${isCreate ? 'create' : 'update'}">
+                <input type="hidden" name="action" value="${isCreate ? 'create' : (isSelf ? 'update_own' : 'update')}">
                 <input type="hidden" name="original_username" value="${escapeHtml(user.username || '')}">
                 <input type="hidden" name="remove_photo" id="removePhotoFlag" value="0">
 
@@ -311,8 +311,8 @@
                     <input type="hidden" name="work_schedule" id="workScheduleInput">
                 </div>
 
-                ${!isCreate ? `
-                <!-- iLovePDF por usuario -->
+                ${(!isCreate && !isSelf) ? `
+                <!-- iLovePDF por usuario (solo admin editando otro usuario) -->
                 <details class="user-api-section" id="userApiSection">
                     <summary class="user-api-summary">
                         <i class="bi bi-plug" aria-hidden="true"></i>

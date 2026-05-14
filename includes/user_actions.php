@@ -191,6 +191,89 @@ if ($action === 'create') {
     exit;
 }
 
+// Editar perfil propio (sin requerir users.write)
+if ($action === 'update_own') {
+    $username = sanitize($_POST['username'] ?? '');
+
+    // Solo puede editarse a sí mismo
+    if ($username !== ($currentUser['username'] ?? '')) {
+        echo json_encode(['success' => false, 'message' => 'Solo puedes editar tu propio perfil']);
+        exit;
+    }
+
+    $name  = sanitize($_POST['name'] ?? '');
+    $email = sanitize($_POST['email'] ?? '');
+
+    if (empty($name) || empty($email)) {
+        echo json_encode(['success' => false, 'message' => 'Nombre y email son obligatorios']);
+        exit;
+    }
+
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        echo json_encode(['success' => false, 'message' => 'Email inválido']);
+        exit;
+    }
+
+    $users = getUsers();
+
+    if (!isset($users[$username])) {
+        echo json_encode(['success' => false, 'message' => 'Usuario no encontrado']);
+        exit;
+    }
+
+    foreach ($users as $uname => $existingUser) {
+        if ($uname !== $username && strtolower($existingUser['email'] ?? '') === strtolower($email)) {
+            echo json_encode(['success' => false, 'message' => 'Este email ya está en uso por otro usuario']);
+            exit;
+        }
+    }
+
+    $users[$username]['name']  = $name;
+    $users[$username]['email'] = $email;
+
+    $userLang = in_array($_POST['lang'] ?? '', ['es', 'en'], true) ? $_POST['lang'] : ($users[$username]['lang'] ?? 'es');
+    $users[$username]['lang']  = $userLang;
+
+    $rawSchedule = $_POST['work_schedule'] ?? '';
+    if ($rawSchedule !== '') {
+        $decoded = json_decode($rawSchedule, true);
+        $users[$username]['work_schedule'] = is_array($decoded) ? $decoded : [];
+    }
+
+    if (isset($_POST['remove_photo']) && $_POST['remove_photo'] === '1') {
+        deleteUserPhoto($username);
+        $users[$username]['photo'] = null;
+    } else {
+        $photo = processPhotoUpload($username);
+        if ($photo !== null) {
+            $users[$username]['photo'] = $photo;
+        }
+    }
+
+    $password = $_POST['password'] ?? '';
+    if (!empty($password)) {
+        if (strlen($password) < 6) {
+            echo json_encode(['success' => false, 'message' => 'La contraseña debe tener al menos 6 caracteres']);
+            exit;
+        }
+        $users[$username]['password'] = password_hash($password, PASSWORD_BCRYPT);
+    }
+
+    $_SESSION['user']['name']  = $name;
+    $_SESSION['user']['email'] = $email;
+    $_SESSION['user']['photo'] = $users[$username]['photo'] ?? null;
+    $_SESSION['user']['lang']  = $userLang;
+    $_SESSION['lang']          = $userLang;
+
+    if (saveUsers($users)) {
+        logActivity('users', 'update', $username);
+        echo json_encode(['success' => true, 'message' => 'Perfil actualizado exitosamente']);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Error al actualizar el perfil']);
+    }
+    exit;
+}
+
 // Editar usuario
 if ($action === 'update') {
     if (!hasPermission($currentUser, 'users', 'write')) {

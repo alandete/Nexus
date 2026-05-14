@@ -24,7 +24,8 @@ return [
         'range_to'      => 'To',
 
         // Presets (only those not duplicated by top-level range buttons)
-        'preset_lastweek' => 'Last week',
+        'preset_thismonth' => 'This month',
+        'preset_lastweek'  => 'Last week',
         'preset_last15'   => 'Last 15 days',
         'preset_last30'   => 'Last 30 days',
         'preset_thisyear' => 'This year',

@@ -30,7 +30,8 @@ return [
         'range_to'      => 'Hasta',
 
         // Presets del date picker (solo los que no duplican los botones de rango)
-        'preset_lastweek' => 'La semana pasada',
+        'preset_thismonth' => 'Este mes',
+        'preset_lastweek'  => 'La semana pasada',
         'preset_last15'   => 'Últimos 15 días',
         'preset_last30'   => 'Últimos 30 días',
         'preset_thisyear' => 'Este año',

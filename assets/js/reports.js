@@ -1020,13 +1020,15 @@
         const lastSunday = daysBack(diffToLastSunday);
         const lastMonday = new Date(lastSunday); lastMonday.setDate(lastSunday.getDate() - 6);
 
-        const thisYearStart = new Date(today.getFullYear(), 0, 1);
+        const thisMonthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+        const thisYearStart  = new Date(today.getFullYear(), 0, 1);
 
         return {
-            [t('reports.preset_lastweek', 'La semana pasada')]: [lastMonday,   lastSunday],
-            [t('reports.preset_last15',   'Últimos 15 días')]:  [daysBack(14), mk(today)],
-            [t('reports.preset_last30',   'Últimos 30 días')]:  [daysBack(29), mk(today)],
-            [t('reports.preset_thisyear', 'Este año')]:         [thisYearStart, mk(today)],
+            [t('reports.preset_thismonth', 'Este mes')]:        [thisMonthStart, mk(today)],
+            [t('reports.preset_lastweek',  'La semana pasada')]: [lastMonday,   lastSunday],
+            [t('reports.preset_last15',    'Últimos 15 días')]:  [daysBack(14), mk(today)],
+            [t('reports.preset_last30',    'Últimos 30 días')]:  [daysBack(29), mk(today)],
+            [t('reports.preset_thisyear',  'Este año')]:         [thisYearStart, mk(today)],
         };
     }
 

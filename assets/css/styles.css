@@ -867,7 +867,7 @@ select.form-control {
 
 .avatar img {
     width: 100%;
-    height: 100%;
+    height: auto;
     object-fit: cover;
     display: block;
 }
@@ -1176,7 +1176,7 @@ select.form-control {
 
 .topbar-avatar {
     width: 28px;
-    height: auto;
+    height: 28px;
     border-radius: var(--ds-radius-round);
     object-fit: cover;
     display: block;
@@ -3608,7 +3608,7 @@ a.stat-card:hover {
 /* Imagen directa (sin .avatar): ocupa el contenedor y se recorta sin distorsión */
 .form-field-photo-preview img {
     width: 80px;
-    height: 80px;
+    height: auto;
     border-radius: var(--ds-radius-round);
     object-fit: cover;
     display: block;
@@ -3617,7 +3617,7 @@ a.stat-card:hover {
 /* Imagen dentro del .avatar: llena el contenedor sin distorsión */
 .form-field-photo-preview .avatar img {
     width: 100%;
-    height: 100%;
+    height: auto;
     object-fit: cover;
 }
 
@@ -8402,6 +8402,7 @@ a.stat-card:hover {
     .report-bar-section,
     .report-empty,
     .toast-container,
+    .timer-floater,
     .app-tooltip,
     footer { display: none !important; }
 

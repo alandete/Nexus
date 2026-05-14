@@ -35,8 +35,10 @@ return [
         'show_value'    => 'Show value',
         'hide_value'    => 'Hide',
 
-        'btn_save'  => 'Save changes',
-        'btn_test'  => 'Test connection',
+        'btn_save'    => 'Save changes',
+        'btn_test'    => 'Test connection',
+        'btn_clear'   => 'Delete my keys',
+        'confirm_clear' => 'Delete your iLovePDF keys? This action cannot be undone.',
         'testing'   => 'Testing connection...',
         'plan_info' => 'Plan information',
         'test_ok'   => 'Connection verified successfully.',

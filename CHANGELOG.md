@@ -5,6 +5,18 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [2.0.0-alpha.3] — 2026-04-19 (en desarrollo)
 
+### Integraciones unificadas por usuario — 2026-05-14
+
+- `pages/integrations.php`: eliminado guard admin-only; ahora accesible a todos los usuarios autenticados.
+- iLovePDF: el tab muestra solo Public Key y Secret Key (los campos de cuenta admin eran informativos y no se usaban funcionalmente). El formulario envía a `user_api_actions.php` — las claves van al archivo personal del usuario.
+- Gmail: cada usuario configura su propia cuenta. `gmail_actions.php` ahora lee/escribe en `data/user_api_{username}.json` en lugar del archivo global.
+- SMTP y Ghostscript: siguen siendo admin-only; los paneles solo se renderizan para admin.
+- `sidebar.php`: Integraciones visible para todos los usuarios con acceso a Ajustes (elimina el guard `$isAdmin`). Eliminado "Mis claves API" (redundante).
+- `pages/settings.php`: card Integraciones para todos; eliminada card "Mis claves API".
+- `pages/my-integrations.php`: redirige a Integraciones (página unificada).
+- `assets/js/integrations.js`: iLovePDF save/test apuntan a `user_api_actions.php`; SMTP/GS siguen en `api_settings_actions.php`. Agregado botón "Eliminar mis claves" con confirmación. Tabs calculados dinámicamente según rol.
+- `lang/es|en/integrations.php`: claves `btn_clear` y `confirm_clear`.
+
 ### Sidebar: ocultar páginas admin-only para no-admin — 2026-05-14
 
 - `sidebar.php`: Integraciones, Sistema y Actividad solo visibles para admin (igual que Backups que ya usaba `canAccessModule`).

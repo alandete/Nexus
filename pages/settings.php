@@ -39,23 +39,12 @@ $settingsSections[] = [
     'desc'  => __('settings_overview.application_desc'),
 ];
 
-if (($currentUser['role'] ?? '') !== 'admin') {
-    $settingsSections[] = [
-        'url'   => url('my-integrations'),
-        'icon'  => 'bi-key',
-        'title' => __('menu.my_integrations'),
-        'desc'  => __('settings_overview.my_integrations_desc'),
-    ];
-}
-
-if (($currentUser['role'] ?? '') === 'admin') {
-    $settingsSections[] = [
-        'url'   => url('integrations'),
-        'icon'  => 'bi-plug',
-        'title' => __('menu.integrations'),
-        'desc'  => __('settings_overview.integrations_desc'),
-    ];
-}
+$settingsSections[] = [
+    'url'   => url('integrations'),
+    'icon'  => 'bi-plug',
+    'title' => __('menu.integrations'),
+    'desc'  => __('settings_overview.integrations_desc'),
+];
 
 if (canAccessModule($currentUser, 'backup')) {
     $settingsSections[] = [

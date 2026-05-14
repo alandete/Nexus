@@ -14,7 +14,7 @@
      * Tab switching
      * ======================================================== */
 
-    const integrationTabs   = ['ilp', 'gs', 'gmail', 'smtp'];
+    const integrationTabs = Array.from(document.querySelectorAll('.integration-tabs .tab')).map(t => t.dataset.tab);
 
     function switchIntegrationTab(name) {
         integrationTabs.forEach(id => {
@@ -65,14 +65,23 @@
      * ======================================================== */
 
     function clearErrors() {
-        const emailErr = document.getElementById('fIlpEmailError');
-        if (emailErr) emailErr.textContent = '';
         document.querySelectorAll('#integrationsForm .form-control-error').forEach(el => el.classList.remove('form-control-error'));
         const err = document.getElementById('integrationFormError');
         if (err) err.classList.add('d-none');
     }
 
     async function postAction(data) {
+        const fd = new FormData();
+        Object.keys(data).forEach(k => fd.append(k, data[k] ?? ''));
+        const res = await fetch('includes/user_api_actions.php', {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': csrfToken },
+            body: fd,
+        });
+        return res.json();
+    }
+
+    async function postAdminAction(data) {
         const fd = new FormData();
         Object.keys(data).forEach(k => fd.append(k, data[k] ?? ''));
         const res = await fetch('includes/api_settings_actions.php', {
@@ -95,20 +104,8 @@
         const submitBtn = document.getElementById('integrationSubmitBtn');
         if (!form || !submitBtn) return;
 
-        const email = form.ilp_email.value.trim();
-        if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            const field = document.getElementById('fIlpEmail');
-            const errEl = document.getElementById('fIlpEmailError');
-            field.classList.add('form-control-error');
-            errEl.textContent = t('integrations.err_email', 'Correo invalido.');
-            return;
-        }
-
         const data = {
             action: 'save',
-            ilp_email: email,
-            ilp_password: form.ilp_password.value,
-            ilp_project: form.ilp_project.value.trim(),
             ilp_public_key: form.ilp_public_key.value.trim(),
             ilp_secret_key: form.ilp_secret_key.value.trim(),
         };
@@ -398,7 +395,7 @@
         if (btnText) btnText.textContent = t('common.saving', 'Guardando...');
 
         try {
-            const result = await postAction({ action: 'save_gs', gs_quality: form.gs_quality.value });
+            const result = await postAdminAction({ action: 'save_gs', gs_quality: form.gs_quality.value });
             if (result.success) {
                 Toast.success(result.message || 'Configuración guardada.');
             } else {
@@ -420,6 +417,21 @@
 
     const testBtn = document.getElementById('testConnectionBtn');
     if (testBtn) testBtn.addEventListener('click', handleTest);
+
+    document.getElementById('clearIlpBtn')?.addEventListener('click', async () => {
+        if (!confirm(t('integrations.confirm_clear', '¿Eliminar tus claves de iLovePDF?'))) return;
+        try {
+            const result = await postAction({ action: 'clear' });
+            if (result.success) {
+                Toast.success(result.message);
+                setTimeout(() => window.location.reload(), 600);
+            } else {
+                Toast.error(result.message);
+            }
+        } catch {
+            Toast.error(t('common.err_network', 'Error de red.'));
+        }
+    });
 
     document.getElementById('gsForm')?.addEventListener('submit', handleGsSubmit);
     document.getElementById('gmailForm')?.addEventListener('submit', handleGmailSubmit);

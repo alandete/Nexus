@@ -35,8 +35,10 @@ return [
         'show_value'    => 'Mostrar valor',
         'hide_value'    => 'Ocultar',
 
-        'btn_save'  => 'Guardar cambios',
-        'btn_test'  => 'Probar conexión',
+        'btn_save'    => 'Guardar cambios',
+        'btn_test'    => 'Probar conexión',
+        'btn_clear'   => 'Eliminar mis claves',
+        'confirm_clear' => '¿Eliminar tus claves de iLovePDF? Esta acción no se puede deshacer.',
         'testing'   => 'Probando conexión...',
         'plan_info' => 'Información del plan',
         'test_ok'   => 'Conexión verificada correctamente.',

@@ -25,22 +25,27 @@ if (!validateCsrf()) {
 $currentUser = getCurrentUser();
 $action      = $_POST['action'] ?? '';
 
+$safe        = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $currentUser['username']);
+$userApiFile = DATA_PATH . '/user_api_' . $safe . '.json';
+
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 function gmailGetRaw(): array
 {
-    if (!file_exists(API_SETTINGS_FILE)) return [];
-    return json_decode(file_get_contents(API_SETTINGS_FILE), true) ?? [];
+    global $userApiFile;
+    if (!file_exists($userApiFile)) return [];
+    return json_decode(file_get_contents($userApiFile), true) ?? [];
 }
 
 function gmailSave(array $newData): bool
 {
+    global $userApiFile;
     if (!is_dir(DATA_PATH)) mkdir(DATA_PATH, 0755, true);
-    $current = file_exists(API_SETTINGS_FILE)
-        ? (json_decode(file_get_contents(API_SETTINGS_FILE), true) ?? [])
+    $current = file_exists($userApiFile)
+        ? (json_decode(file_get_contents($userApiFile), true) ?? [])
         : [];
     $merged = array_merge($current, $newData);
-    return file_put_contents(API_SETTINGS_FILE, json_encode($merged, JSON_PRETTY_PRINT), LOCK_EX) !== false;
+    return file_put_contents($userApiFile, json_encode($merged, JSON_PRETTY_PRINT), LOCK_EX) !== false;
 }
 
 // ── Leer configuracion ─────────────────────────────────────────────────────
@@ -65,12 +70,6 @@ if ($action === 'get') {
 
 // ── Guardar ────────────────────────────────────────────────────────────────
 if ($action === 'save') {
-    if ($currentUser['role'] !== 'admin') {
-        http_response_code(403);
-        echo json_encode(['success' => false, 'message' => 'Solo el administrador puede gestionar las integraciones']);
-        exit;
-    }
-
     $email    = trim($_POST['gmail_email'] ?? '');
     $password = trim($_POST['gmail_app_password'] ?? '');
     $label    = trim($_POST['gmail_label'] ?? 'Nexus');

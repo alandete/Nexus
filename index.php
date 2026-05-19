@@ -117,9 +117,9 @@ if (!empty($projectInfo['maintenance_mode'])) {
     }
 }
 // Accesos rápidos del topbar
-$quickLinks  = getQuickLinks();
 $currentUser = getCurrentUser();
 $isAdminUser = ($currentUser['role'] ?? '') === 'admin';
+$quickLinks  = getQuickLinks($currentUser['username'] ?? '');
 $quickLinksMeta = [
     'tasks'            => ['icon' => 'bi-check2-square',     'label' => __('menu.tasks'),           'href' => url('tasks')],
     'alliances'        => ['icon' => 'bi-building',          'label' => __('menu.alliances'),       'href' => url('alliances')],
@@ -354,7 +354,7 @@ $quickLinksMeta = [
     <script>
     window.__QUICKLINKS__ = {
         current: <?= json_encode($page) ?>,
-        isAdmin: <?= $isAdminUser ? 'true' : 'false' ?>,
+        isAdmin: true,
         limit: 5,
         items: <?= json_encode($quickLinks) ?>,
         meta: <?= json_encode($quickLinksMeta) ?>,
@@ -370,9 +370,7 @@ $quickLinksMeta = [
         }
     };
     </script>
-    <?php if ($isAdminUser): ?>
     <script src="assets/js/quick-links.js?v=<?= filemtime('assets/js/quick-links.js') ?>"></script>
-    <?php endif; ?>
 
     <?php if ($page !== 'tasks'): ?>
     <a href="<?= url('tasks') ?>" class="timer-floater" id="timerFloater">

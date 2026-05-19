@@ -2,7 +2,7 @@
     'use strict';
 
     const ql = window.__QUICKLINKS__;
-    if (!ql || !ql.isAdmin) return;
+    if (!ql) return;
 
     // ── Topbar ───────────────────────────────────────────────────────────────
 

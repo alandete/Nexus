@@ -338,7 +338,11 @@
     function closePanel() {
         const panel   = document.getElementById('allianceResultPanel');
         const overlay = document.getElementById('slidePanelOverlay');
-        if (panel)   { panel.classList.remove('active'); panel.setAttribute('aria-hidden', 'true'); }
+        if (panel) {
+            if (panel.contains(document.activeElement)) document.activeElement.blur();
+            panel.classList.remove('active');
+            panel.setAttribute('aria-hidden', 'true');
+        }
         if (overlay) overlay.classList.remove('active');
     }
 

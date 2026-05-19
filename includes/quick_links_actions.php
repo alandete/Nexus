@@ -1,7 +1,7 @@
 <?php
 /**
  * Nexus 2.0 — Quick Links Actions
- * Gestiona los accesos rápidos del topbar (solo admin, máx. 5 ítems).
+ * Gestiona los accesos rápidos del topbar por usuario (máx. 5 ítems).
  */
 define('APP_ACCESS', true);
 require_once __DIR__ . '/../config/config.php';
@@ -16,18 +16,14 @@ if (!isLoggedIn()) {
     exit;
 }
 
-$currentUser = getCurrentUser();
-if (($currentUser['role'] ?? '') !== 'admin') {
-    http_response_code(403);
-    echo json_encode(['success' => false, 'message' => 'Solo el administrador puede gestionar los accesos rápidos']);
-    exit;
-}
-
 if (!validateCsrf()) {
     http_response_code(403);
     echo json_encode(['success' => false, 'message' => 'Token CSRF inválido']);
     exit;
 }
+
+$currentUser = getCurrentUser();
+$username    = $currentUser['username'] ?? '';
 
 const MAX_QUICK_LINKS = 5;
 
@@ -45,18 +41,18 @@ if ($action !== 'toggle' || !in_array($targetPage, $allowedPages, true)) {
     exit;
 }
 
-$links = getQuickLinks();
+$links = getQuickLinks($username);
 
 if (in_array($targetPage, $links, true)) {
     $links = array_values(array_filter($links, fn($p) => $p !== $targetPage));
-    saveQuickLinks($links);
+    saveQuickLinks($links, $username);
     echo json_encode(['success' => true, 'action' => 'removed', 'links' => $links]);
     exit;
 }
 
 if (count($links) < MAX_QUICK_LINKS) {
     $links[] = $targetPage;
-    saveQuickLinks($links);
+    saveQuickLinks($links, $username);
     echo json_encode(['success' => true, 'action' => 'added', 'links' => $links]);
     exit;
 }
@@ -65,5 +61,5 @@ if (count($links) < MAX_QUICK_LINKS) {
 $removed = $links[0];
 array_shift($links);
 $links[] = $targetPage;
-saveQuickLinks($links);
+saveQuickLinks($links, $username);
 echo json_encode(['success' => true, 'action' => 'replaced', 'removed' => $removed, 'links' => $links]);

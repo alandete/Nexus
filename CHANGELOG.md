@@ -5,6 +5,14 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [2.0.0-alpha.4] — en desarrollo
 
+### Fix 401 en endpoints + Quick Links por usuario — 2026-05-19
+
+- **Fix 401 en servidor**: `alliance_actions.php` (y todos los action endpoints que no pasan por `index.php`) ahora llaman `rememberCheckCookie()` si no hay sesión activa — corrige el error 401 al procesar en Alianzas cuando la sesión PHP expira pero la cookie "Recordarme" sigue vigente.
+- **Fix aria-hidden**: `closePanel()` en `alliances.js` mueve el foco fuera del panel antes de aplicar `aria-hidden="true"`, eliminando el warning de accesibilidad.
+- **Quick Links por usuario**: `getQuickLinks()` y `saveQuickLinks()` aceptan `$username` — cada usuario guarda sus propios accesos rápidos en `users.json` en lugar de uno global en `projectinfo.json`. Fallback transparente al global legacy.
+- **Quick Links sin restricción de rol**: el script `quick-links.js` y el endpoint `quick_links_actions.php` ya no requieren rol `admin`; cualquier usuario autenticado puede gestionar sus accesos rápidos (máx. 5).
+
+
 ### Varios fixes — 2026-05-14
 
 - **Avatar nítido**: `.avatar img`, `.form-field-photo-preview img` y `.avatar img` interior usan `height: auto` — el contenedor `.avatar` con `overflow: hidden` mantiene el círculo sin que la altura fija cause pixelación.

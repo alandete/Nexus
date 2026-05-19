@@ -562,10 +562,16 @@ function saveProjectInfo(array $data): bool
 }
 
 /**
- * Obtener accesos rápidos del topbar
+ * Obtener accesos rápidos del topbar (por usuario)
  */
-function getQuickLinks(): array
+function getQuickLinks(string $username = ''): array
 {
+    if ($username !== '') {
+        $users = getUsers();
+        $links = $users[$username]['quick_links'] ?? null;
+        if (is_array($links)) return array_values($links);
+    }
+    // Fallback: links globales legacy (projectinfo) para migración transparente
     $info = getProjectInfo();
     return (isset($info['quick_links']) && is_array($info['quick_links']))
         ? array_values($info['quick_links'])
@@ -573,10 +579,17 @@ function getQuickLinks(): array
 }
 
 /**
- * Guardar accesos rápidos del topbar
+ * Guardar accesos rápidos del topbar (por usuario)
  */
-function saveQuickLinks(array $links): bool
+function saveQuickLinks(array $links, string $username = ''): bool
 {
+    if ($username !== '') {
+        $users = getUsers();
+        if (!isset($users[$username])) return false;
+        $users[$username]['quick_links'] = array_values($links);
+        return saveUsers($users);
+    }
+    // Fallback global legacy
     $info = getProjectInfo();
     $info['quick_links'] = array_values($links);
     return saveProjectInfo($info);

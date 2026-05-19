@@ -164,7 +164,7 @@ return [
         'unab_recursos_desc'                => 'Recursos académicos de consulta obligatoria y opcional.',
         'field_unab_curso_obligatorios'     => 'Obligatorios',
         'field_unab_curso_opcionales'       => 'Opcionales',
-        'field_unab_recursos_help'          => 'Escriba la cita y la URL al final. Separe recursos con una línea vacía. Use #...# para texto sin negrilla.',
+        'field_unab_recursos_help'          => 'Escriba la cita completa con la URL (al inicio o al final). Separe recursos con una línea vacía. Use #...# para el título sin negrilla. Si el recurso tiene una indicación de lectura (p. ej. "Leer capítulo 3, pp. 45–67"), escríbala antes o después de la URL — el sistema la detecta automáticamente y la formatea como Nota.',
 
         // Mensajes JavaScript
         'js' => [

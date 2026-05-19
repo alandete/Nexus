@@ -689,6 +689,7 @@ if (!$allianceReady):
                               rows="6"
                               placeholder="<?= htmlspecialchars(__('alliances.field_unab_curso_opcionales')) ?>"
                               data-section="curso"></textarea>
+                    <p class="form-helper"><?= __('alliances.field_unab_recursos_help') ?></p>
                 </div>
             </div>
         </section>

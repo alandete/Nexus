@@ -5,6 +5,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [2.0.0-alpha.4] — en desarrollo
 
+### Recursos UNAB: Nota automática — 2026-05-19
+
+- **Parser `parsearRecursosUnab`**: detecta `. Leer ...` en la cita (antes o después de la URL) y lo formatea como `<br><strong>Nota:</strong> Leer ...` en el HTML generado. No requiere marcado especial del usuario.
+- **Ayuda campos Obligatorios/Opcionales**: texto de ayuda actualizado para explicar el formato de cita, `#...#` para título sin negrilla, y la detección automática de la indicación de lectura.
+- **Campo Opcionales**: ahora muestra el `form-helper` igual que Obligatorios.
+
 ### Fix 401 en endpoints + Quick Links por usuario — 2026-05-19
 
 - **Fix 401 en servidor**: `alliance_actions.php` (y todos los action endpoints que no pasan por `index.php`) ahora llaman `rememberCheckCookie()` si no hay sesión activa — corrige el error 401 al procesar en Alianzas cuando la sesión PHP expira pero la cookie "Recordarme" sigue vigente.

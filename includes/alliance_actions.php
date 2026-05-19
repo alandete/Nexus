@@ -1454,6 +1454,9 @@ function parsearRecursosUnab(string $recursos): array
         // #...# → <span style="font-weight: normal;"> (texto sin negrilla)
         $cita = preg_replace('/#([^#]+)#/', '<span style="font-weight: normal;">$1</span>', $cita);
 
+        // "Leer ..." al final (antes o después de la URL) → <br><strong>Nota:</strong>
+        $cita = preg_replace('/\.\s+(Leer\s+.+)$/iu', '.<br><strong>Nota:</strong> $1', $cita);
+
         $item['cita'] = $cita;
         $item['url']  = htmlspecialchars($item['url'], ENT_QUOTES, 'UTF-8');
     }

@@ -82,6 +82,13 @@
     function initUrlValidation() {
         const root = document.getElementById('allianceContent');
         if (!root) return;
+        root.addEventListener('paste', e => {
+            if (!e.target.classList.contains('alliance-url-field')) return;
+            setTimeout(() => {
+                e.target.value = e.target.value.replace(/&amp;/gi, '&');
+                validateUrlField(e.target);
+            }, 0);
+        });
         root.addEventListener('input', e => {
             if (e.target.classList.contains('alliance-url-field')) validateUrlField(e.target);
         });

@@ -97,7 +97,7 @@ function procesarAlianza(array $currentUser): void
     $data    = [];
     foreach ($_POST as $key => $value) {
         if (!in_array($key, $exclude, true)) {
-            $data[$key] = trim($value);
+            $data[$key] = html_entity_decode(trim($value), ENT_QUOTES | ENT_HTML5, 'UTF-8');
         }
     }
 
@@ -1471,7 +1471,7 @@ function parsearRecursosUnab(string $recursos): array
 
 function checkUrl(): void
 {
-    $raw = trim($_POST['url'] ?? '');
+    $raw = html_entity_decode(trim($_POST['url'] ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8');
 
     if (empty($raw)) {
         echo json_encode(['reachable' => false]);

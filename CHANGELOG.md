@@ -5,6 +5,15 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [2.0.0-alpha.4] — en desarrollo
 
+### Alertas de reuniones (Google Calendar) — 2026-05-21
+
+- **Service Worker `sw-calendar.js`**: corre en segundo plano, refresca eventos desde el iCal de Google cada 20 minutos y verifica cada minuto si corresponde disparar una alerta.
+- **Alertas a 15 y 5 minutos**: notificación del sistema operativo (visible sobre cualquier pestaña) + banner flotante en Nexus + doble tono vía Web Audio API.
+- **`includes/calendar_actions.php`**: endpoint GET que descarga y parsea el iCal del usuario y devuelve los eventos del día como JSON (autenticado por sesión, sin CSRF).
+- **Perfil de usuario**: nueva sección colapsable "Alertas de reuniones" donde el usuario pega su URL iCal privada de Google Calendar. Acción `save_ical_url` en `user_actions.php`.
+- **`assets/js/calendar-alerts.js`**: registra el SW, escucha mensajes y maneja sonido y banner.
+- **Documentación**: artículo "Alertas de reuniones" en la sección Configuración, con pasos de configuración, tabla de componentes y avisos de seguridad.
+
 ### Recursos UNAB: Nota automática — 2026-05-19
 
 - **Parser `parsearRecursosUnab`**: detecta `. Leer ...` en la cita (antes o después de la URL) y lo formatea como `<br><strong>Nota:</strong> Leer ...` en el HTML generado. No requiere marcado especial del usuario.

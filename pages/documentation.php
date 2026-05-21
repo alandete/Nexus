@@ -55,6 +55,7 @@ $docSections = [
         'title' => __('docs.nav_settings'),
         'subs' => [
             'settings-users'     => __('docs.settings_users'),
+            'settings-calendar'  => 'Alertas de reuniones',
             'settings-alliances' => __('docs.settings_alliances'),
             'settings-project'   => __('docs.settings_project'),
             'settings-apis'      => __('docs.settings_apis'),
@@ -532,6 +533,48 @@ Retro incorrecta: La respuesta correcta es Paris.</code></pre>
                         <tr><td><?= __('docs.recovery_admin_link') ?></td><td><?= __('docs.recovery_admin_link_desc') ?></td></tr>
                     </tbody>
                 </table>
+            </article>
+
+            <article id="settings-calendar" class="docs-article">
+                <h3>Alertas de reuniones</h3>
+                <p>Nexus puede leer tu Google Calendar y mostrar alertas visuales y sonoras <strong>15 y 5 minutos antes</strong> del inicio de cada reunión, sobre cualquier página que tengas abierta en el navegador. No requiere OAuth ni permisos de administrador: se basa en la URL privada iCal que Google Calendar genera para cada usuario.</p>
+
+                <h4 class="mt-300">Cómo configurarlo</h4>
+                <ol>
+                    <li>En <strong>Google Calendar</strong>, ve a <em>Configuración</em> (ícono de engranaje) → selecciona tu calendario en la barra lateral izquierda → pestaña <em>Integrar el calendario</em>.</li>
+                    <li>Copia la <strong>Dirección secreta en formato iCal</strong> (empieza con <code>https://calendar.google.com/calendar/ical/...</code>).</li>
+                    <li>En Nexus, ve a <strong>Configuración → Usuarios</strong>, abre tu perfil y despliega la sección <em>Alertas de reuniones</em>.</li>
+                    <li>Pega la URL y haz clic en <strong>Guardar URL</strong>.</li>
+                    <li>El navegador pedirá permiso para mostrar notificaciones: acéptalo.</li>
+                </ol>
+
+                <div class="alert alert-warning mt-200">
+                    <i class="bi bi-exclamation-triangle alert-icon" aria-hidden="true"></i>
+                    <span class="alert-content">La URL iCal es una dirección privada que da acceso de lectura a tu calendario. Nexus la guarda en el servidor y nunca la expone al navegador. Si la compartes o regeneras desde Google, deberás actualizarla aquí.</span>
+                </div>
+
+                <h4 class="mt-300">Cómo funciona</h4>
+                <table class="table table-compact mt-200">
+                    <thead><tr><th>Componente</th><th>Descripción</th></tr></thead>
+                    <tbody>
+                        <tr><td>Service Worker</td><td>Se registra al cargar Nexus y corre en segundo plano. Descarga tus eventos cada 20 minutos y verifica cada minuto si corresponde lanzar una alerta.</td></tr>
+                        <tr><td>Notificación del sistema</td><td>Aparece como notificación del sistema operativo (sobre cualquier pestaña o ventana abierta) 15 y 5 minutos antes de cada reunión.</td></tr>
+                        <tr><td>Banner en Nexus</td><td>Si tienes Nexus abierto, además aparece un banner flotante en la esquina inferior derecha con el nombre de la reunión.</td></tr>
+                        <tr><td>Sonido</td><td>Se reproduce un doble tono al dispararse la alerta (requiere que el navegador haya recibido alguna interacción del usuario en la sesión).</td></tr>
+                    </tbody>
+                </table>
+
+                <h4 class="mt-300">Requisitos</h4>
+                <ul>
+                    <li>Navegador moderno con soporte de Service Workers (Chrome, Edge, Firefox).</li>
+                    <li>Nexus abierto en al menos una pestaña del navegador.</li>
+                    <li>Permiso de notificaciones concedido al sitio de Nexus.</li>
+                </ul>
+
+                <div class="alert alert-info mt-200">
+                    <i class="bi bi-info-circle alert-icon" aria-hidden="true"></i>
+                    <span class="alert-content">Para desvincular el calendario, abre tu perfil → sección <em>Alertas de reuniones</em> → botón <strong>Desvincular</strong>. Las alertas dejarán de generarse en el siguiente ciclo de verificación.</span>
+                </div>
             </article>
 
             <article id="settings-alliances" class="docs-article">

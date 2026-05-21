@@ -422,4 +422,38 @@ if ($action === 'delete') {
     exit;
 }
 
+// Guardar URL de calendario iCal (solo perfil propio)
+if ($action === 'save_ical_url') {
+    $username = sanitize($_POST['username'] ?? '');
+
+    if ($username !== ($currentUser['username'] ?? '')) {
+        echo json_encode(['success' => false, 'message' => 'Solo puedes editar tu propio perfil']);
+        exit;
+    }
+
+    $users = getUsers();
+    if (!isset($users[$username])) {
+        echo json_encode(['success' => false, 'message' => 'Usuario no encontrado']);
+        exit;
+    }
+
+    $icalUrl = trim($_POST['calendar_ical_url'] ?? '');
+
+    if ($icalUrl !== '') {
+        if (!filter_var($icalUrl, FILTER_VALIDATE_URL) || strpos($icalUrl, 'calendar.google.com') === false) {
+            echo json_encode(['success' => false, 'message' => 'La URL debe ser de Google Calendar']);
+            exit;
+        }
+    }
+
+    $users[$username]['calendar_ical_url'] = $icalUrl;
+
+    if (saveUsers($users)) {
+        echo json_encode(['success' => true, 'message' => $icalUrl ? 'Calendario vinculado' : 'Calendario desvinculado']);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Error al guardar']);
+    }
+    exit;
+}
+
 echo json_encode(['success' => false, 'message' => 'Acción no válida']);

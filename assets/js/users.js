@@ -311,6 +311,42 @@
                     <input type="hidden" name="work_schedule" id="workScheduleInput">
                 </div>
 
+                ${(!isCreate && isSelf) ? `
+                <!-- Calendario Google (solo perfil propio) -->
+                <details class="user-api-section" id="calendarSection">
+                    <summary class="user-api-summary">
+                        <i class="bi bi-calendar-check" aria-hidden="true"></i>
+                        Alertas de reuniones
+                        ${user.has_calendar ? `<span class="lozenge lozenge-success" id="calendarStatus">Vinculado</span>` : `<span class="lozenge" id="calendarStatus" style="display:none"></span>`}
+                    </summary>
+                    <div class="user-api-body">
+                        <p class="form-helper">Pega aqui la URL secreta en formato iCal de tu Google Calendar. Nexus enviara alertas 15 y 5 minutos antes de cada reunion.</p>
+                        <p class="form-helper">La encuentras en: Google Calendar &rarr; Configuracion &rarr; [tu calendario] &rarr; <em>Direccion secreta en formato iCal</em>.</p>
+                        <div class="form-group">
+                            <label for="fCalendarUrl" class="form-label">URL iCal privada</label>
+                            <div class="password-field">
+                                <input type="password" id="fCalendarUrl" class="form-control" autocomplete="off"
+                                       placeholder="https://calendar.google.com/calendar/ical/...">
+                                <button type="button" class="password-toggle" id="toggleCalendarUrl" aria-label="Mostrar URL">
+                                    <i class="bi bi-eye" aria-hidden="true"></i>
+                                </button>
+                            </div>
+                            ${user.has_calendar ? `<p class="form-helper" style="color:var(--color-text-success,#006644)">Ya tienes un calendario vinculado. Pega una nueva URL para reemplazarlo.</p>` : ''}
+                        </div>
+                        <div class="user-api-result d-none" id="calendarResult" role="status" aria-live="polite"></div>
+                        <div class="user-api-actions">
+                            ${user.has_calendar ? `
+                            <button type="button" class="btn btn-subtle btn-sm" id="calendarClearBtn">
+                                <i class="bi bi-trash" aria-hidden="true"></i> Desvincular
+                            </button>` : ''}
+                            <button type="button" class="btn btn-primary btn-sm" id="calendarSaveBtn">
+                                <i class="bi bi-check2" aria-hidden="true"></i> Guardar URL
+                            </button>
+                        </div>
+                    </div>
+                </details>
+                ` : ''}
+
                 ${(!isCreate && !isSelf) ? `
                 <!-- iLovePDF por usuario (solo admin editando otro usuario) -->
                 <details class="user-api-section" id="userApiSection">
@@ -479,6 +515,7 @@
         if (mode === 'edit') {
             const targetUsername = form.original_username.value;
             setupUserApiHandlers(targetUsername);
+            setupCalendarHandlers(targetUsername);
         }
     }
 
@@ -588,6 +625,93 @@
                         document.getElementById('fIlpSecret').placeholder = 'secret_key_...';
                         document.getElementById('fIlpPublic').value = '';
                         document.getElementById('fIlpSecret').value = '';
+                    }
+                } catch { showResult('Error de red.', false); }
+                setBtnLoading(clearBtn, false);
+            });
+        }
+    }
+
+    function setupCalendarHandlers(targetUsername) {
+        if (!document.getElementById('calendarSection')) return;
+
+        const showResult = (msg, ok) => {
+            const el = document.getElementById('calendarResult');
+            if (!el) return;
+            el.className = 'user-api-result ' + (ok ? 'alert alert-success' : 'alert alert-danger');
+            el.innerHTML = `<i class="bi ${ok ? 'bi-check-circle' : 'bi-exclamation-triangle-fill'} alert-icon"></i><span class="alert-content">${msg}</span>`;
+            el.classList.remove('d-none');
+        };
+
+        const setBtnLoading = (btn, loading) => {
+            if (!btn) return;
+            btn.disabled = loading;
+            const icon = btn.querySelector('i');
+            if (icon) icon.className = loading ? 'spinner' : btn.dataset.icon;
+        };
+
+        // Toggle mostrar/ocultar URL
+        const toggleBtn = document.getElementById('toggleCalendarUrl');
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', () => {
+                const input = document.getElementById('fCalendarUrl');
+                if (!input) return;
+                const show = input.type === 'password';
+                input.type = show ? 'text' : 'password';
+                toggleBtn.querySelector('i').className = show ? 'bi bi-eye-slash' : 'bi bi-eye';
+            });
+        }
+
+        const postCalendar = async (url) => {
+            const fd = new FormData();
+            fd.append('action', 'save_ical_url');
+            fd.append('username', targetUsername);
+            fd.append('calendar_ical_url', url);
+            const res = await fetch('includes/user_actions.php', {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': csrfToken },
+                body: fd,
+            });
+            return res.json();
+        };
+
+        // Guardar
+        const saveBtn = document.getElementById('calendarSaveBtn');
+        if (saveBtn) {
+            saveBtn.dataset.icon = 'bi bi-check2';
+            saveBtn.addEventListener('click', async () => {
+                const url = document.getElementById('fCalendarUrl')?.value.trim() || '';
+                if (!url) { showResult('Pega la URL iCal antes de guardar.', false); return; }
+                setBtnLoading(saveBtn, true);
+                try {
+                    const res = await postCalendar(url);
+                    showResult(res.message, res.success);
+                    if (res.success) {
+                        const status = document.getElementById('calendarStatus');
+                        if (status) { status.textContent = 'Vinculado'; status.className = 'lozenge lozenge-success'; status.style.display = ''; }
+                        document.getElementById('fCalendarUrl').value = '';
+                        document.getElementById('fCalendarUrl').placeholder = '(guardada — dejar vacío para no cambiar)';
+                    }
+                } catch { showResult('Error de red.', false); }
+                setBtnLoading(saveBtn, false);
+            });
+        }
+
+        // Desvincular
+        const clearBtn = document.getElementById('calendarClearBtn');
+        if (clearBtn) {
+            clearBtn.dataset.icon = 'bi bi-trash';
+            clearBtn.addEventListener('click', async () => {
+                setBtnLoading(clearBtn, true);
+                try {
+                    const res = await postCalendar('');
+                    showResult(res.message, res.success);
+                    if (res.success) {
+                        const status = document.getElementById('calendarStatus');
+                        if (status) { status.style.display = 'none'; }
+                        document.getElementById('fCalendarUrl').value = '';
+                        document.getElementById('fCalendarUrl').placeholder = 'https://calendar.google.com/calendar/ical/...';
+                        clearBtn.remove();
                     }
                 } catch { showResult('Error de red.', false); }
                 setBtnLoading(clearBtn, false);

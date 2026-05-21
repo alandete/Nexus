@@ -140,7 +140,7 @@ return [
         'list_title'   => 'Task list',
         'tabs_label'   => 'List views',
         'tab_active'   => 'Active tasks',
-        'tab_scheduled'=> 'Upcoming tasks',
+        'tab_scheduled'=> 'Upcoming tasks &amp; events',
         'tab_today'    => 'Today\'s tasks',
         'tab_yesterday'=> 'Yesterday\'s tasks',
         'tab_history'  => 'History',

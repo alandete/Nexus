@@ -44,12 +44,14 @@ if ($action === 'get_events') {
 
     $events = parseIcal($ical);
 
-    // Filtrar eventos de las proximas 24 horas
+    // Filtrar eventos de los proximos N dias (max 3)
+    $days  = max(1, min(3, (int)($_GET['days'] ?? 1)));
     $now   = time();
-    $limit = $now + 86400;
+    $limit = $now + $days * 86400;
     $upcoming = array_values(array_filter($events, function ($e) use ($now, $limit) {
         return $e['start_ts'] >= $now && $e['start_ts'] <= $limit;
     }));
+    usort($upcoming, fn($a, $b) => $a['start_ts'] - $b['start_ts']);
 
     echo json_encode(['success' => true, 'events' => $upcoming]);
     exit;

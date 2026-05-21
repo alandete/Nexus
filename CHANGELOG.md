@@ -5,6 +5,13 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [2.0.0-alpha.4] — en desarrollo
 
+### Cards de reuniones en Próximas tareas — 2026-05-21
+
+- **Sección renombrada** a "Próximas tareas y eventos" (ES) / "Upcoming tasks & events" (EN).
+- **Cards de eventos del día**: los eventos de Google Calendar del día actual aparecen como cards con diseño diferenciado (fondo azul, borde izquierdo en `--app-brand`, hora y countdown) en la misma sección de Próximas tareas.
+- **Countdown en vivo**: se actualiza cada minuto sin reemplazar el DOM. Las cards desaparecen automáticamente cuando pasa la hora del evento.
+- `loadCalendarEvents()` en `tasks.js` consulta `calendar_actions.php` al cargar la página; `calendarEventsToday` se integra en `renderScheduledPanel()`.
+
 ### Alertas de reuniones (Google Calendar) — 2026-05-21
 
 - **Service Worker `sw-calendar.js`**: corre en segundo plano, refresca eventos desde el iCal de Google cada 20 minutos y verifica cada minuto si corresponde disparar una alerta.

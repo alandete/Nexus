@@ -5797,6 +5797,37 @@ a.stat-card:hover {
 .task-card-priority-urgent { background: rgba(255, 139, 0, 0.22); }
 .task-card.is-overdue      { background: rgba(222, 53, 11, 0.15); }
 
+/* ---- Card de evento de calendario ---- */
+.cal-event-card {
+    background: rgba(0, 121, 191, 0.12);
+    border-left: 3px solid var(--app-brand, #0052cc);
+    min-height: 0;
+}
+.cal-event-card:hover {
+    background: rgba(0, 121, 191, 0.18);
+}
+.cal-event-label {
+    font-size: 10px;
+    font-weight: var(--ds-font-weight-bold);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--app-brand, #0052cc);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.cal-event-time {
+    margin-left: auto;
+    font-size: 13px;
+    font-weight: var(--ds-font-weight-semibold);
+    color: var(--app-brand, #0052cc);
+    font-variant-numeric: tabular-nums;
+}
+.cal-event-countdown {
+    font-size: 12px;
+    color: var(--ds-text-subtle);
+}
+
 .task-card-top {
     display: flex;
     align-items: center;

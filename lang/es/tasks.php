@@ -140,7 +140,7 @@ return [
         'list_title'   => 'Listado de tareas',
         'tabs_label'   => 'Vistas del listado',
         'tab_active'   => 'Tareas activas',
-        'tab_scheduled'=> 'Próximas tareas',
+        'tab_scheduled'=> 'Próximas tareas y eventos',
         'tab_today'    => 'Tareas de hoy',
         'tab_yesterday'=> 'Tareas de ayer',
         'tab_history'  => 'Historial',

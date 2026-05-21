@@ -1140,6 +1140,8 @@
      * LISTADO (sub-fase 4.2)
      * ======================================================== */
 
+    let calendarEventsToday = [];
+
     const listState = {
         data: { active: [], scheduled: [], by_date: {}, day_totals: {} },
         filters: { search: '', alliance: '', priority: '', tags: [], dateFrom: '', dateTo: '' },
@@ -1158,6 +1160,20 @@
         const toInput = document.getElementById('filterDateTo');
         if (fromInput) fromInput.value = listState.filters.dateFrom;
         if (toInput) toInput.value = listState.filters.dateTo;
+    }
+
+    async function loadCalendarEvents() {
+        try {
+            const res = await fetch('includes/calendar_actions.php?action=get_events&days=1', {
+                credentials: 'include',
+                cache: 'no-store',
+            });
+            if (!res.ok) return;
+            const data = await res.json();
+            if (!data.success) return;
+            calendarEventsToday = data.events || [];
+            renderScheduledPanel();
+        } catch (_) {}
     }
 
     async function loadList() {
@@ -1735,7 +1751,10 @@
             return (a.due_date || '9999-12-31').localeCompare(b.due_date || '9999-12-31');
         });
 
-        if (sorted.length === 0) {
+        const now = Math.floor(Date.now() / 1000);
+        const activeEvents = calendarEventsToday.filter(e => e.start_ts > now);
+
+        if (sorted.length === 0 && activeEvents.length === 0) {
             container.innerHTML = emptyState('bi-calendar-check',
                 t('tasks.empty_scheduled_title', 'No hay tareas próximas'),
                 t('tasks.empty_scheduled_desc', 'Aquí aparecerán las tareas pendientes sin tiempo registrado, ordenadas por prioridad y fecha de vencimiento.'));
@@ -1745,7 +1764,26 @@
 
         setupScrollMask(container);
 
-        container.innerHTML = sorted.map(task => {
+        const eventCards = activeEvents.map(ev => {
+            const diffMin  = Math.max(0, Math.floor((ev.start_ts - now) / 60));
+            const h        = Math.floor(diffMin / 60);
+            const m        = diffMin % 60;
+            const countdown = diffMin === 0 ? 'Ahora' : h > 0 ? (m > 0 ? `En ${h} h ${m} min` : `En ${h} h`) : `En ${m} min`;
+            const timeLabel = new Date(ev.start_ts * 1000).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+            return `
+                <article class="task-card cal-event-card" data-event-ts="${ev.start_ts}">
+                    <div class="task-card-top">
+                        <span class="cal-event-label"><i class="bi bi-camera-video-fill" aria-hidden="true"></i> Reunion</span>
+                        <span class="cal-event-time">${timeLabel}</span>
+                    </div>
+                    <h4 class="task-card-title">${escapeHtml(ev.title)}</h4>
+                    <div class="task-card-footer">
+                        <span class="cal-event-countdown">${countdown}</span>
+                    </div>
+                </article>`;
+        }).join('');
+
+        container.innerHTML = eventCards + sorted.map(task => {
             const recurring = !!parseInt(task.is_recurring || 0);
             const overdue = !recurring && task.due_date && task.due_date < today;
             const priority = task.priority || 'medium';
@@ -2531,6 +2569,28 @@
         initListDefaults();
         setupListBindings();
         loadList();
+        loadCalendarEvents();
+
+        // Actualizar countdowns y eliminar eventos expirados cada minuto
+        setInterval(() => {
+            const now = Math.floor(Date.now() / 1000);
+            const before = calendarEventsToday.length;
+            calendarEventsToday = calendarEventsToday.filter(e => e.start_ts > now);
+            if (calendarEventsToday.length !== before) {
+                renderScheduledPanel();
+            } else {
+                // Solo redibujar countdowns sin reemplazar todo el DOM
+                document.querySelectorAll('.cal-event-card').forEach(card => {
+                    const ts      = parseInt(card.dataset.eventTs, 10);
+                    const diffMin = Math.max(0, Math.floor((ts - now) / 60));
+                    const h       = Math.floor(diffMin / 60);
+                    const m       = diffMin % 60;
+                    const label   = diffMin === 0 ? 'Ahora' : h > 0 ? (m > 0 ? `En ${h} h ${m} min` : `En ${h} h`) : `En ${m} min`;
+                    const cd = card.querySelector('.cal-event-countdown');
+                    if (cd) cd.textContent = label;
+                });
+            }
+        }, 60 * 1000);
 
         // Gmail auto-sync (respeta intervalo de 15 min)
         gmailAutoSync(false);

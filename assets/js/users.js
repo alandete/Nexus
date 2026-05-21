@@ -336,6 +336,9 @@
                         <div class="user-api-result d-none" id="calendarResult" role="status" aria-live="polite"></div>
                         <div class="user-api-actions">
                             ${user.has_calendar ? `
+                            <button type="button" class="btn btn-subtle btn-sm" id="calendarTestBtn">
+                                <i class="bi bi-wifi" aria-hidden="true"></i> Probar
+                            </button>
                             <button type="button" class="btn btn-subtle btn-sm" id="calendarClearBtn">
                                 <i class="bi bi-trash" aria-hidden="true"></i> Desvincular
                             </button>` : ''}
@@ -674,6 +677,29 @@
             });
             return res.json();
         };
+
+        // Probar conexión
+        const testBtn = document.getElementById('calendarTestBtn');
+        if (testBtn) {
+            testBtn.dataset.icon = 'bi bi-wifi';
+            testBtn.addEventListener('click', async () => {
+                setBtnLoading(testBtn, true);
+                try {
+                    const res = await fetch('includes/calendar_actions.php?action=get_events&days=1', {
+                        credentials: 'include',
+                        cache: 'no-store',
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        const n = (data.events || []).length;
+                        showResult(n > 0 ? `Conexión OK — ${n} evento${n !== 1 ? 's' : ''} hoy` : 'Conexión OK — sin eventos hoy', true);
+                    } else {
+                        showResult(data.error || 'No se pudo conectar al calendario.', false);
+                    }
+                } catch { showResult('Error de red.', false); }
+                setBtnLoading(testBtn, false);
+            });
+        }
 
         // Guardar
         const saveBtn = document.getElementById('calendarSaveBtn');

@@ -678,28 +678,67 @@
             return res.json();
         };
 
-        // Probar conexión
-        const testBtn = document.getElementById('calendarTestBtn');
-        if (testBtn) {
+        const actions = document.querySelector('#calendarSection .user-api-actions');
+
+        function injectPostSaveButtons() {
+            if (document.getElementById('calendarTestBtn')) return;
+            const frag = document.createRange().createContextualFragment(`
+                <button type="button" class="btn btn-subtle btn-sm" id="calendarTestBtn">
+                    <i class="bi bi-wifi" aria-hidden="true"></i> Probar
+                </button>
+                <button type="button" class="btn btn-subtle btn-sm" id="calendarClearBtn">
+                    <i class="bi bi-trash" aria-hidden="true"></i> Desvincular
+                </button>`);
+            actions?.insertBefore(frag, actions.firstChild);
+            bindTestBtn();
+            bindClearBtn();
+        }
+
+        function bindTestBtn() {
+            const testBtn = document.getElementById('calendarTestBtn');
+            if (!testBtn) return;
             testBtn.dataset.icon = 'bi bi-wifi';
             testBtn.addEventListener('click', async () => {
                 setBtnLoading(testBtn, true);
                 try {
-                    const res = await fetch('includes/calendar_actions.php?action=get_events&days=1', {
-                        credentials: 'include',
-                        cache: 'no-store',
-                    });
+                    const res  = await fetch('includes/calendar_actions.php?action=get_events&days=3', { credentials: 'include', cache: 'no-store' });
                     const data = await res.json();
                     if (data.success) {
                         const n = (data.events || []).length;
-                        showResult(n > 0 ? `Conexión OK — ${n} evento${n !== 1 ? 's' : ''} hoy` : 'Conexión OK — sin eventos hoy', true);
+                        showResult(n > 0 ? `Conexión OK — ${n} evento${n !== 1 ? 's' : ''} en los próximos 3 días` : 'Conexión OK — sin eventos en los próximos 3 días', true);
                     } else {
-                        showResult(data.error || 'No se pudo conectar al calendario.', false);
+                        showResult(data.error || 'No se pudo leer el calendario.', false);
                     }
                 } catch { showResult('Error de red.', false); }
                 setBtnLoading(testBtn, false);
             });
         }
+
+        function bindClearBtn() {
+            const clearBtn = document.getElementById('calendarClearBtn');
+            if (!clearBtn) return;
+            clearBtn.dataset.icon = 'bi bi-trash';
+            clearBtn.addEventListener('click', async () => {
+                setBtnLoading(clearBtn, true);
+                try {
+                    const res = await postCalendar('');
+                    showResult(res.message, res.success);
+                    if (res.success) {
+                        if (usersData[targetUsername]) usersData[targetUsername].has_calendar = false;
+                        document.getElementById('calendarStatus')?.style.setProperty('display', 'none');
+                        document.getElementById('fCalendarUrl').value = '';
+                        document.getElementById('fCalendarUrl').placeholder = 'https://calendar.google.com/calendar/ical/...';
+                        document.getElementById('calendarTestBtn')?.remove();
+                        clearBtn.remove();
+                    }
+                } catch { showResult('Error de red.', false); }
+                setBtnLoading(clearBtn, false);
+            });
+        }
+
+        // Vincular botones que ya existen (usuario con calendario guardado)
+        bindTestBtn();
+        bindClearBtn();
 
         // Guardar
         const saveBtn = document.getElementById('calendarSaveBtn');
@@ -713,34 +752,15 @@
                     const res = await postCalendar(url);
                     showResult(res.message, res.success);
                     if (res.success) {
+                        if (usersData[targetUsername]) usersData[targetUsername].has_calendar = true;
                         const status = document.getElementById('calendarStatus');
                         if (status) { status.textContent = 'Vinculado'; status.className = 'lozenge lozenge-success'; status.style.display = ''; }
                         document.getElementById('fCalendarUrl').value = '';
                         document.getElementById('fCalendarUrl').placeholder = '(guardada — dejar vacío para no cambiar)';
+                        injectPostSaveButtons();
                     }
                 } catch { showResult('Error de red.', false); }
                 setBtnLoading(saveBtn, false);
-            });
-        }
-
-        // Desvincular
-        const clearBtn = document.getElementById('calendarClearBtn');
-        if (clearBtn) {
-            clearBtn.dataset.icon = 'bi bi-trash';
-            clearBtn.addEventListener('click', async () => {
-                setBtnLoading(clearBtn, true);
-                try {
-                    const res = await postCalendar('');
-                    showResult(res.message, res.success);
-                    if (res.success) {
-                        const status = document.getElementById('calendarStatus');
-                        if (status) { status.style.display = 'none'; }
-                        document.getElementById('fCalendarUrl').value = '';
-                        document.getElementById('fCalendarUrl').placeholder = 'https://calendar.google.com/calendar/ical/...';
-                        clearBtn.remove();
-                    }
-                } catch { showResult('Error de red.', false); }
-                setBtnLoading(clearBtn, false);
             });
         }
     }

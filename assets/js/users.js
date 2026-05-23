@@ -317,21 +317,28 @@
                     <summary class="user-api-summary">
                         <i class="bi bi-calendar-check" aria-hidden="true"></i>
                         Alertas de reuniones
-                        ${user.has_calendar ? `<span class="lozenge lozenge-success" id="calendarStatus">Vinculado</span>` : `<span class="lozenge" id="calendarStatus" style="display:none"></span>`}
+                        ${user.calendar_active
+                            ? `<span class="lozenge lozenge-success" id="calendarStatus">Activo</span>`
+                            : `<span class="lozenge lozenge-default" id="calendarStatus">Inactivo</span>`}
                     </summary>
                     <div class="user-api-body">
-                        <p class="form-helper">Pega aqui la URL secreta en formato iCal de tu Google Calendar. Nexus enviara alertas 15 y 5 minutos antes de cada reunion.</p>
-                        <p class="form-helper">La encuentras en: Google Calendar &rarr; Configuracion &rarr; [tu calendario] &rarr; <em>Direccion secreta en formato iCal</em>.</p>
                         <div class="form-group">
+                            <label class="toggle-field">
+                                <input type="checkbox" id="calendarActiveToggle" ${user.calendar_active ? 'checked' : ''}>
+                                <span>Activar alertas de reuniones</span>
+                            </label>
+                            <p class="form-helper">Requiere tener configurada la URL iCal privada de Google Calendar y que el navegador tenga permiso de notificaciones.</p>
+                        </div>
+                        <div class="form-group" id="calendarUrlGroup" ${!user.calendar_active ? 'style="opacity:0.5;pointer-events:none"' : ''}>
                             <label for="fCalendarUrl" class="form-label">URL iCal privada</label>
                             <div class="password-field">
                                 <input type="password" id="fCalendarUrl" class="form-control" autocomplete="off"
-                                       placeholder="https://calendar.google.com/calendar/ical/...">
+                                       placeholder="${user.has_calendar ? '(guardada — dejar vacío para no cambiar)' : 'https://calendar.google.com/calendar/ical/...'}">
                                 <button type="button" class="password-toggle" id="toggleCalendarUrl" aria-label="Mostrar URL">
                                     <i class="bi bi-eye" aria-hidden="true"></i>
                                 </button>
                             </div>
-                            ${user.has_calendar ? `<p class="form-helper" style="color:var(--color-text-success,#006644)">Ya tienes un calendario vinculado. Pega una nueva URL para reemplazarlo.</p>` : ''}
+                            <p class="form-helper">Encuéntrala en Google Calendar &rarr; Configuración &rarr; [tu calendario] &rarr; <em>Dirección secreta en formato iCal</em>.</p>
                         </div>
                         <div class="user-api-result d-none" id="calendarResult" role="status" aria-live="polite"></div>
                         <div class="user-api-actions">
@@ -340,7 +347,7 @@
                                 <i class="bi bi-wifi" aria-hidden="true"></i> Probar
                             </button>
                             <button type="button" class="btn btn-subtle btn-sm" id="calendarClearBtn">
-                                <i class="bi bi-trash" aria-hidden="true"></i> Desvincular
+                                <i class="bi bi-trash" aria-hidden="true"></i> Desvincular URL
                             </button>` : ''}
                             <button type="button" class="btn btn-primary btn-sm" id="calendarSaveBtn">
                                 <i class="bi bi-check2" aria-hidden="true"></i> Guardar URL
@@ -677,6 +684,34 @@
             });
             return res.json();
         };
+
+        // Toggle activar/desactivar
+        const activeToggle = document.getElementById('calendarActiveToggle');
+        if (activeToggle) {
+            activeToggle.addEventListener('change', async () => {
+                const active = activeToggle.checked;
+                const urlGroup = document.getElementById('calendarUrlGroup');
+                if (urlGroup) { urlGroup.style.opacity = active ? '' : '0.5'; urlGroup.style.pointerEvents = active ? '' : 'none'; }
+                const fd = new FormData();
+                fd.append('action', 'toggle_calendar_alerts');
+                fd.append('username', targetUsername);
+                fd.append('active', active ? '1' : '0');
+                try {
+                    const res  = await fetch('includes/user_actions.php', { method: 'POST', headers: { 'X-CSRF-TOKEN': csrfToken }, body: fd });
+                    const data = await res.json();
+                    if (data.success) {
+                        if (usersData[targetUsername]) usersData[targetUsername].calendar_active = active;
+                        const status = document.getElementById('calendarStatus');
+                        if (status) {
+                            status.textContent = active ? 'Activo' : 'Inactivo';
+                            status.className   = active ? 'lozenge lozenge-success' : 'lozenge lozenge-default';
+                        }
+                    } else {
+                        activeToggle.checked = !active;
+                    }
+                } catch { activeToggle.checked = !active; }
+            });
+        }
 
         const actions = document.querySelector('#calendarSection .user-api-actions');
 

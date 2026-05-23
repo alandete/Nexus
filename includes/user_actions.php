@@ -431,12 +431,6 @@ if ($action === 'save_ical_url') {
         exit;
     }
 
-    $users = getUsers();
-    if (!isset($users[$username])) {
-        echo json_encode(['success' => false, 'message' => 'Usuario no encontrado']);
-        exit;
-    }
-
     $icalUrl = trim($_POST['calendar_ical_url'] ?? '');
 
     if ($icalUrl !== '') {
@@ -446,10 +440,27 @@ if ($action === 'save_ical_url') {
         }
     }
 
-    $users[$username]['calendar_ical_url'] = $icalUrl;
-
-    if (saveUsers($users)) {
+    if (saveUserExtras($username, ['calendar_ical_url' => $icalUrl])) {
         echo json_encode(['success' => true, 'message' => $icalUrl ? 'Calendario vinculado' : 'Calendario desvinculado']);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Error al guardar']);
+    }
+    exit;
+}
+
+// Activar / desactivar alertas de calendario (solo perfil propio)
+if ($action === 'toggle_calendar_alerts') {
+    $username = sanitize($_POST['username'] ?? '');
+
+    if ($username !== ($currentUser['username'] ?? '')) {
+        echo json_encode(['success' => false, 'message' => 'Solo puedes editar tu propio perfil']);
+        exit;
+    }
+
+    $active = ($_POST['active'] ?? '0') === '1';
+
+    if (saveUserExtras($username, ['calendar_alerts_active' => $active])) {
+        echo json_encode(['success' => true, 'active' => $active]);
     } else {
         echo json_encode(['success' => false, 'message' => 'Error al guardar']);
     }

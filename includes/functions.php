@@ -562,6 +562,26 @@ function saveProjectInfo(array $data): bool
 }
 
 /**
+ * Obtener configuración extra del usuario (campos no en el esquema MySQL).
+ * Almacenado en data/user_settings.json.
+ */
+function getUserExtras(string $username): array
+{
+    $file = DATA_PATH . '/user_settings.json';
+    $all  = file_exists($file) ? (json_decode(file_get_contents($file), true) ?? []) : [];
+    return isset($all[$username]) && is_array($all[$username]) ? $all[$username] : [];
+}
+
+function saveUserExtras(string $username, array $extras): bool
+{
+    $file = DATA_PATH . '/user_settings.json';
+    $all  = file_exists($file) ? (json_decode(file_get_contents($file), true) ?? []) : [];
+    $all[$username] = array_merge($all[$username] ?? [], $extras);
+    if (!is_dir(DATA_PATH)) mkdir(DATA_PATH, 0755, true);
+    return (bool) file_put_contents($file, json_encode($all, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+}
+
+/**
  * Obtener accesos rápidos del topbar (por usuario)
  * Almacenados en data/quick_links.json para no depender del esquema de la DB.
  */

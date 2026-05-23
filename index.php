@@ -255,7 +255,9 @@ $quickLinksMeta = [
     <script src="assets/js/confirm-modal.js?v=<?= filemtime('assets/js/confirm-modal.js') ?>"></script>
     <script src="assets/js/toast.js?v=<?= filemtime('assets/js/toast.js') ?>"></script>
     <script src="assets/js/scripts.js?v=<?= filemtime('assets/js/scripts.js') ?>"></script>
+    <?php if (!empty(getUserExtras($currentUser['username'] ?? '')['calendar_alerts_active'])): ?>
     <script src="assets/js/calendar-alerts.js?v=<?= filemtime('assets/js/calendar-alerts.js') ?>"></script>
+    <?php endif; ?>
 
     <?php if ($page === 'home'): ?>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>

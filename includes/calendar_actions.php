@@ -21,9 +21,9 @@ $action = $_GET['action'] ?? '';
 
 if ($action === 'get_events') {
     $currentUser = getCurrentUser();
-    $users       = getUsers();
     $username    = $currentUser['username'] ?? '';
-    $icalUrl     = $users[$username]['calendar_ical_url'] ?? '';
+    $extras      = getUserExtras($username);
+    $icalUrl     = $extras['calendar_ical_url'] ?? '';
 
     if (empty($icalUrl)) {
         echo json_encode(['success' => true, 'events' => []]);
@@ -166,7 +166,7 @@ function parseDtValue(string $prop, string $value): ?int
         }
         try {
             $tz = new DateTimeZone($tzid ?: date_default_timezone_get());
-        } catch (\Exception $e) {
+        } catch (\Exception) {
             $tz = new DateTimeZone(date_default_timezone_get());
         }
     }

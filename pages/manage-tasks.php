@@ -73,12 +73,10 @@ if (isDBAvailable()) {
         <i class="bi bi-arrow-left-right" aria-hidden="true"></i>
         <?= __('manage_tasks.io_title') ?>
     </button>
-    <?php if ($canWrite): ?>
     <button type="button" class="tab" id="tabCleanup" role="tab" aria-selected="false" aria-controls="panelCleanup" data-tab="cleanup">
         <i class="bi bi-trash" aria-hidden="true"></i>
         <?= __('manage_tasks.cleanup_title') ?>
     </button>
-    <?php endif; ?>
 </div>
 
 <!-- ========== PANEL: ETIQUETAS ========== -->
@@ -223,7 +221,6 @@ if (isDBAvailable()) {
 </section>
 
 <!-- ========== PANEL: LIMPIEZA ========== -->
-<?php if ($canWrite): ?>
 <section class="manage-panel d-none" id="panelCleanup" role="tabpanel" aria-labelledby="tabCleanup" hidden>
 
     <!-- ── LIMPIEZA SELECTIVA ── -->
@@ -320,7 +317,6 @@ if (isDBAvailable()) {
     </div>
 
 </section>
-<?php endif; ?>
 
 <script>
 window.__MANAGE_TASKS__ = {

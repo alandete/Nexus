@@ -31,7 +31,7 @@ if (!$db) {
 }
 
 $currentUser = getCurrentUser();
-if (!canEditModule($currentUser, 'settings')) {
+if (!canAccessModule($currentUser, 'settings')) {
     http_response_code(403);
     echo json_encode(['success' => false, 'message' => 'Sin permiso']);
     exit;

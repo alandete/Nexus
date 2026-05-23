@@ -4127,7 +4127,8 @@ a.stat-card:hover {
     border-right: none;
 }
 
-.alliance-toggle-group--columns .alliance-section-fields {
+.alliance-toggle-group--columns .alliance-section-fields,
+.alliance-toggle-group--columns .alliance-section-fields--three {
     grid-template-columns: 1fr;
 }
 

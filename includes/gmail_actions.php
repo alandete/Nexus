@@ -197,8 +197,8 @@ if ($action === 'sync') {
             $gmailBoxes    = @imap_getmailboxes($mbox, '{imap.gmail.com:993/imap/ssl}', '*') ?: [];
             $gmailLabelMap = []; // lowercase => nombre exacto en Gmail
             foreach ($gmailBoxes as $box) {
-                $label = imap_utf7_decode(str_replace('{imap.gmail.com:993/imap/ssl}', '', $box->name));
-                $gmailLabelMap[mb_strtolower($label)] = $label;
+                $boxLabel = imap_utf7_decode(str_replace('{imap.gmail.com:993/imap/ssl}', '', $box->name));
+                $gmailLabelMap[mb_strtolower($boxLabel)] = $boxLabel;
             }
 
             foreach ($activeAlliances as $alliance) {

@@ -207,7 +207,7 @@ if (!$allianceReady):
                 <p class="card-description"><?= __('alliances.unab_conozcamonos_desc') ?></p>
             </div>
             <div class="card-body">
-                <div class="alliance-toggle-group">
+                <div class="alliance-toggle-group alliance-toggle-group--columns">
                     <?php for ($i = 1; $i <= 4; $i++): ?>
                     <div class="alliance-tgroup-item">
                         <div class="alliance-tgroup-header">

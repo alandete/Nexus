@@ -5,6 +5,16 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [2.0.0-alpha.4] — en desarrollo
 
+### Fix: variable $label sobreescrita en sincronización Gmail — 2026-05-23
+
+- **Bug**: al sincronizar, el mensaje de respuesta mostraba `[Gmail]/Todos` en lugar del nombre real de la etiqueta configurada. La variable `$label` era sobreescrita dentro del bucle de detección de carpetas de alianzas en `gmail_actions.php`.
+- **Fix**: renombrada la variable interna del bucle a `$boxLabel`.
+
+### Conozcámonos UNAB: layout 4 columnas en desktop — 2026-05-23
+
+- La sección Conozcámonos (pestaña Inicio de UNAB) ahora muestra los 4 grupos de docentes en 4 columnas en desktop, igual que la sección Aprende en la pestaña Curso. Los campos de cada grupo se apilan en una sola columna. Responsivo: 2 columnas a 900 px, 1 columna a 640 px.
+- Aplicada la clase `alliance-toggle-group--columns` y extendida la regla CSS existente para cubrir `.alliance-section-fields--three`.
+
 ### Cards de reuniones en Próximas tareas — 2026-05-21
 
 - **Sección renombrada** a "Próximas tareas y eventos" (ES) / "Upcoming tasks & events" (EN).

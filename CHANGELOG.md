@@ -5,6 +5,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [2.0.0-alpha.4] — en desarrollo
 
+### Estandarización de botones destructivos — 2026-05-23
+
+- **Nueva clase `btn-danger-subtle`**: texto en color de peligro, fondo transparente; hover con tinte rojo suave. Para acciones destructivas sin confirmación (quitar foto, desvincular URL, borrar claves).
+- **`users.js`**: `removePhotoBtn`, `calendarClearBtn` y `userApiClearBtn` pasan de `btn-subtle` a `btn-subtle btn-danger-subtle`.
+- **Patrón definido**: `btn-danger` para eliminaciones permanentes con confirmación; `btn-danger-subtle` para eliminar datos guardados; `btn-subtle` para limpiar estado de UI (reversible).
+
 ### Identidad visual: color de marca en topbar, sidebar y controles — 2026-05-23
 
 - **Topbar**: fondo `--app-brand` con textos e íconos en blanco; hovers en blanco semi-transparente; avatar-fallback con fondo translúcido.

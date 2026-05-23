@@ -205,6 +205,16 @@ a.btn:hover {
     color: var(--ds-text);
 }
 
+/* Danger subtle */
+.btn-danger-subtle {
+    color: var(--ds-text-danger);
+}
+
+.btn-danger-subtle:hover:not(:disabled) {
+    background: var(--ds-background-danger);
+    color: var(--ds-text-danger);
+}
+
 /* Warning */
 .btn-warning {
     background: var(--ds-background-warning-bold);

@@ -208,7 +208,7 @@
                         </label>
                         <input type="file" id="photoInput" name="photo" accept="image/jpeg,image/png,image/webp" class="d-none">
                         ${photoUrl ? `
-                        <button type="button" class="btn btn-subtle btn-sm" id="removePhotoBtn">
+                        <button type="button" class="btn btn-subtle btn-danger-subtle btn-sm" id="removePhotoBtn">
                             <i class="bi bi-trash" aria-hidden="true"></i>
                             ${t('users.field_photo_remove', 'Quitar foto')}
                         </button>
@@ -346,7 +346,7 @@
                             <button type="button" class="btn btn-subtle btn-sm" id="calendarTestBtn">
                                 <i class="bi bi-wifi" aria-hidden="true"></i> Probar
                             </button>
-                            <button type="button" class="btn btn-subtle btn-sm" id="calendarClearBtn">
+                            <button type="button" class="btn btn-subtle btn-danger-subtle btn-sm" id="calendarClearBtn">
                                 <i class="bi bi-trash" aria-hidden="true"></i> Desvincular URL
                             </button>` : ''}
                             <button type="button" class="btn btn-primary btn-sm" id="calendarSaveBtn">
@@ -392,7 +392,7 @@
                             <button type="button" class="btn btn-subtle btn-sm" id="userApiTestBtn">
                                 <i class="bi bi-wifi" aria-hidden="true"></i> ${t('users.ilp_btn_test', 'Probar')}
                             </button>
-                            <button type="button" class="btn btn-subtle btn-sm" id="userApiClearBtn">
+                            <button type="button" class="btn btn-subtle btn-danger-subtle btn-sm" id="userApiClearBtn">
                                 <i class="bi bi-trash" aria-hidden="true"></i> ${t('users.ilp_btn_clear', 'Borrar claves')}
                             </button>
                             <button type="button" class="btn btn-primary btn-sm" id="userApiSaveBtn">
@@ -721,7 +721,7 @@
                 <button type="button" class="btn btn-subtle btn-sm" id="calendarTestBtn">
                     <i class="bi bi-wifi" aria-hidden="true"></i> Probar
                 </button>
-                <button type="button" class="btn btn-subtle btn-sm" id="calendarClearBtn">
+                <button type="button" class="btn btn-subtle btn-danger-subtle btn-sm" id="calendarClearBtn">
                     <i class="bi bi-trash" aria-hidden="true"></i> Desvincular
                 </button>`);
             actions?.insertBefore(frag, actions.firstChild);

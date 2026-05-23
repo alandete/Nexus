@@ -20,6 +20,7 @@ $canDelete = canDeleteModule($currentUser, 'settings');
 $allTags = [];
 $tagsStats = ['total' => 0, 'in_use' => 0];
 $allAlliances = [];
+$hasTasks = false;
 if (isDBAvailable()) {
     $db = getDB();
     try {
@@ -36,6 +37,16 @@ if (isDBAvailable()) {
     try {
         $stmt2 = $db->query("SELECT id, name, color FROM alliances ORDER BY name ASC");
         $allAlliances = $stmt2->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Exception $e) { /* ignore */ }
+    try {
+        $stmtUid = $db->prepare("SELECT id FROM users WHERE username = ?");
+        $stmtUid->execute([$currentUser['username'] ?? '']);
+        $uid = (int) $stmtUid->fetchColumn();
+        if ($uid) {
+            $stmtCount = $db->prepare("SELECT COUNT(*) FROM tasks WHERE user_id = ?");
+            $stmtCount->execute([$uid]);
+            $hasTasks = (int) $stmtCount->fetchColumn() > 0;
+        }
     } catch (Exception $e) { /* ignore */ }
 }
 ?>
@@ -62,10 +73,12 @@ if (isDBAvailable()) {
         <i class="bi bi-arrow-left-right" aria-hidden="true"></i>
         <?= __('manage_tasks.io_title') ?>
     </button>
+    <?php if ($canWrite): ?>
     <button type="button" class="tab" id="tabCleanup" role="tab" aria-selected="false" aria-controls="panelCleanup" data-tab="cleanup">
         <i class="bi bi-trash" aria-hidden="true"></i>
         <?= __('manage_tasks.cleanup_title') ?>
     </button>
+    <?php endif; ?>
 </div>
 
 <!-- ========== PANEL: ETIQUETAS ========== -->
@@ -110,6 +123,7 @@ if (isDBAvailable()) {
 <section class="manage-panel d-none" id="panelIo" role="tabpanel" aria-labelledby="tabIo" hidden>
 
     <!-- ── EXPORTAR ── -->
+    <?php if ($hasTasks): ?>
     <div class="manage-section io-card">
         <h3 class="manage-section-title"><i class="bi bi-download" aria-hidden="true"></i> <?= __('manage_tasks.export_title') ?></h3>
         <p class="manage-section-desc"><?= __('manage_tasks.export_desc') ?></p>
@@ -150,6 +164,7 @@ if (isDBAvailable()) {
             </div>
         </div>
     </div>
+    <?php endif; ?>
 
     <!-- ── IMPORTAR ── -->
     <div class="manage-section io-card">
@@ -208,6 +223,7 @@ if (isDBAvailable()) {
 </section>
 
 <!-- ========== PANEL: LIMPIEZA ========== -->
+<?php if ($canWrite): ?>
 <section class="manage-panel d-none" id="panelCleanup" role="tabpanel" aria-labelledby="tabCleanup" hidden>
 
     <!-- ── LIMPIEZA SELECTIVA ── -->
@@ -254,7 +270,7 @@ if (isDBAvailable()) {
 
             <!-- Columna derecha: botón + contadores -->
             <div class="cleanup-sidebar">
-                <button type="button" class="btn btn-default" id="btnCleanupPreview">
+                <button type="button" class="btn btn-default" id="btnCleanupPreview" <?= !$hasTasks ? 'disabled' : '' ?>>
                     <i class="bi bi-calculator" aria-hidden="true"></i> <?= __('manage_tasks.cleanup_btn_preview') ?>
                 </button>
                 <div class="cleanup-counts" role="status" aria-live="polite">
@@ -284,7 +300,7 @@ if (isDBAvailable()) {
         <h3 class="manage-section-title"><?= __('manage_tasks.cleanup_dupes_title') ?></h3>
         <p class="manage-section-desc"><?= __('manage_tasks.cleanup_dupes_desc') ?></p>
         <div class="cleanup-dupes-bar">
-            <button type="button" class="btn btn-default" id="btnDupesDetect">
+            <button type="button" class="btn btn-default" id="btnDupesDetect" <?= !$hasTasks ? 'disabled' : '' ?>>
                 <i class="bi bi-search" aria-hidden="true"></i> <?= __('manage_tasks.cleanup_dupes_btn_detect') ?>
             </button>
             <span class="cleanup-dupes-result text-subtle text-sm" id="dupesResult" aria-live="polite"></span>
@@ -298,12 +314,13 @@ if (isDBAvailable()) {
     <div class="manage-section io-card cleanup-nuke-card">
         <h3 class="manage-section-title cleanup-nuke-title"><i class="bi bi-exclamation-octagon" aria-hidden="true"></i> <?= __('manage_tasks.cleanup_nuke_title') ?></h3>
         <p class="manage-section-desc"><?= __('manage_tasks.cleanup_nuke_desc') ?></p>
-        <button type="button" class="btn btn-danger" id="btnCleanupNuke">
+        <button type="button" class="btn btn-danger" id="btnCleanupNuke" <?= !$hasTasks ? 'disabled' : '' ?>>
             <i class="bi bi-trash3" aria-hidden="true"></i> <?= __('manage_tasks.cleanup_nuke_btn') ?>
         </button>
     </div>
 
 </section>
+<?php endif; ?>
 
 <script>
 window.__MANAGE_TASKS__ = {

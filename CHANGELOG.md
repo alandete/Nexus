@@ -5,6 +5,25 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [2.0.0-alpha.4] — en desarrollo
 
+### Identidad visual: color de marca en topbar, sidebar y controles — 2026-05-23
+
+- **Topbar**: fondo `--app-brand` con textos e íconos en blanco; hovers en blanco semi-transparente; avatar-fallback con fondo translúcido.
+- **Sidebar**: fondo `--ds-surface-sunken` para diferenciarlo del área de contenido.
+- **Botón primario**: usa `--app-brand` en lugar del azul fijo de Atlassian DS (`--ds-blue-600`). Hover y active generados con `color-mix`.
+- **Botón default**: rediseñado como outline — fondo transparente, borde y texto en `--app-accent`; en hover el fondo se llena con `--app-accent` y el texto pasa a blanco.
+- **Toggle activo**: color de fondo cambia a `--app-accent`.
+- **Tarjetas de formato seleccionadas** (utilidades): borde y sombra en `--app-accent`; hover también.
+- **Botones de grupo activos**: fondo `--app-accent`.
+- **Línea indicadora sidebar**: el marcador izquierdo del ítem activo usa `--app-accent`.
+- **Barra de filtros (Tareas)**: tinte brand subido a 10% + borde sutil para mayor visibilidad.
+- **Tareas**: filtro "Desde" arranca en el primer día del mes actual en lugar de los últimos 7 días.
+
+### Administrar tareas: visibilidad condicional de secciones — 2026-05-23
+
+- **Exportar**: solo se muestra si el usuario tiene tareas propias. Se agrega query de conteo al cargar la página.
+- **Limpieza de datos**: pestaña y panel solo visibles para usuarios con permiso de escritura (`canWrite`).
+- **Botones de limpieza**: deshabilitados cuando el usuario no tiene tareas (Calcular, Detectar duplicados, Eliminar todo).
+
 ### Fix: variable $label sobreescrita en sincronización Gmail — 2026-05-23
 
 - **Bug**: al sincronizar, el mensaje de respuesta mostraba `[Gmail]/Todos` en lugar del nombre real de la etiqueta configurada. La variable `$label` era sobreescrita dentro del bucle de detección de carpetas de alianzas en `gmail_actions.php`.

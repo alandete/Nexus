@@ -1151,8 +1151,7 @@
 
     function initListDefaults() {
         const to = new Date();
-        const from = new Date();
-        from.setDate(to.getDate() - 7);
+        const from = new Date(to.getFullYear(), to.getMonth(), 1);
         const fmt = d => d.toISOString().slice(0, 10);
         listState.filters.dateFrom = fmt(from);
         listState.filters.dateTo = fmt(to);

@@ -167,29 +167,31 @@ a.btn:hover {
 
 /* Primary */
 .btn-primary {
-    background: var(--ds-background-brand-bold);
-    color: var(--ds-text-inverse);
+    background: var(--app-brand);
+    color: #fff;
 }
 
 .btn-primary:hover:not(:disabled) {
-    background: var(--ds-background-brand-bold-hovered);
-    color: var(--ds-text-inverse);
+    background: color-mix(in srgb, var(--app-brand) 85%, black);
+    color: #fff;
 }
 
 .btn-primary:active:not(:disabled) {
-    background: var(--ds-blue-800);
-    color: var(--ds-text-inverse);
+    background: color-mix(in srgb, var(--app-brand) 70%, black);
+    color: #fff;
 }
 
 /* Default */
 .btn-default {
-    background: var(--ds-background-neutral);
-    color: var(--ds-text);
+    background: transparent;
+    color: var(--app-accent, var(--ds-text));
+    border: 1.5px solid var(--app-accent, var(--ds-border));
 }
 
 .btn-default:hover:not(:disabled) {
-    background: var(--ds-background-neutral-hovered);
-    color: var(--ds-text);
+    background: var(--app-accent, var(--ds-border));
+    color: #fff;
+    border-color: var(--app-accent, var(--ds-border));
 }
 
 /* Subtle */
@@ -931,7 +933,7 @@ select.form-control {
 }
 
 .toggle input:checked + .toggle-slider {
-    background: var(--ds-background-brand-bold);
+    background: var(--app-accent, var(--ds-background-brand-bold));
 }
 
 .toggle input:checked + .toggle-slider::before {
@@ -1086,8 +1088,8 @@ select.form-control {
     right: 0;
     z-index: var(--ds-z-navigation);
     height: var(--ds-topbar-height);
-    background: var(--ds-surface);
-    border-bottom: var(--ds-border-width) solid var(--ds-border);
+    background: var(--app-brand);
+    border-bottom: none;
 }
 
 .topbar-inner {
@@ -1106,7 +1108,7 @@ select.form-control {
     height: 32px;
     background: transparent;
     border: none;
-    color: var(--ds-icon);
+    color: rgba(255, 255, 255, 0.85);
     cursor: pointer;
     border-radius: var(--ds-radius-100);
     padding: 0;
@@ -1115,7 +1117,7 @@ select.form-control {
 }
 
 .topbar-toggle:hover {
-    background: var(--ds-interaction-hovered);
+    background: rgba(255, 255, 255, 0.15);
 }
 
 .topbar-brand {
@@ -1124,13 +1126,13 @@ select.form-control {
     gap: var(--ds-space-100);
     font-size: var(--ds-font-size-heading-sm);
     font-weight: var(--ds-font-weight-bold);
-    color: var(--ds-text);
+    color: #fff;
     text-decoration: none;
     flex-shrink: 0;
 }
 
 .topbar-brand:hover {
-    color: var(--ds-text);
+    color: #fff;
     text-decoration: none;
 }
 
@@ -1140,7 +1142,7 @@ select.form-control {
 }
 
 .topbar-brand i {
-    color: var(--app-brand);
+    color: #fff;
 }
 
 .topbar-brand-name {
@@ -1166,12 +1168,12 @@ select.form-control {
     border: none;
     border-radius: var(--ds-radius-100);
     cursor: pointer;
-    color: var(--ds-text);
+    color: #fff;
     transition: background var(--ds-duration-fast);
 }
 
 .topbar-user-btn:hover {
-    background: var(--ds-interaction-hovered);
+    background: rgba(255, 255, 255, 0.15);
 }
 
 .topbar-avatar {
@@ -1189,8 +1191,8 @@ select.form-control {
     width: 28px;
     height: 28px;
     border-radius: var(--ds-radius-round);
-    background: var(--app-brand);
-    color: var(--ds-text-inverse);
+    background: rgba(255, 255, 255, 0.25);
+    color: #fff;
     font-size: var(--ds-font-size-body-sm);
     font-weight: var(--ds-font-weight-semibold);
 }
@@ -1203,7 +1205,7 @@ select.form-control {
 
 .topbar-chevron {
     font-size: 12px;
-    color: var(--ds-icon-subtle);
+    color: rgba(255, 255, 255, 0.65);
 }
 
 .dropdown-item-danger {
@@ -1220,7 +1222,7 @@ select.form-control {
     bottom: 0;
     z-index: calc(var(--ds-z-navigation) - 1);
     width: var(--ds-sidebar-width);
-    background: var(--ds-surface);
+    background: var(--ds-surface-sunken);
     border-right: var(--ds-border-width) solid var(--ds-border);
     display: flex;
     flex-direction: column;
@@ -1301,7 +1303,7 @@ select.form-control {
     bottom: 6px;
     width: 3px;
     border-radius: 0 var(--ds-radius-050) var(--ds-radius-050) 0;
-    background: var(--app-brand);
+    background: var(--app-accent, var(--app-brand));
 }
 
 .sidebar-link.active .sidebar-link-icon {
@@ -2766,7 +2768,7 @@ a.stat-card:hover {
     width: 32px;
     height: 32px;
     border-radius: var(--ds-radius-100);
-    color: var(--ds-icon-subtle);
+    color: rgba(255, 255, 255, 0.85);
     font-size: 18px;
     text-decoration: none;
     transition: background var(--ds-duration-fast), color var(--ds-duration-fast);
@@ -2774,8 +2776,8 @@ a.stat-card:hover {
 }
 
 .topbar-ql-item:hover {
-    background: var(--ds-interaction-hovered);
-    color: var(--ds-icon);
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
     text-decoration: none;
 }
 
@@ -4989,8 +4991,8 @@ a.stat-card:hover {
     align-items: center;
     padding: var(--ds-space-100) var(--ds-space-150);
     margin-bottom: var(--ds-space-300);
-    /* Fondo tinte brand para destacarla como "barra de controles" sobre el contenido */
-    background: rgba(var(--app-brand-rgb), 0.06);
+    background: rgba(var(--app-brand-rgb), 0.10);
+    border: 1px solid rgba(var(--app-brand-rgb), 0.18);
     border-radius: var(--ds-radius-200);
 }
 
@@ -8000,8 +8002,8 @@ a.stat-card:hover {
 }
 
 .btn-group-item.active {
-    background: var(--app-brand);
-    color: var(--ds-text-inverse);
+    background: var(--app-accent, var(--app-brand));
+    color: #fff;
 }
 
 /* ---- Barra combinada filtros + exports ---- */
@@ -9469,14 +9471,14 @@ a.stat-card:hover {
 }
 
 .img-method-card:hover:not(.is-unavailable) {
-    border-color: rgba(var(--app-brand-rgb), 0.4);
+    border-color: color-mix(in srgb, var(--app-accent, var(--app-brand)) 50%, transparent);
     background: var(--ds-interaction-hovered);
 }
 
 .img-method-card.is-selected {
-    border-color: var(--app-brand);
+    border-color: var(--app-accent, var(--app-brand));
     background: rgba(var(--app-brand-rgb), 0.06);
-    box-shadow: 0 0 0 2px rgba(var(--app-brand-rgb), 0.15);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--app-accent, var(--app-brand)) 20%, transparent);
 }
 
 .img-method-card.is-unavailable {

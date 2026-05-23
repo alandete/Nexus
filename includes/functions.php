@@ -563,15 +563,20 @@ function saveProjectInfo(array $data): bool
 
 /**
  * Obtener accesos rápidos del topbar (por usuario)
+ * Almacenados en data/quick_links.json para no depender del esquema de la DB.
  */
 function getQuickLinks(string $username = ''): array
 {
+    $file = DATA_PATH . '/quick_links.json';
+    $all  = file_exists($file) ? (json_decode(file_get_contents($file), true) ?? []) : [];
+
     if ($username !== '') {
-        $users = getUsers();
-        $links = $users[$username]['quick_links'] ?? null;
-        if (is_array($links)) return array_values($links);
+        return isset($all[$username]) && is_array($all[$username])
+            ? array_values($all[$username])
+            : [];
     }
-    // Fallback: links globales legacy (projectinfo) para migración transparente
+
+    // Fallback: links globales legacy (projectinfo)
     $info = getProjectInfo();
     return (isset($info['quick_links']) && is_array($info['quick_links']))
         ? array_values($info['quick_links'])
@@ -583,16 +588,21 @@ function getQuickLinks(string $username = ''): array
  */
 function saveQuickLinks(array $links, string $username = ''): bool
 {
+    $file = DATA_PATH . '/quick_links.json';
+    $all  = file_exists($file) ? (json_decode(file_get_contents($file), true) ?? []) : [];
+
     if ($username !== '') {
-        $users = getUsers();
-        if (!isset($users[$username])) return false;
-        $users[$username]['quick_links'] = array_values($links);
-        return saveUsers($users);
+        $all[$username] = array_values($links);
+    } else {
+        // Fallback global legacy
+        $info = getProjectInfo();
+        $info['quick_links'] = array_values($links);
+        saveProjectInfo($info);
+        $all['__global__'] = array_values($links);
     }
-    // Fallback global legacy
-    $info = getProjectInfo();
-    $info['quick_links'] = array_values($links);
-    return saveProjectInfo($info);
+
+    if (!is_dir(DATA_PATH)) mkdir(DATA_PATH, 0755, true);
+    return (bool) file_put_contents($file, json_encode($all, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 }
 
 /**

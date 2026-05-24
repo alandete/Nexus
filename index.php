@@ -191,25 +191,54 @@ $quickLinksMeta = [
 
     <?php
     // Override de colores de marca si estan configurados
-    $brandColor = $projectInfo['brand_color'] ?? null;
+    $brandColor  = $projectInfo['brand_color']  ?? null;
     $accentColor = $projectInfo['accent_color'] ?? null;
     if ($brandColor || $accentColor):
-        $brandRgb = null;
-        if ($brandColor && preg_match('/^#([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})$/', $brandColor, $m)) {
-            $brandRgb = hexdec($m[1]) . ', ' . hexdec($m[2]) . ', ' . hexdec($m[3]);
+        // Luminancia relativa WCAG 2.1 + color de texto con mayor contraste
+        $hexComponents = function(string $hex): ?array {
+            if (!preg_match('/^#([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})$/', $hex, $m)) return null;
+            return [hexdec($m[1]), hexdec($m[2]), hexdec($m[3])];
+        };
+        $hexLum = function(string $hex) use ($hexComponents): float {
+            $ch = $hexComponents($hex);
+            if (!$ch) return 0.0;
+            $lin = array_map(fn($c) => ($c /= 255) <= 0.03928 ? $c / 12.92 : (($c + 0.055) / 1.055) ** 2.4, $ch);
+            return 0.2126 * $lin[0] + 0.7152 * $lin[1] + 0.0722 * $lin[2];
+        };
+        $contrastFg = function(string $hex) use ($hexLum): array {
+            $l = $hexLum($hex);
+            return (1.05 / ($l + 0.05)) >= (($l + 0.05) / 0.05)
+                ? ['#ffffff', '255, 255, 255']
+                : ['#172b4d', '23, 43, 77'];
+        };
+
+        $brandRgb    = null;
+        $brandFg     = '#ffffff';
+        $brandFgRgb  = '255, 255, 255';
+        if ($brandColor) {
+            $ch = $hexComponents($brandColor);
+            if ($ch) $brandRgb = implode(', ', $ch);
+            [$brandFg, $brandFgRgb] = $contrastFg($brandColor);
+        }
+        $accentFg = '#ffffff';
+        if ($accentColor) {
+            [$accentFg] = $contrastFg($accentColor);
         }
     ?>
     <style id="appBrandOverride">
         :root {
             <?php if ($brandColor): ?>
-            --app-brand: <?= htmlspecialchars($brandColor) ?>;
+            --app-brand:     <?= htmlspecialchars($brandColor) ?>;
             <?php endif; ?>
             <?php if ($brandRgb): ?>
             --app-brand-rgb: <?= $brandRgb ?>;
             <?php endif; ?>
             <?php if ($accentColor): ?>
-            --app-accent: <?= htmlspecialchars($accentColor) ?>;
+            --app-accent:    <?= htmlspecialchars($accentColor) ?>;
             <?php endif; ?>
+            --brand-fg:      <?= $brandFg ?>;
+            --brand-fg-rgb:  <?= $brandFgRgb ?>;
+            --accent-fg:     <?= $accentFg ?>;
         }
     </style>
     <?php endif; ?>

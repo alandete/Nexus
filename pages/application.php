@@ -183,15 +183,29 @@ $timezoneGroups = [
                         </div>
                     </div>
 
-                    <!-- Preview compacto -->
+                    <!-- Preview de colores -->
                     <div class="color-row-preview" aria-label="<?= __('application.color_preview') ?>">
-                        <button type="button" class="btn btn-sm" disabled style="background: var(--preview-brand, var(--app-brand)); color: #fff;">
-                            <?= __('application.preview_button') ?>
-                        </button>
-                        <span class="lozenge" style="background: rgba(var(--preview-brand-rgb, var(--app-brand-rgb)), 0.1); color: var(--preview-brand, var(--app-brand));">
-                            <?= __('application.preview_lozenge') ?>
-                        </span>
-                        <span class="preview-accent-dot" style="background: var(--preview-accent, var(--app-accent));" aria-hidden="true"></span>
+                        <div class="color-preview-mock">
+                            <div class="cpm-topbar" style="background: var(--preview-brand, var(--app-brand));">
+                                <span class="cpm-topbar-logo" style="color: var(--preview-brand-fg, var(--brand-fg, #fff));">
+                                    <i class="bi bi-hexagon-fill cpm-topbar-icon"></i> Nexus
+                                </span>
+                                <i class="bi bi-person-circle cpm-topbar-icon" style="color: rgba(var(--preview-brand-fg-rgb, var(--brand-fg-rgb, 255, 255, 255)), 0.8);"></i>
+                            </div>
+                            <div class="cpm-body">
+                                <span class="cpm-btn" style="background: var(--preview-brand, var(--app-brand)); color: var(--preview-brand-fg, var(--brand-fg, #fff));">
+                                    <?= __('application.preview_button') ?>
+                                </span>
+                                <span class="cpm-btn" style="background: transparent; color: var(--preview-accent, var(--app-accent)); border-color: var(--preview-accent, var(--app-accent));">
+                                    Secundario
+                                </span>
+                                <div class="cpm-toggle">
+                                    <div class="cpm-toggle-track" style="background: var(--preview-accent, var(--app-accent));">
+                                        <div class="cpm-toggle-thumb"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <p class="form-helper"><?= __('application.colors_help') ?></p>

@@ -16,6 +16,23 @@
         return parseInt(m[1], 16) + ', ' + parseInt(m[2], 16) + ', ' + parseInt(m[3], 16);
     }
 
+    function hexLuminance(hex) {
+        const m = /^#?([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})([0-9A-Fa-f]{2})$/.exec(hex);
+        if (!m) return 0;
+        const lin = [parseInt(m[1], 16), parseInt(m[2], 16), parseInt(m[3], 16)].map(c => {
+            c /= 255;
+            return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+        });
+        return 0.2126 * lin[0] + 0.7152 * lin[1] + 0.0722 * lin[2];
+    }
+
+    function contrastFg(hex) {
+        const l = hexLuminance(hex);
+        return (1.05 / (l + 0.05)) >= ((l + 0.05) / 0.05)
+            ? { hex: '#ffffff', rgb: '255, 255, 255' }
+            : { hex: '#172b4d', rgb: '23, 43, 77' };
+    }
+
     function clearErrors() {
         ['fAppNameError', 'fContactEmailError', 'fWebsiteError'].forEach(id => {
             const el = document.getElementById(id);
@@ -48,6 +65,12 @@
             if (previewVar === 'brand') {
                 const rgb = hexToRgb(color);
                 if (rgb) document.documentElement.style.setProperty('--preview-brand-rgb', rgb);
+                const fg = contrastFg(color);
+                document.documentElement.style.setProperty('--preview-brand-fg', fg.hex);
+                document.documentElement.style.setProperty('--preview-brand-fg-rgb', fg.rgb);
+            } else if (previewVar === 'accent') {
+                const fg = contrastFg(color);
+                document.documentElement.style.setProperty('--preview-accent-fg', fg.hex);
             }
         };
 

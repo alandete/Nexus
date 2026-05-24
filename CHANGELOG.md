@@ -5,6 +5,13 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [2.0.0-alpha.4] — en desarrollo
 
+### Accesibilidad: contraste automático para colores de marca — 2026-05-23
+
+- **`index.php`**: calcula en PHP la luminancia relativa WCAG 2.1 del color primario (`--app-brand`) y del color de acento (`--app-accent`) y emite `--brand-fg`, `--brand-fg-rgb` y `--accent-fg` en el bloque de override de estilos. Si el color es suficientemente claro, el foreground resultante es `#172b4d`; en caso contrario `#ffffff`.
+- **`styles.css`**: todos los textos e íconos sobre fondos de marca o acento usan `var(--brand-fg)` / `var(--accent-fg)` en lugar de `#fff` fijo. Afecta topbar (toggle, brand, user-btn, avatar, chevron, ql-items), botón primario, botón default hover y botones de grupo activos.
+- **`application.js`**: funciones `hexLuminance()` y `contrastFg()` para calcular el foreground en el cliente; `applyPreview()` actualiza `--preview-brand-fg`, `--preview-brand-fg-rgb` y `--preview-accent-fg` al mover los color-pickers para reflejar el cambio en tiempo real.
+- **`pages/application.php`**: preview de colores reemplazado por un mock con mini-topbar, botón primario, botón outline y toggle activo — todos con los CSS vars de preview.
+
 ### Estandarización de botones destructivos — 2026-05-23
 
 - **Nueva clase `btn-danger-subtle`**: texto en color de peligro, fondo transparente; hover con tinte rojo suave. Para acciones destructivas sin confirmación (quitar foto, desvincular URL, borrar claves).

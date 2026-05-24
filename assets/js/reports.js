@@ -106,7 +106,7 @@
         panel.innerHTML = items.map(item => {
             const dotStyle = item.color ? `style="background:${escapeHtml(item.color)};"` : '';
             return `
-                <label class="report-ms-item" role="option">
+                <label class="report-ms-item">
                     <input type="checkbox" value="${item.id}">
                     <span class="report-ms-dot" ${dotStyle}></span>
                     <span>${escapeHtml(item.name)}</span>

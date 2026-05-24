@@ -570,7 +570,7 @@
                             <div class="tags-multiselect-dropdown d-none" id="formTagsDropdown" role="listbox" aria-multiselectable="true">
                                 <div class="tags-multiselect-options" id="formTagsOptions">
                                     ${allTags.map(tag => `
-                                        <label class="tags-multiselect-option" role="option">
+                                        <label class="tags-multiselect-option">
                                             <input type="checkbox" name="tag_ids[]" value="${tag.id}" ${current.tagIds.includes(tag.id) ? 'checked' : ''}>
                                             <span>${escapeHtml(tag.name)}</span>
                                         </label>
@@ -764,7 +764,7 @@
                         // Re-render opciones
                         const optionsEl = document.getElementById('formTagsOptions');
                         optionsEl.innerHTML = allTags.map(tag => `
-                            <label class="tags-multiselect-option" role="option">
+                            <label class="tags-multiselect-option">
                                 <input type="checkbox" name="tag_ids[]" value="${tag.id}" ${selectedIds.includes(tag.id) ? 'checked' : ''}>
                                 <span>${escapeHtml(tag.name)}</span>
                             </label>

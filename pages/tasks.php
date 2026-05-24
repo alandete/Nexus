@@ -221,7 +221,7 @@ if (isDBAvailable()) {
                 <p class="filter-multiselect-empty"><?= __('tasks.no_tags_yet') ?></p>
                 <?php else: ?>
                 <?php foreach ($allTags as $tag): ?>
-                <label class="filter-multiselect-option" role="option">
+                <label class="filter-multiselect-option">
                     <input type="checkbox" value="<?= (int) $tag['id'] ?>">
                     <span><?= htmlspecialchars($tag['name']) ?></span>
                 </label>

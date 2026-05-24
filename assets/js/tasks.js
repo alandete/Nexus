@@ -558,9 +558,9 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="form-label">
+                        <p class="form-label" id="formTagsGroupLabel">
                             ${t('tasks.field_tags', 'Etiquetas')} <span class="form-required" aria-hidden="true">*</span>
-                        </label>
+                        </p>
                         <div class="tags-multiselect" id="formTagsWrapper">
                             <button type="button" class="form-control tags-multiselect-trigger" id="formTagsTrigger"
                                     aria-haspopup="listbox" aria-expanded="false">
@@ -622,13 +622,13 @@
                 ${current.id ? `
                 <div class="form-grid-3">
                     <div class="form-group">
-                        <label class="form-label">${escapeHtml(t('tasks.field_since', 'Atendida desde'))}</label>
+                        <p class="form-label">${escapeHtml(t('tasks.field_since', 'Atendida desde'))}</p>
                         <div class="form-static" id="fTaskSince">
                             <span class="text-subtle">${escapeHtml(t('common.loading', 'Cargando'))}...</span>
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">${escapeHtml(t('tasks.field_total_time', 'Tiempo acumulado'))}</label>
+                        <p class="form-label">${escapeHtml(t('tasks.field_total_time', 'Tiempo acumulado'))}</p>
                         <div class="form-static form-static-mono" id="fTaskTotal">
                             <span class="text-subtle">—</span>
                         </div>
@@ -645,7 +645,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">${escapeHtml(t('tasks.entries_title', 'Registros'))}</label>
+                    <p class="form-label">${escapeHtml(t('tasks.entries_title', 'Registros'))}</p>
                     <div id="fTaskEntries" class="task-entries-form">
                         <div class="task-entries-loading">
                             <span class="spinner spinner-sm" aria-hidden="true"></span> ${escapeHtml(t('common.loading', 'Cargando'))}...

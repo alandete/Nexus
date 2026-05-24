@@ -1280,7 +1280,7 @@ select.form-control {
     padding: var(--ds-space-075) var(--ds-space-150);
     font-size: var(--ds-font-size-body);
     font-weight: var(--ds-font-weight-medium);
-    color: var(--ds-text-subtle);
+    color: var(--ds-text);
     text-decoration: none;
     border: none;
     background: transparent;

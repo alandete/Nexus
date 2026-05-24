@@ -19,7 +19,7 @@
     const t = (key, fallback) => T[key] || fallback;
 
     const alliances = window.__TASKS_ALLIANCES__ || [];
-    let allTags = window.__TASKS_TAGS__ || [];
+    let allTags = (window.__TASKS_TAGS__ || []).map(t => ({ ...t, id: parseInt(t.id, 10) }));
 
     const state = {
         running: false,
@@ -2538,7 +2538,19 @@
         try {
             const result = await api('get', { task_id: taskId });
             if (result.success && result.task) {
-                // Abrir el form con la tarea como dato aislado (no toca state del timer)
+                // Si algún tag_id de la tarea no está en allTags (lista cargada al inicio
+                // de la sesión), refrescamos antes de abrir el panel para que etiquetas
+                // creadas durante la importación u otras sesiones aparezcan correctamente.
+                const taskTagIds = String(result.task.tag_ids || '').split(',').filter(Boolean).map(id => parseInt(id, 10));
+                const hasMissing = taskTagIds.some(id => !isNaN(id) && !allTags.find(t => t.id === id));
+                if (hasMissing) {
+                    try {
+                        const tagsRes = await api('tags_list');
+                        if (tagsRes.success && tagsRes.tags) {
+                            allTags = tagsRes.tags.map(t => ({ ...t, id: parseInt(t.id, 10) }));
+                        }
+                    } catch (_) { /* silencioso: abrimos el panel con los tags que tengamos */ }
+                }
                 openEditForm({ task: result.task });
             } else {
                 Toast.error(result.message || t('tasks.err_update', 'No se pudo abrir la tarea.'));

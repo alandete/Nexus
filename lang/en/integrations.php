@@ -61,6 +61,7 @@ return [
         'smtp_title'          => 'Outgoing mail (SMTP)',
         'smtp_description'    => 'Configure the mail server for sending notifications and password recovery emails.',
         'smtp_security_note'  => 'The password is stored encrypted with AES-256. It is recommended to use an app password, not the main account password.',
+        'smtp_gmail_note'     => 'For <strong>Gmail</strong>, you must use an <strong>App Password</strong>, not your account password. Requires 2-Step Verification to be enabled. Generate it at: <em>Google Account &rarr; Security &rarr; App Passwords</em>.',
         'smtp_section_server' => 'Server',
         'smtp_section_auth'   => 'Authentication',
         'smtp_section_sender' => 'Sender',
@@ -71,5 +72,7 @@ return [
         'smtp_field_pass'     => 'Password',
         'smtp_field_from_email' => 'Sender address',
         'smtp_field_from_name'  => 'Sender name',
+        'smtp_btn_clear'        => 'Clear configuration',
+        'smtp_confirm_clear'    => 'Delete all saved SMTP configuration?',
     ],
 ];

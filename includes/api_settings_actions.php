@@ -207,6 +207,23 @@ if ($action === 'smtp_save') {
     exit;
 }
 
+// ── Borrar configuracion SMTP ─────────────────────────────────────────────
+if ($action === 'smtp_clear') {
+    $raw = getApiSettingsRaw();
+    foreach (['smtp_host', 'smtp_port', 'smtp_user', 'smtp_pass', 'smtp_secure', 'smtp_from', 'smtp_from_name'] as $key) {
+        unset($raw[$key]);
+    }
+    if (!is_dir(DATA_PATH)) mkdir(DATA_PATH, 0755, true);
+    $saved = file_put_contents(API_SETTINGS_FILE, json_encode($raw, JSON_PRETTY_PRINT), LOCK_EX);
+    if ($saved === false) {
+        echo json_encode(['success' => false, 'message' => 'Error al borrar la configuración SMTP']);
+    } else {
+        logActivity('settings', 'delete', 'api_settings:smtp:cleared');
+        echo json_encode(['success' => true, 'message' => 'Configuración SMTP eliminada']);
+    }
+    exit;
+}
+
 // ── Probar conexion SMTP ──────────────────────────────────────────────────
 if ($action === 'smtp_test') {
     $smtp = getSmtpSettings();

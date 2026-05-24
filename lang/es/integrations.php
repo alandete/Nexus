@@ -81,6 +81,7 @@ return [
         'smtp_title'          => 'Correo saliente (SMTP)',
         'smtp_description'    => 'Configura el servidor de correo para enviar notificaciones y recuperación de contraseñas.',
         'smtp_security_note'  => 'La contraseña se almacena encriptada con AES-256. Se recomienda usar una contraseña de aplicación, no la principal.',
+        'smtp_gmail_note'     => 'Para <strong>Gmail</strong>, debes usar una <strong>Contraseña de aplicación</strong>, no la contraseña de tu cuenta. Requiere verificación en dos pasos activa. Generarla en: <em>Cuenta de Google &rarr; Seguridad &rarr; Contraseñas de aplicación</em>.',
         'smtp_section_server' => 'Servidor',
         'smtp_section_auth'   => 'Autenticación',
         'smtp_section_sender' => 'Remitente',
@@ -91,5 +92,7 @@ return [
         'smtp_field_pass'     => 'Contraseña',
         'smtp_field_from_email' => 'Dirección del remitente',
         'smtp_field_from_name'  => 'Nombre del remitente',
+        'smtp_btn_clear'        => 'Borrar configuración',
+        'smtp_confirm_clear'    => '¿Eliminar toda la configuración SMTP guardada?',
     ],
 ];

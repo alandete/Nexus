@@ -528,4 +528,28 @@
     document.getElementById('smtpForm')?.addEventListener('submit', handleSmtpSubmit);
     document.getElementById('smtpTestBtn')?.addEventListener('click', handleSmtpTest);
 
+    document.getElementById('fSmtpHost')?.addEventListener('input', (e) => {
+        const note = document.getElementById('smtpGmailNote');
+        if (note) note.classList.toggle('d-none', !e.target.value.toLowerCase().includes('gmail.com'));
+    });
+
+    document.getElementById('smtpClearBtn')?.addEventListener('click', async () => {
+        if (!confirm(t('integrations.smtp_confirm_clear', '¿Eliminar toda la configuración SMTP guardada?'))) return;
+        const fd = new FormData();
+        fd.append('action',     'smtp_clear');
+        fd.append('csrf_token', csrfToken);
+        try {
+            const res    = await fetch('includes/api_settings_actions.php', { method: 'POST', body: fd });
+            const result = await res.json();
+            if (result.success) {
+                Toast.success(result.message);
+                setTimeout(() => window.location.reload(), 600);
+            } else {
+                Toast.error(result.message);
+            }
+        } catch {
+            Toast.error(t('common.err_network', 'Error de red.'));
+        }
+    });
+
 })();

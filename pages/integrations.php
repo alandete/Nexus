@@ -409,6 +409,12 @@ if ($isAdmin) {
 
         <h3 class="integration-section-title"><?= __('integrations.smtp_section_auth') ?></h3>
 
+        <?php $isGmail = str_contains(strtolower($smtpRaw['smtp_host'] ?? ''), 'gmail.com'); ?>
+        <div class="alert alert-warning<?= $isGmail ? '' : ' d-none' ?>" id="smtpGmailNote">
+            <i class="bi bi-exclamation-triangle-fill alert-icon" aria-hidden="true"></i>
+            <span class="alert-content"><?= __('integrations.smtp_gmail_note') ?></span>
+        </div>
+
         <div class="form-grid-2">
             <div class="form-group">
                 <label for="fSmtpUser" class="form-label"><?= __('integrations.smtp_field_user') ?></label>
@@ -456,6 +462,12 @@ if ($isAdmin) {
         <div class="integration-test-result d-none" id="smtpTestResult" role="status" aria-live="polite"></div>
 
         <div class="integration-actions">
+            <?php if ($smtpConfigured): ?>
+            <button type="button" class="btn btn-subtle btn-danger-subtle" id="smtpClearBtn">
+                <i class="bi bi-trash" aria-hidden="true"></i>
+                <span class="btn-text"><?= __('integrations.smtp_btn_clear') ?></span>
+            </button>
+            <?php endif; ?>
             <button type="button" class="btn btn-default" id="smtpTestBtn" <?= !$smtpConfigured ? 'disabled' : '' ?>>
                 <i class="bi bi-wifi" aria-hidden="true"></i>
                 <span class="btn-text"><?= __('integrations.btn_test') ?></span>

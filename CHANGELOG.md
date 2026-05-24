@@ -5,6 +5,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [2.0.0-alpha.4] — en desarrollo
 
+### SMTP: nota Gmail y botón de borrar configuración — 2026-05-23
+
+- **Nota contextual para Gmail**: al guardar `smtp.gmail.com` como host, se muestra un aviso amarillo explicando que Gmail requiere una Contraseña de aplicación (no la contraseña de cuenta); incluye la ruta exacta para generarla. La nota se muestra/oculta en tiempo real al cambiar el host.
+- **Botón "Borrar configuración"**: visible solo cuando hay configuración SMTP guardada. Elimina todos los campos smtp_* del JSON con `action=smtp_clear` y recarga la página.
+- **Backend** (`api_settings_actions.php`): nuevo action `smtp_clear` que elimina las claves smtp del archivo de configuración.
+
 ### Accesibilidad: contraste automático para colores de marca — 2026-05-23
 
 - **`index.php`**: calcula en PHP la luminancia relativa WCAG 2.1 del color primario (`--app-brand`) y del color de acento (`--app-accent`) y emite `--brand-fg`, `--brand-fg-rgb` y `--accent-fg` en el bloque de override de estilos. Si el color es suficientemente claro, el foreground resultante es `#172b4d`; en caso contrario `#ffffff`.

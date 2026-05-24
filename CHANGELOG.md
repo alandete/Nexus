@@ -5,11 +5,27 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [2.0.0-alpha.4] — en desarrollo
 
-### SMTP: nota Gmail y botón de borrar configuración — 2026-05-23
+### Login: rediseño "Card flotante" con fondo de marca — 2026-05-23
 
-- **Nota contextual para Gmail**: al guardar `smtp.gmail.com` como host, se muestra un aviso amarillo explicando que Gmail requiere una Contraseña de aplicación (no la contraseña de cuenta); incluye la ruta exacta para generarla. La nota se muestra/oculta en tiempo real al cambiar el host.
-- **Botón "Borrar configuración"**: visible solo cuando hay configuración SMTP guardada. Elimina todos los campos smtp_* del JSON con `action=smtp_clear` y recarga la página.
-- **Backend** (`api_settings_actions.php`): nuevo action `smtp_clear` que elimina las claves smtp del archivo de configuración.
+- **`pages/login.php`**: inyecta bloque `<style>` en el `<head>` con `--app-brand`, `--app-brand-dark`, `--app-accent`, `--brand-fg`, `--brand-fg-rgb`, `--accent-fg` calculados en PHP (luminancia WCAG 2.1) a partir de los ajustes del proyecto. La página de login refleja la paleta de la aplicación sin requerir sesión.
+- **`assets/css/styles.css`** — fondo: tres elipses radiales apiladas en la propiedad `background` (opacidades 0.22 / 0.16 / 0.09) sobre un degradado lineal `brand → brand-dark`; cuadrícula de puntos de 1 px cada 28 px via `::before`; aro semi-transparente de 560 px en esquina inferior-izquierda via `::after`. Todos los colores usan `rgba(var(--brand-fg-rgb), opacity)` para adaptarse a marcas claras u oscuras.
+- **Tarjeta**: fondo blanco, `border-radius: --ds-radius-400` (16 px), sombra pronunciada, barra de acento de 4 px en el borde superior via `::before` en `.login-card`.
+- **Cabecera de tarjeta**: `.login-mobile-header` visible en todos los tamaños con logo, nombre de la app y tagline; separado del formulario por un borde inferior. Panel lateral `.login-branding` eliminado del layout en todos los breakpoints.
+- **Espaciado responsive**: en móvil el contenedor usa 12 px de margen (`--ds-space-150`) y la tarjeta 24 px de padding (`--ds-space-300`); en tablet+ se restauran 24 px / 32×40 px respectivamente.
+- **Labels ocultos visualmente**: `.login-field .form-label` usa la técnica `visually-hidden` (clip + posición absoluta 1×1 px) para ocultar las etiquetas sin eliminarlas del DOM; los placeholders descriptivos asumen el rol visual mientras se mantiene la accesibilidad.
+
+### SMTP: nota Gmail, botón borrar y activación del botón Probar — 2026-05-23
+
+- **Nota contextual para Gmail**: al escribir `smtp.gmail.com` como host, se muestra un aviso amarillo explicando que Gmail requiere una Contraseña de aplicación (no la contraseña de cuenta); incluye la ruta exacta para generarla. El aviso aparece y desaparece en tiempo real al cambiar el campo host.
+- **Botón "Borrar configuración"**: siempre visible en el formulario; deshabilitado cuando no hay config guardada. Elimina todos los campos smtp_* del JSON vía `action=smtp_clear` y recarga la página.
+- **Botón "Probar conexión"**: habilitado por JS en cuanto los campos host y usuario tienen valor, sin necesidad de guardar primero. Al pulsar Probar se auto-guarda el formulario antes de ejecutar el test.
+- **Backend** (`api_settings_actions.php`): nuevo action `smtp_clear` que elimina las claves smtp del archivo de configuración y registra actividad.
+
+### Fix: fórmula de contraste WCAG usaba negro puro en lugar de #172b4d — 2026-05-23
+
+- La comparación `(L+0.05) / 0.05` usaba denominador 0.05 (negro puro, L=0) en lugar de la luminancia real del color oscuro base `#172b4d` (L=0.02446). Para colores medios como `#b75f4b` (L=0.188) el cálculo incorrecto daba 4.75:1 en lugar del 3.19:1 real, eligiendo erróneamente el foreground oscuro.
+- **Fix en `index.php`**: `$lDark = 0.02446`; la fórmula ahora compara `(1.05 / (L+0.05))` vs `((L+0.05) / ($lDark+0.05))`.
+- **Fix en `application.js`**: misma corrección en `contrastFg()` para que el preview en vivo sea coherente con el render del servidor.
 
 ### Accesibilidad: contraste automático para colores de marca — 2026-05-23
 
@@ -17,6 +33,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 - **`styles.css`**: todos los textos e íconos sobre fondos de marca o acento usan `var(--brand-fg)` / `var(--accent-fg)` en lugar de `#fff` fijo. Afecta topbar (toggle, brand, user-btn, avatar, chevron, ql-items), botón primario, botón default hover y botones de grupo activos.
 - **`application.js`**: funciones `hexLuminance()` y `contrastFg()` para calcular el foreground en el cliente; `applyPreview()` actualiza `--preview-brand-fg`, `--preview-brand-fg-rgb` y `--preview-accent-fg` al mover los color-pickers para reflejar el cambio en tiempo real.
 - **`pages/application.php`**: preview de colores reemplazado por un mock con mini-topbar, botón primario, botón outline y toggle activo — todos con los CSS vars de preview.
+
+### Fix: contraste de enlaces en sidebar — 2026-05-23
+
+- `.sidebar-link` usaba `var(--ds-text-subtle)` (`#626F86`) sobre fondo `var(--ds-surface-sunken)` (`#F7F8F9`), relación 4.77:1 (por debajo del 7:1 recomendado para texto pequeño). Cambiado a `var(--ds-text)` (`#172B4D`), relación 13.26:1.
 
 ### Estandarización de botones destructivos — 2026-05-23
 

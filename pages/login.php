@@ -82,6 +82,40 @@ $canonicalBase = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'http
     <!-- Nexus 2.0 CSS -->
     <link rel="stylesheet" href="assets/css/variables.css?v=<?= filemtime('assets/css/variables.css') ?>">
     <link rel="stylesheet" href="assets/css/styles.css?v=<?= filemtime('assets/css/styles.css') ?>">
+
+    <?php
+    $blBrand  = ltrim($projectInfo['brand_color'] ?? '585d8a', '#');
+    $blAccent = ltrim($projectInfo['accent_color'] ?? 'f86e15', '#');
+    $blRgb = fn(string $h): string => hexdec(substr($h,0,2)) . ', ' . hexdec(substr($h,2,2)) . ', ' . hexdec(substr($h,4,2));
+    $blLum = function(string $h): float {
+        $lin = array_map(fn($c) => $c <= 0.03928 ? $c / 12.92 : (($c + 0.055) / 1.055) ** 2.4,
+            [hexdec(substr($h,0,2)) / 255, hexdec(substr($h,2,2)) / 255, hexdec(substr($h,4,2)) / 255]);
+        return 0.2126 * $lin[0] + 0.7152 * $lin[1] + 0.0722 * $lin[2];
+    };
+    $blFg = function(string $h) use ($blLum): array {
+        $l = $blLum($h); $d = 0.02446;
+        return (1.05 / ($l + 0.05)) >= (($l + 0.05) / ($d + 0.05))
+            ? ['#ffffff', '255, 255, 255'] : ['#172b4d', '23, 43, 77'];
+    };
+    $blDark = '#' . implode('', array_map(
+        fn($ch) => str_pad(dechex((int)(hexdec($ch) * 0.70)), 2, '0', STR_PAD_LEFT),
+        [substr($blBrand, 0, 2), substr($blBrand, 2, 2), substr($blBrand, 4, 2)]
+    ));
+    [$blBrandFg, $blBrandFgRgb] = $blFg($blBrand);
+    [$blAccentFg]               = $blFg($blAccent);
+    ?>
+    <style>
+        :root {
+            --app-brand:      #<?= htmlspecialchars($blBrand) ?>;
+            --app-brand-rgb:  <?= $blRgb($blBrand) ?>;
+            --app-brand-dark: <?= htmlspecialchars($blDark) ?>;
+            --app-accent:     #<?= htmlspecialchars($blAccent) ?>;
+            --app-accent-rgb: <?= $blRgb($blAccent) ?>;
+            --brand-fg:       <?= htmlspecialchars($blBrandFg) ?>;
+            --brand-fg-rgb:   <?= htmlspecialchars($blBrandFgRgb) ?>;
+            --accent-fg:      <?= htmlspecialchars($blAccentFg) ?>;
+        }
+    </style>
 </head>
 <body class="login-page">
 

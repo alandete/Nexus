@@ -482,8 +482,45 @@
     }
 
     /** ========================================================
-     * SMTP — probar conexion
+     * SMTP — habilitar botones según valores del formulario
      * ======================================================== */
+
+    function updateSmtpButtons() {
+        const host     = document.getElementById('fSmtpHost')?.value.trim()  ?? '';
+        const user     = document.getElementById('fSmtpUser')?.value.trim()  ?? '';
+        const anyValue = host || user;
+        const testBtn  = document.getElementById('smtpTestBtn');
+        const clearBtn = document.getElementById('smtpClearBtn');
+        if (testBtn)  testBtn.disabled  = !(host && user);
+        if (clearBtn) clearBtn.disabled = !anyValue;
+    }
+
+    ['fSmtpHost', 'fSmtpUser', 'fSmtpPass'].forEach(id => {
+        document.getElementById(id)?.addEventListener('input', updateSmtpButtons);
+    });
+    updateSmtpButtons();
+
+    /** ========================================================
+     * SMTP — probar conexion (guarda primero, luego prueba)
+     * ======================================================== */
+
+    async function smtpSaveFormData() {
+        const form = document.getElementById('smtpForm');
+        if (!form) return false;
+        const fd = new FormData();
+        fd.append('action',         'smtp_save');
+        fd.append('csrf_token',     csrfToken);
+        fd.append('smtp_host',      form.smtp_host.value.trim());
+        fd.append('smtp_port',      form.smtp_port.value);
+        fd.append('smtp_user',      form.smtp_user.value.trim());
+        fd.append('smtp_pass',      form.smtp_pass.value);
+        fd.append('smtp_secure',    form.smtp_secure.value);
+        fd.append('smtp_from',      form.smtp_from.value.trim());
+        fd.append('smtp_from_name', form.smtp_from_name.value.trim());
+        const res    = await fetch('includes/api_settings_actions.php', { method: 'POST', body: fd });
+        const result = await res.json();
+        return result.success;
+    }
 
     async function handleSmtpTest() {
         const testBtn   = document.getElementById('smtpTestBtn');
@@ -502,11 +539,17 @@
                 <span>${t('integrations.testing', 'Enviando correo de prueba...')}</span>
             </div>`;
 
-        const fd = new FormData();
-        fd.append('action',     'smtp_test');
-        fd.append('csrf_token', csrfToken);
-
         try {
+            const saved = await smtpSaveFormData();
+            if (!saved) {
+                resultBox.className = 'integration-test-result integration-test-error';
+                resultBox.innerHTML = `<div class="integration-test-header"><i class="bi bi-x-circle-fill" aria-hidden="true"></i><span>${escapeHtml(t('integrations.err_generic', 'No se pudo guardar la configuración.'))}</span></div>`;
+                return;
+            }
+
+            const fd = new FormData();
+            fd.append('action',     'smtp_test');
+            fd.append('csrf_token', csrfToken);
             const res    = await fetch('includes/api_settings_actions.php', { method: 'POST', body: fd });
             const result = await res.json();
             const icon = result.success ? 'bi-check-circle-fill' : 'bi-x-circle-fill';

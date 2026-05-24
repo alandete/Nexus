@@ -462,13 +462,12 @@ if ($isAdmin) {
         <div class="integration-test-result d-none" id="smtpTestResult" role="status" aria-live="polite"></div>
 
         <div class="integration-actions">
-            <?php if ($smtpConfigured): ?>
-            <button type="button" class="btn btn-subtle btn-danger-subtle" id="smtpClearBtn">
+            <button type="button" class="btn btn-subtle btn-danger-subtle" id="smtpClearBtn"
+                    <?= !$smtpConfigured ? 'disabled' : '' ?>>
                 <i class="bi bi-trash" aria-hidden="true"></i>
                 <span class="btn-text"><?= __('integrations.smtp_btn_clear') ?></span>
             </button>
-            <?php endif; ?>
-            <button type="button" class="btn btn-default" id="smtpTestBtn" <?= !$smtpConfigured ? 'disabled' : '' ?>>
+            <button type="button" class="btn btn-default" id="smtpTestBtn" disabled>
                 <i class="bi bi-wifi" aria-hidden="true"></i>
                 <span class="btn-text"><?= __('integrations.btn_test') ?></span>
             </button>

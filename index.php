@@ -206,8 +206,9 @@ $quickLinksMeta = [
             return 0.2126 * $lin[0] + 0.7152 * $lin[1] + 0.0722 * $lin[2];
         };
         $contrastFg = function(string $hex) use ($hexLum): array {
-            $l = $hexLum($hex);
-            return (1.05 / ($l + 0.05)) >= (($l + 0.05) / 0.05)
+            $l     = $hexLum($hex);
+            $lDark = 0.02446; // luminancia relativa de #172b4d
+            return (1.05 / ($l + 0.05)) >= (($l + 0.05) / ($lDark + 0.05))
                 ? ['#ffffff', '255, 255, 255']
                 : ['#172b4d', '23, 43, 77'];
         };

@@ -27,8 +27,9 @@
     }
 
     function contrastFg(hex) {
-        const l = hexLuminance(hex);
-        return (1.05 / (l + 0.05)) >= ((l + 0.05) / 0.05)
+        const l     = hexLuminance(hex);
+        const lDark = 0.02446; // luminancia relativa de #172b4d
+        return (1.05 / (l + 0.05)) >= ((l + 0.05) / (lDark + 0.05))
             ? { hex: '#ffffff', rgb: '255, 255, 255' }
             : { hex: '#172b4d', rgb: '23, 43, 77' };
     }

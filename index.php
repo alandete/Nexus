@@ -6,7 +6,7 @@
 
 // Constantes
 define('APP_ACCESS', true);
-define('APP_VERSION', '2.0.0-alpha.4');
+define('APP_VERSION', '2.0.0');
 define('APP_NAME', 'Nexus');
 
 // Configuracion

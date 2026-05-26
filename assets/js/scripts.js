@@ -3,6 +3,57 @@
  * Top bar + Sidebar layout
  */
 
+// ─── Skeleton ────────────────────────────────────────────────────────────────
+var Skeleton = (function () {
+    function _el(id) { return document.getElementById(id); }
+
+    // Inyecta HTML de skeleton en el contenedor. Si template es omitido usa filas genéricas.
+    function show(containerId, template) {
+        var el = _el(containerId);
+        if (!el) return;
+        el.innerHTML = template !== undefined ? template : rows(4);
+    }
+
+    function hide(containerId) {
+        var el = _el(containerId);
+        if (el) el.innerHTML = '';
+    }
+
+    // Filas genéricas (para listados)
+    function rows(count, extraClass) {
+        var cls = 'skeleton skeleton-row' + (extraClass ? ' ' + extraClass : '');
+        var html = '';
+        for (var i = 0; i < (count || 3); i++) {
+            var w = [85, 70, 90, 60, 78][i % 5];
+            html += '<div class="' + cls + '" style="width:' + w + '%"></div>';
+        }
+        return html;
+    }
+
+    // Bloque de texto (título + líneas de texto)
+    function textBlock(lines) {
+        var html = '<div class="skeleton skeleton-title" style="width:55%"></div>';
+        for (var i = 0; i < (lines || 3); i++) {
+            var w = [80, 65, 75, 90, 50][i % 5];
+            html += '<div class="skeleton skeleton-text" style="width:' + w + '%"></div>';
+        }
+        return html;
+    }
+
+    // Placeholder de chart
+    function chart() {
+        return '<div class="skeleton skeleton-chart"></div>';
+    }
+
+    // Placeholder de stat (número grande + etiqueta)
+    function stat() {
+        return '<div class="skeleton skeleton-stat" style="width:50%;margin-bottom:var(--ds-space-050)"></div>' +
+               '<div class="skeleton skeleton-text" style="width:35%"></div>';
+    }
+
+    return { show: show, hide: hide, rows: rows, textBlock: textBlock, chart: chart, stat: stat };
+})();
+
 (function() {
     'use strict';
 

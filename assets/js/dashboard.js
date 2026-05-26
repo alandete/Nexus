@@ -42,17 +42,23 @@
 
         postAction('day_summary', { date: new Date().toLocaleDateString('en-CA') })
             .then(function(data) {
+                el.classList.remove('skeleton');
+                el.style.cssText = '';
                 if (data.success) {
                     el.textContent = formatTime(data.total_seconds || 0);
                 }
             })
             .catch(function() {
+                el.classList.remove('skeleton');
+                el.style.cssText = '';
                 el.textContent = '0m';
             });
     }
 
     function drawDashChart() {
         var el = document.getElementById('dashChart');
+        var sk = document.getElementById('dashChartSkeleton');
+        if (sk) sk.remove();
         if (!el || typeof Chart === 'undefined') return;
 
         var rows = ((window.__DASHBOARD__ || {}).chartData) || [];
@@ -118,6 +124,23 @@
 
     // Init
     document.addEventListener('DOMContentLoaded', function() {
+        // Skeleton: stat de tiempo de hoy
+        var todayEl = document.getElementById('dashTodayTime');
+        if (todayEl) {
+            todayEl.classList.add('skeleton');
+            todayEl.style.cssText = 'display:inline-block;min-width:4rem;min-height:1.5rem;border-radius:var(--ds-radius-100)';
+            todayEl.textContent = '';
+        }
+
+        // Skeleton: área del gráfico
+        var chartBody = document.querySelector('.dashboard-chart-body');
+        if (chartBody) {
+            var sk = document.createElement('div');
+            sk.id = 'dashChartSkeleton';
+            sk.className = 'skeleton skeleton-chart';
+            chartBody.insertBefore(sk, chartBody.firstChild);
+        }
+
         loadTodayTime();
         drawDashChart();
     });

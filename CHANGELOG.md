@@ -3,7 +3,24 @@
 Todos los cambios relevantes del proyecto se documentan en este archivo.
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
-## [2.0.0-alpha.4] — en desarrollo
+## [2.0.0] — 2026-05-25
+
+### Skeleton de carga global — 2026-05-25
+
+- **`assets/css/styles.css`**: animación `skeleton-shimmer` y clases utilitarias `.skeleton`, `.skeleton-text`, `.skeleton-title`, `.skeleton-row`, `.skeleton-stat`, `.skeleton-chart`.
+- **`assets/js/scripts.js`**: objeto global `Skeleton` con métodos `show()`, `hide()`, `rows()`, `textBlock()`, `chart()`, `stat()` disponible en todas las páginas.
+- **`assets/js/dashboard.js`**: skeleton en stat de tiempo de hoy y área del gráfico mientras cargan los datos dinámicos.
+- **`assets/js/tasks.js`**: skeleton en los cuatro paneles del listado mientras `loadList()` completa la carga inicial.
+
+### Vendor: Bootstrap Icons y Flag Icons autoalojados — 2026-05-25
+
+- `assets/vendor/bootstrap-icons/` — CSS + fuentes woff/woff2 (v1.11.0).
+- `assets/vendor/flag-icons/` — CSS + 270 SVGs 4x3 (v7.2.3).
+- Referencias CDN eliminadas de `index.php`, `install.php`, `pages/login.php`, `pages/error.php`, `pages/forgot-password.php`, `pages/reset-password.php`, `pages/maintenance.php`. Elimina warnings de tracking prevention en Edge y elimina dependencia de jsdelivr.
+
+### Fix: retroalimentaciones invertidas en preguntas FV con respuesta Falso — 2026-05-25
+
+- **`includes/gift_actions.php`** `generarGiftBloqueFV()`: el formato GIFT espera `{answer#feedback_incorrecto#feedback_correcto}`; cuando la respuesta era FALSE el orden quedaba invertido. Ahora se detecta el valor de la respuesta y se reordena correctamente.
 
 ### Login: rediseño "Card flotante" con fondo de marca — 2026-05-23
 

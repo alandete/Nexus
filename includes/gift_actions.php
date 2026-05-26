@@ -344,7 +344,14 @@ function generarGiftBloqueFV(array $preg, array $cursivas, array $negritas, arra
 
     $inner = $preg['respuesta'];
     if (!empty($resF['texto']) || !empty($resV['texto'])) {
-        $inner .= '#' . $resF['texto'] . '#' . $resV['texto'];
+        // GIFT: {answer#feedback_incorrecto#feedback_correcto}
+        // correct=TRUE → incorrecto=selección FALSE → retro_falso primero
+        // correct=FALSE → incorrecto=selección TRUE → retro_verdadero primero
+        if (strtoupper($preg['respuesta']) === 'FALSE') {
+            $inner .= '#' . $resV['texto'] . '#' . $resF['texto'];
+        } else {
+            $inner .= '#' . $resF['texto'] . '#' . $resV['texto'];
+        }
     }
     $gift  = '::FV Pregunta ' . $preg['numero'] . '::' . "\n";
     $gift .= $prefix . $enunc . " {\n" . $inner . "\n}\n\n";

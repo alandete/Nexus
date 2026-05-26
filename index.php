@@ -181,9 +181,9 @@ $quickLinksMeta = [
     <?php endif; ?>
 
     <!-- Bootstrap Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.min.css" rel="stylesheet">
-    <!-- Flag Icons (SVG, cross-browser) -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flag-icons@7.2.3/css/flag-icons.min.css">
+    <link href="assets/vendor/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- Flag Icons -->
+    <link rel="stylesheet" href="assets/vendor/flag-icons/css/flag-icons.min.css">
 
     <!-- Nexus 2.0 CSS -->
     <link rel="stylesheet" href="assets/css/variables.css?v=<?= filemtime('assets/css/variables.css') ?>">

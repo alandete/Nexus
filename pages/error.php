@@ -29,7 +29,7 @@ $cfg = $errorConfig[$errorCode];
     <base href="/">
     <meta name="robots" content="noindex, nofollow">
     <title><?= htmlspecialchars($appName) ?> — <?= htmlspecialchars(__('errors.' . $errorCode . '_title')) ?></title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="assets/vendor/bootstrap-icons/bootstrap-icons.min.css" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/variables.css?v=<?= filemtime('assets/css/variables.css') ?>">
     <link rel="stylesheet" href="assets/css/styles.css?v=<?= filemtime('assets/css/styles.css') ?>">
 </head>

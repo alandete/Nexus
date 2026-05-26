@@ -10241,3 +10241,30 @@ a.stat-card:hover {
     width: 1.5rem;
     text-align: center;
 }
+
+/* ═══════════════════════════════════════════════════════════════ SKELETON */
+@keyframes skeleton-shimmer {
+    0%   { background-position: -600px 0; }
+    100% { background-position:  600px 0; }
+}
+
+.skeleton {
+    background: linear-gradient(
+        90deg,
+        var(--ds-background-neutral)         25%,
+        var(--ds-background-neutral-hovered, rgba(9,30,66,.07)) 50%,
+        var(--ds-background-neutral)         75%
+    );
+    background-size: 1200px 100%;
+    animation: skeleton-shimmer 1.6s infinite linear;
+    border-radius: var(--ds-radius-100);
+    color: transparent !important;
+    user-select: none;
+    pointer-events: none;
+}
+
+.skeleton-text  { height: 0.875rem; margin-bottom: var(--ds-space-075); }
+.skeleton-title { height: 1.125rem; margin-bottom: var(--ds-space-100); }
+.skeleton-row   { height: 3rem;     margin-bottom: var(--ds-space-075); border-radius: var(--ds-radius-100); }
+.skeleton-stat  { height: 2rem;     border-radius: var(--ds-radius-100); }
+.skeleton-chart { height: 180px;    border-radius: var(--ds-radius-200); }

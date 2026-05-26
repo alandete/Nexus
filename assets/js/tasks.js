@@ -2579,6 +2579,15 @@
         // Listado
         initListDefaults();
         setupListBindings();
+
+        // Skeleton mientras carga el listado inicial
+        if (typeof Skeleton !== 'undefined') {
+            Skeleton.show('contentScheduled', Skeleton.rows(4));
+            Skeleton.show('contentActive',    Skeleton.rows(3));
+            Skeleton.show('contentToday',     Skeleton.rows(3));
+            Skeleton.show('contentHistory',   Skeleton.rows(5));
+        }
+
         loadList();
         loadCalendarEvents();
 

@@ -3,6 +3,18 @@
 Todos los cambios relevantes del proyecto se documentan en este archivo.
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+## [2.0.0] — 2026-05-26
+
+### Fix: sesión intermitente en import CSV — 2026-05-26
+
+- **`config/config.php`**: `gc_maxlifetime` y cookie `lifetime` extendidos a 8 horas (28 800 s); intervalo de regeneración de ID aumentado a 1 h; `session_regenerate_id(false)` para no borrar la sesión anterior y evitar race condition en peticiones simultáneas.
+- **`assets/js/manage-tasks.js`**: `doImport` detecta respuesta 401 y redirige al login con mensaje claro en lugar de mostrar el genérico "No autorizado".
+
+### Login: versión de app visible en pantalla de login — 2026-05-26
+
+- **`pages/login.php`**: muestra `APP_VERSION` junto al selector de idioma.
+- **`assets/css/styles.css`**: estilos `.login-version` y `.login-lang-options` para el nuevo layout del footer de login.
+
 ## [2.0.0] — 2026-05-25
 
 ### Skeleton de carga global — 2026-05-25

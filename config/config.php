@@ -10,8 +10,9 @@ date_default_timezone_set('America/Bogota');
 
 // Configuración de sesión segura
 $isHttps = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on';
+ini_set('session.gc_maxlifetime', 28800); // 8 horas
 session_set_cookie_params([
-    'lifetime' => 0,
+    'lifetime' => 28800,
     'path'     => '/',
     'secure'   => $isHttps,
     'httponly'  => true,
@@ -22,8 +23,8 @@ session_start();
 // Regenerar ID de sesión periódicamente para prevenir fijación de sesión
 if (!isset($_SESSION['_created'])) {
     $_SESSION['_created'] = time();
-} elseif (time() - $_SESSION['_created'] > 1800) {
-    session_regenerate_id(true);
+} elseif (time() - $_SESSION['_created'] > 3600) {
+    session_regenerate_id(false); // false: no borrar sesión anterior (evita race condition)
     $_SESSION['_created'] = time();
 }
 

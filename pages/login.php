@@ -231,10 +231,13 @@ $canonicalBase = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'http
                 </div>
                 <?php endif; ?>
 
-                <!-- Selector de idioma -->
+                <!-- Versión + Selector de idioma -->
                 <div class="login-lang">
-                    <a class="login-lang-btn <?= $lang === 'es' ? 'active' : '' ?>" href="?lang=es">Español</a>
-                    <a class="login-lang-btn <?= $lang === 'en' ? 'active' : '' ?>" href="?lang=en">English</a>
+                    <span class="login-version"><?= APP_VERSION ?></span>
+                    <div class="login-lang-options">
+                        <a class="login-lang-btn <?= $lang === 'es' ? 'active' : '' ?>" href="?lang=es">Español</a>
+                        <a class="login-lang-btn <?= $lang === 'en' ? 'active' : '' ?>" href="?lang=en">English</a>
+                    </div>
                 </div>
 
             </div>

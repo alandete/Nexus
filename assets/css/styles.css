@@ -2139,9 +2139,20 @@ select.form-control {
 /* Language switcher on login */
 .login-lang {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
+    align-items: center;
     gap: var(--ds-space-100);
     margin-top: var(--ds-space-300);
+}
+
+.login-version {
+    font-size: var(--ds-font-size-body-sm);
+    color: var(--ds-text-subtlest);
+}
+
+.login-lang-options {
+    display: flex;
+    gap: var(--ds-space-100);
 }
 
 .login-lang-btn {

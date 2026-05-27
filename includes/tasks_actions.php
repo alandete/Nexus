@@ -285,14 +285,30 @@ function updateTask(PDO $db, int $userId): void
 function deleteTask(PDO $db, int $userId): void
 {
     $taskId = (int) ($_POST['task_id'] ?? 0);
-    $check = $db->prepare("SELECT id FROM tasks WHERE id = ? AND user_id = ?");
+    $check = $db->prepare("SELECT id, gmail_message_id FROM tasks WHERE id = ? AND user_id = ?");
     $check->execute([$taskId, $userId]);
-    if (!$check->fetchColumn()) {
+    $task = $check->fetch(PDO::FETCH_ASSOC);
+    if (!$task) {
         echo json_encode(['success' => false, 'message' => 'Tarea no encontrada']);
         return;
     }
 
     $db->prepare("DELETE FROM tasks WHERE id = ?")->execute([$taskId]);
+
+    // Si venía de Gmail, registrar como descartada para que el sync no la recree
+    if (!empty($task['gmail_message_id'])) {
+        global $currentUser;
+        $safe        = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $currentUser['username'] ?? '');
+        $userApiFile = DATA_PATH . '/user_api_' . $safe . '.json';
+        $raw         = file_exists($userApiFile) ? (json_decode(file_get_contents($userApiFile), true) ?? []) : [];
+        $dismissed   = $raw['gmail_dismissed_ids'] ?? [];
+        if (!in_array($task['gmail_message_id'], $dismissed, true)) {
+            $dismissed[] = $task['gmail_message_id'];
+            $raw['gmail_dismissed_ids'] = $dismissed;
+            file_put_contents($userApiFile, json_encode($raw, JSON_PRETTY_PRINT), LOCK_EX);
+        }
+    }
+
     echo json_encode(['success' => true, 'message' => 'Tarea eliminada']);
 }
 

@@ -282,6 +282,8 @@ function getMigrations(): array
             ALTER TABLE time_entries ADD COLUMN prev_task_status VARCHAR(20) DEFAULT NULL",
         '017_users_drop_email_unique' => "
             ALTER TABLE users DROP INDEX email",
+        '018_tasks_add_gmail_message_id' => "
+            ALTER TABLE tasks ADD COLUMN gmail_message_id VARCHAR(255) DEFAULT NULL AFTER is_recurring",
     ];
 }
 

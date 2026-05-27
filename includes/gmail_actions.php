@@ -151,8 +151,8 @@ if ($action === 'sync') {
         exit;
     }
 
-    // Mapa message_id => task_id para verificar si la tarea sigue existiendo
-    $processedMap = $raw['gmail_processed_map'] ?? [];
+    // dismissed_ids: message_ids que el usuario descartó eliminando la tarea en Nexus
+    $dismissedIds = $raw['gmail_dismissed_ids'] ?? [];
 
     $mailbox = '{imap.gmail.com:993/imap/ssl}' . $label;
     $mbox    = @imap_open($mailbox, $email, $appPass, 0, 1);
@@ -179,31 +179,33 @@ if ($action === 'sync') {
         }
     }
 
-    // Limpiar del mapa entradas cuyo correo ya no tiene la etiqueta
-    // (se ejecuta siempre, incluso si la etiqueta quedó vacía)
-    foreach (array_keys($processedMap) as $mid) {
-        if (!in_array($mid, $presentIds, true)) {
-            $taskId = $processedMap[$mid];
-            if ($taskId > 0) {
-                $db->prepare("DELETE FROM tasks WHERE id = ? AND user_id = ?")->execute([$taskId, $userId]);
-            }
-            unset($processedMap[$mid]);
-        }
+    // ── Limpieza por DB (fuente de verdad) ────────────────────────────────
+    // Elimina tareas cuyo correo ya no tiene la etiqueta, incluyendo huérfanas
+    // cuya referencia en el mapa pudo haberse perdido.
+    if (!empty($presentIds)) {
+        $ph = implode(',', array_fill(0, count($presentIds), '?'));
+        $db->prepare(
+            "DELETE FROM tasks WHERE user_id = ? AND gmail_message_id IS NOT NULL AND gmail_message_id NOT IN ($ph)"
+        )->execute(array_merge([$userId], $presentIds));
+    } else {
+        $db->prepare(
+            "DELETE FROM tasks WHERE user_id = ? AND gmail_message_id IS NOT NULL"
+        )->execute([$userId]);
     }
+
+    // Limpiar dismissed_ids que ya no están en la etiqueta (el correo fue quitado)
+    $dismissedIds = array_values(array_intersect($dismissedIds, $presentIds));
 
     if ($msgs) {
         // ── Cruzar alianzas por etiqueta de Gmail ─────────────────────────
-        // Usa X-GM-LABELS para buscar mensajes con etiqueta de alianza
-        // SIN cambiar de carpeta — seguimos en la carpeta Nexus
-        $messageAllianceMap = []; // message_id => alliance_id
+        $messageAllianceMap = [];
 
         try {
             $allianceStmt    = $db->query("SELECT id, name FROM alliances WHERE active = 1");
             $activeAlliances = $allianceStmt->fetchAll(PDO::FETCH_ASSOC);
 
-            // Listar carpetas reales de Gmail para matching case-insensitive
             $gmailBoxes    = @imap_getmailboxes($mbox, '{imap.gmail.com:993/imap/ssl}', '*') ?: [];
-            $gmailLabelMap = []; // lowercase => nombre exacto en Gmail
+            $gmailLabelMap = [];
             foreach ($gmailBoxes as $box) {
                 $boxLabel = imap_utf7_decode(str_replace('{imap.gmail.com:993/imap/ssl}', '', $box->name));
                 $gmailLabelMap[mb_strtolower($boxLabel)] = $boxLabel;
@@ -213,12 +215,8 @@ if ($action === 'sync') {
                 $lowerName = mb_strtolower($alliance['name']);
                 if (!isset($gmailLabelMap[$lowerName])) continue;
 
-                // Abrir la carpeta de la alianza y buscar los Message-IDs que coincidan
                 $alliancePath = '{imap.gmail.com:993/imap/ssl}' . $gmailLabelMap[$lowerName];
-                if (!@imap_reopen($mbox, $alliancePath)) {
-                    @imap_errors(); // limpiar errores acumulados
-                    continue;
-                }
+                if (!@imap_reopen($mbox, $alliancePath)) { @imap_errors(); continue; }
 
                 $allianceMsgs = @imap_search($mbox, 'ALL') ?: [];
                 foreach ($allianceMsgs as $mn) {
@@ -228,13 +226,9 @@ if ($action === 'sync') {
                         $messageAllianceMap[$mid] = $alliance['id'];
                     }
                 }
-                @imap_errors(); // limpiar errores tras cada carpeta
+                @imap_errors();
             }
-            // $mbox queda en la última carpeta de alianza abierta
-            // — no importa, ya no se usa para IMAP después de este bloque
-        } catch (Exception $e) {
-            // Continuar sin alianza si algo falla
-        }
+        } catch (Exception $e) {}
 
         // ── Tag "Correo" — find or create ─────────────────────────────────
         $tagStmt = $db->prepare("SELECT id FROM tags WHERE LOWER(name) = 'correo' LIMIT 1");
@@ -245,32 +239,25 @@ if ($action === 'sync') {
             $correoTagId = (int) $db->lastInsertId();
         }
 
-        $checkStmt  = $db->prepare("SELECT id FROM tasks WHERE id = ? AND user_id = ?");
+        $existsStmt = $db->prepare("SELECT id FROM tasks WHERE gmail_message_id = ? AND user_id = ?");
         $tagInsStmt = $db->prepare("INSERT IGNORE INTO task_tags (task_id, tag_id) VALUES (?, ?)");
 
         foreach ($msgs as $msgnum) {
             $header    = $headers[$msgnum];
             $messageId = trim($header->message_id ?? '');
 
-            // Si ya fue procesado, verificar que la tarea siga existiendo
-            if (!empty($messageId) && isset($processedMap[$messageId])) {
-                if ($processedMap[$messageId] === -1) {
-                    continue; // Descartado explícitamente por el usuario, no recrear
-                }
-                $checkStmt->execute([$processedMap[$messageId], $userId]);
-                if ($checkStmt->fetchColumn()) {
-                    continue; // Tarea existe, no duplicar
-                }
-                // Tarea eliminada en Nexus: marcar como descartada para no recrear
-                $processedMap[$messageId] = -1;
-                continue;
+            // Descartado por el usuario en Nexus: no recrear
+            if (!empty($messageId) && in_array($messageId, $dismissedIds, true)) continue;
+
+            // Tarea ya existe en DB para este mensaje: no duplicar
+            if (!empty($messageId)) {
+                $existsStmt->execute([$messageId, $userId]);
+                if ($existsStmt->fetchColumn()) continue;
             }
 
-            // Si es una respuesta a otro mensaje que también tiene la etiqueta, saltarlo
+            // Ignorar respuestas a mensajes que también están en la etiqueta
             $inReplyTo = trim($header->in_reply_to ?? '');
-            if (!empty($inReplyTo) && in_array($inReplyTo, $presentIds, true)) {
-                continue;
-            }
+            if (!empty($inReplyTo) && in_array($inReplyTo, $presentIds, true)) continue;
 
             $subject = isset($header->subject) ? imap_utf8($header->subject) : '';
             $subject = mb_substr(trim($subject), 0, 200);
@@ -285,32 +272,22 @@ if ($action === 'sync') {
             $allianceId = $messageAllianceMap[$messageId] ?? null;
 
             $stmt = $db->prepare(
-                "INSERT INTO tasks (user_id, alliance_id, title, status, due_date, created_at, updated_at)
-                 VALUES (?, ?, ?, 'pending', ?, NOW(), NOW())"
+                "INSERT INTO tasks (user_id, alliance_id, title, status, due_date, gmail_message_id, created_at, updated_at)
+                 VALUES (?, ?, ?, 'pending', ?, ?, NOW(), NOW())"
             );
-            $stmt->execute([$userId, $allianceId, $subject, $dueDate]);
+            $stmt->execute([$userId, $allianceId, $subject, $dueDate, $messageId ?: null]);
             $newTaskId = (int) $db->lastInsertId();
 
-            // Etiqueta "Correo" en todas las tareas creadas desde Gmail
             $tagInsStmt->execute([$newTaskId, $correoTagId]);
-
-            if (!empty($messageId)) {
-                $processedMap[$messageId] = $newTaskId;
-            }
             $synced++;
         }
     }
 
     imap_close($mbox);
 
-    // Mantener solo los ultimos 500 registros para no crecer indefinidamente
-    if (count($processedMap) > 500) {
-        $processedMap = array_slice($processedMap, -500, null, true);
-    }
-
     gmailSave([
-        'gmail_last_sync'       => date('Y-m-d H:i:s'),
-        'gmail_processed_map'   => $processedMap,
+        'gmail_last_sync'     => date('Y-m-d H:i:s'),
+        'gmail_dismissed_ids' => $dismissedIds,
     ]);
 
     if ($synced > 0) {

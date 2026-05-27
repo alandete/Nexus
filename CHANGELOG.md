@@ -5,6 +5,12 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [2.0.0] — 2026-05-26
 
+### Fix: sync Gmail — relación tarea-correo en DB como fuente de verdad — 2026-05-27
+
+- **`includes/functions.php`**: migración `018` añade columna `gmail_message_id` a `tasks`.
+- **`includes/gmail_actions.php`**: la limpieza ahora usa `DELETE ... WHERE gmail_message_id NOT IN (presentIds)` contra la DB, lo que elimina también tareas huérfanas cuya referencia en el JSON se hubiera perdido. `processedMap` eliminado; se reemplaza por `gmail_dismissed_ids` (solo guarda los message_ids descartados explícitamente). Al crear tareas se almacena `gmail_message_id` para mantener el vínculo permanente.
+- **`includes/tasks_actions.php`**: `deleteTask` detecta si la tarea tiene `gmail_message_id` y lo agrega a `gmail_dismissed_ids` para que el sync no la recree mientras el correo siga etiquetado.
+
 ### Fix: sync Gmail elimina tarea aunque la etiqueta quede vacía — 2026-05-27
 
 - **`includes/gmail_actions.php`**: la limpieza del mapa y el borrado de tareas se movieron fuera del bloque `if ($msgs)`, de modo que se ejecutan aunque la etiqueta no tenga ningún correo. Antes, si el correo eliminado era el único con la etiqueta, el bloque de limpieza nunca corría.

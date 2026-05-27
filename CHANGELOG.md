@@ -3,6 +3,13 @@
 Todos los cambios relevantes del proyecto se documentan en este archivo.
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+### Fix: "recuérdame" no restauraba sesión en endpoints AJAX — 2026-05-27
+
+- **`includes/functions.php`**: al final del archivo se ejecuta `rememberCheckCookie()` si la sesión está vacía y existe la cookie `nexus_remember`. Antes solo se aplicaba en `index.php` y una acción de alianzas; ahora todos los endpoints AJAX (Gmail, tareas, imports, etc.) restauran la sesión automáticamente sin pedir relogin.
+- **`.user.ini`**: fuerza `session.gc_maxlifetime` y `session.cookie_lifetime` a 8 horas en hosting compartido que ignore `ini_set()`.
+- **`assets/js/integrations.js`**: `gmailPostAction` detecta 401 y redirige al login con mensaje claro.
+- **`assets/js/tasks.js`**: `gmailAutoSync` detecta 401 y redirige al login con mensaje claro.
+
 ## [2.0.0] — 2026-05-26
 
 ### Fix: Gmail sync — eliminar dismissed_ids, Gmail como fuente de verdad — 2026-05-27

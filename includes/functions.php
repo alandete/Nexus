@@ -923,3 +923,9 @@ function getActivityLog(array $filters = [], int $page = 1, int $perPage = 25): 
 
     return ['entries' => $entries, 'total' => $total, 'page' => $page, 'pages' => $pages];
 }
+
+// Restaurar sesión desde cookie "recuérdame" si la sesión está vacía.
+// Se ejecuta en todos los endpoints que cargan este archivo.
+if (!isset($_SESSION['user']) && isset($_COOKIE[REMEMBER_COOKIE])) {
+    rememberCheckCookie();
+}

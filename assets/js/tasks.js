@@ -2646,7 +2646,14 @@
             headers: { 'X-CSRF-TOKEN': token },
             body:    fd,
         })
-            .then(r => r.json())
+            .then(r => {
+                if (r.status === 401) {
+                    if (typeof Toast !== 'undefined') Toast.error('Sesión expirada. Redirigiendo al login…');
+                    setTimeout(() => { window.location.href = '/login'; }, 1500);
+                    throw new Error('unauthorized');
+                }
+                return r.json();
+            })
             .then(data => {
                 if (data.synced > 0) {
                     if (typeof Toast !== 'undefined') Toast.info(data.message);

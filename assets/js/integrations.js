@@ -222,6 +222,11 @@
             headers: { 'X-CSRF-TOKEN': csrfToken },
             body: fd,
         });
+        if (res.status === 401) {
+            Toast.error(t('common.err_session_expired', 'Sesión expirada. Redirigiendo al login…'));
+            setTimeout(() => { window.location.href = '/login'; }, 1500);
+            throw new Error('unauthorized');
+        }
         return res.json();
     }
 

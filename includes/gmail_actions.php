@@ -166,36 +166,32 @@ if ($action === 'sync') {
     $msgs   = imap_search($mbox, 'ALL') ?: [];
     $userId = (int) $currentUser['id'];
     $synced = 0;
+    $db     = getDb();
+
+    // Cargar headers y construir presentIds en una sola pasada
+    $headers    = [];
+    $presentIds = [];
+    foreach ($msgs as $msgnum) {
+        $h = imap_headerinfo($mbox, $msgnum);
+        $headers[$msgnum] = $h;
+        if (!empty($h->message_id)) {
+            $presentIds[] = trim($h->message_id);
+        }
+    }
+
+    // Limpiar del mapa entradas cuyo correo ya no tiene la etiqueta
+    // (se ejecuta siempre, incluso si la etiqueta quedó vacía)
+    foreach (array_keys($processedMap) as $mid) {
+        if (!in_array($mid, $presentIds, true)) {
+            $taskId = $processedMap[$mid];
+            if ($taskId > 0) {
+                $db->prepare("DELETE FROM tasks WHERE id = ? AND user_id = ?")->execute([$taskId, $userId]);
+            }
+            unset($processedMap[$mid]);
+        }
+    }
 
     if ($msgs) {
-        $db = getDb();
-
-        // Cargar todos los headers de esta tanda para deduplicar hilos
-        $headers = [];
-        foreach ($msgs as $msgnum) {
-            $headers[$msgnum] = imap_headerinfo($mbox, $msgnum);
-        }
-
-        // Construir el set de Message-IDs presentes en esta etiqueta
-        $presentIds = [];
-        foreach ($headers as $h) {
-            if (!empty($h->message_id)) {
-                $presentIds[] = trim($h->message_id);
-            }
-        }
-
-        // Limpiar del mapa entradas cuyo correo ya no tiene la etiqueta
-        foreach (array_keys($processedMap) as $mid) {
-            if (!in_array($mid, $presentIds, true)) {
-                $taskId = $processedMap[$mid];
-                if ($taskId > 0) {
-                    // Correo sin etiqueta → eliminar la tarea asociada
-                    $db->prepare("DELETE FROM tasks WHERE id = ? AND user_id = ?")->execute([$taskId, $userId]);
-                }
-                unset($processedMap[$mid]);
-            }
-        }
-
         // ── Cruzar alianzas por etiqueta de Gmail ─────────────────────────
         // Usa X-GM-LABELS para buscar mensajes con etiqueta de alianza
         // SIN cambiar de carpeta — seguimos en la carpeta Nexus

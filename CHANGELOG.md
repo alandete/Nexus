@@ -5,6 +5,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [2.0.0] — 2026-05-26
 
+### Fix: sync Gmail elimina tarea aunque la etiqueta quede vacía — 2026-05-27
+
+- **`includes/gmail_actions.php`**: la limpieza del mapa y el borrado de tareas se movieron fuera del bloque `if ($msgs)`, de modo que se ejecutan aunque la etiqueta no tenga ningún correo. Antes, si el correo eliminado era el único con la etiqueta, el bloque de limpieza nunca corría.
+
 ### Fix: sync Gmail elimina tarea al quitar etiqueta del correo — 2026-05-27
 
 - **`includes/gmail_actions.php`**: cuando un correo pierde la etiqueta en Gmail, el sync ahora elimina la tarea asociada en Nexus (además de limpiar el mapa). `task_tags` se elimina por CASCADE.

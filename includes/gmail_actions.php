@@ -190,8 +190,8 @@ if ($action === 'sync') {
     }
 
     // ── 2. Eliminar tareas cuyo correo ya no tiene la etiqueta ─────────────
-    // Usa gmail_message_id en DB como fuente de verdad: cualquier tarea con
-    // gmail_message_id que no esté en presentIds se considera descartada.
+
+    // 2a. Tareas post-migración: gmail_message_id en DB como fuente de verdad
     if (!empty($presentIds)) {
         $ph = implode(',', array_fill(0, count($presentIds), '?'));
         $db->prepare(
@@ -202,6 +202,16 @@ if ($action === 'sync') {
         $db->prepare(
             "DELETE FROM tasks WHERE user_id = ? AND gmail_message_id IS NOT NULL"
         )->execute([$userId]);
+    }
+
+    // 2b. Tareas pre-migración (gmail_message_id = NULL): limpiar via legacyMap
+    foreach ($legacyMap as $mid => $taskId) {
+        if (!in_array($mid, $presentIds, true)) {
+            if ($taskId > 0) {
+                $db->prepare("DELETE FROM tasks WHERE id = ? AND user_id = ?")->execute([$taskId, $userId]);
+            }
+            unset($legacyMap[$mid]);
+        }
     }
 
     // Purgar dismissed_ids de correos que ya no tienen la etiqueta

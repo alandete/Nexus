@@ -5,6 +5,15 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [2.0.0] — 2026-05-26
 
+### Refactor: reescritura completa de gmail_actions.php — 2026-05-27
+
+- Diseño limpio con flujo lineal y sin capas de parches acumulados.
+- `gmail_message_id` en DB es la única fuente de verdad para limpieza y deduplicación.
+- `gmail_dismissed_ids` reemplaza el sentinel `-1` del `processedMap`.
+- `gmail_processed_map` se mantiene solo como puente de migración y se purga solo al hacer backfill.
+- Helper `gmailCredentials()` elimina duplicación en `test` y `sync`.
+- Prepared statements reutilizables en el loop principal.
+
 ### Fix: sync Gmail — relación tarea-correo en DB como fuente de verdad — 2026-05-27
 
 - **`includes/functions.php`**: migración `018` añade columna `gmail_message_id` a `tasks`.

@@ -1,7 +1,12 @@
 <?php
 /**
- * Nexus 2.0 — Gmail IMAP Integration Actions
- * Acciones: get, save, test, sync
+ * Nexus 2.0 — Integración Gmail IMAP
+ *
+ * GET/POST actions:
+ *   get    → devuelve config del usuario
+ *   save   → guarda credenciales
+ *   test   → verifica conexión IMAP
+ *   sync   → importa correos etiquetados como tareas
  */
 define('APP_ACCESS', true);
 require_once __DIR__ . '/../config/config.php';
@@ -24,7 +29,6 @@ if (!validateCsrf()) {
 
 $currentUser = getCurrentUser();
 $action      = $_POST['action'] ?? '';
-
 $safe        = preg_replace('/[^a-zA-Z0-9_\-]/', '_', $currentUser['username']);
 $userApiFile = DATA_PATH . '/user_api_' . $safe . '.json';
 
@@ -37,26 +41,38 @@ function gmailGetRaw(): array
     return json_decode(file_get_contents($userApiFile), true) ?? [];
 }
 
-function gmailSave(array $newData): bool
+function gmailSave(array $data): bool
 {
     global $userApiFile;
     if (!is_dir(DATA_PATH)) mkdir(DATA_PATH, 0755, true);
     $current = file_exists($userApiFile)
         ? (json_decode(file_get_contents($userApiFile), true) ?? [])
         : [];
-    $merged = array_merge($current, $newData);
-    return file_put_contents($userApiFile, json_encode($merged, JSON_PRETTY_PRINT), LOCK_EX) !== false;
+    return file_put_contents(
+        $userApiFile,
+        json_encode(array_merge($current, $data), JSON_PRETTY_PRINT),
+        LOCK_EX
+    ) !== false;
 }
 
-// ── Leer configuracion ─────────────────────────────────────────────────────
+function gmailCredentials(): array
+{
+    $raw = gmailGetRaw();
+    return [
+        'email'  => $raw['gmail_email'] ?? '',
+        'pass'   => decryptApiValue($raw['gmail_app_password'] ?? ''),
+        'label'  => $raw['gmail_label'] ?? 'Nexus',
+    ];
+}
+
+// ── GET: leer configuración ────────────────────────────────────────────────
 if ($action === 'get') {
     $raw     = gmailGetRaw();
     $appPass = decryptApiValue($raw['gmail_app_password'] ?? '');
-    $preview = '';
-    if (!empty($appPass)) {
-        $len     = strlen($appPass);
-        $preview = str_repeat('*', max(4, $len - 4)) . substr($appPass, -4);
-    }
+    $preview = $appPass
+        ? str_repeat('*', max(4, strlen($appPass) - 4)) . substr($appPass, -4)
+        : '';
+
     echo json_encode([
         'success'                    => true,
         'gmail_email'                => $raw['gmail_email'] ?? '',
@@ -68,7 +84,7 @@ if ($action === 'get') {
     exit;
 }
 
-// ── Guardar ────────────────────────────────────────────────────────────────
+// ── SAVE: guardar credenciales ─────────────────────────────────────────────
 if ($action === 'save') {
     $email    = trim($_POST['gmail_email'] ?? '');
     $password = trim($_POST['gmail_app_password'] ?? '');
@@ -83,13 +99,10 @@ if ($action === 'save') {
     $data = [
         'gmail_email' => !empty($email) ? $email : ($raw['gmail_email'] ?? ''),
         'gmail_label' => !empty($label) ? $label : 'Nexus',
+        'gmail_app_password' => (empty($password) || str_contains($password, '****'))
+            ? ($raw['gmail_app_password'] ?? '')
+            : encryptApiValue($password),
     ];
-
-    if (empty($password) || str_contains($password, '****')) {
-        $data['gmail_app_password'] = $raw['gmail_app_password'] ?? '';
-    } else {
-        $data['gmail_app_password'] = encryptApiValue($password);
-    }
 
     if (!gmailSave($data)) {
         echo json_encode(['success' => false, 'message' => 'Error al guardar la configuracion']);
@@ -101,17 +114,14 @@ if ($action === 'save') {
     exit;
 }
 
-// ── Probar conexion ────────────────────────────────────────────────────────
+// ── TEST: verificar conexión IMAP ──────────────────────────────────────────
 if ($action === 'test') {
     if (!extension_loaded('imap')) {
         echo json_encode(['success' => false, 'message' => 'La extension IMAP de PHP no esta habilitada en el servidor']);
         exit;
     }
 
-    $raw     = gmailGetRaw();
-    $email   = $raw['gmail_email'] ?? '';
-    $appPass = decryptApiValue($raw['gmail_app_password'] ?? '');
-    $label   = $raw['gmail_label'] ?? 'Nexus';
+    ['email' => $email, 'pass' => $appPass, 'label' => $label] = gmailCredentials();
 
     if (empty($email) || empty($appPass)) {
         echo json_encode(['success' => false, 'message' => 'Faltan credenciales. Guarda primero el correo y la contrasena de aplicacion.']);
@@ -121,7 +131,7 @@ if ($action === 'test') {
     $mbox = @imap_open('{imap.gmail.com:993/imap/ssl}INBOX', $email, $appPass, OP_HALFOPEN, 1);
     if (!$mbox) {
         $errors = imap_errors() ?: [];
-        $msg    = !empty($errors) ? implode(' | ', $errors) : 'Credenciales incorrectas o IMAP no habilitado en Gmail.';
+        $msg    = $errors ? implode(' | ', $errors) : 'Credenciales incorrectas o IMAP no habilitado en Gmail.';
         echo json_encode(['success' => false, 'message' => 'No se pudo conectar: ' . $msg]);
         exit;
     }
@@ -134,60 +144,59 @@ if ($action === 'test') {
     exit;
 }
 
-// ── Sincronizar ────────────────────────────────────────────────────────────
+// ── SYNC: importar correos como tareas ────────────────────────────────────
 if ($action === 'sync') {
     if (!extension_loaded('imap')) {
         echo json_encode(['success' => false, 'synced' => 0, 'message' => 'Extension IMAP no disponible']);
         exit;
     }
 
-    $raw     = gmailGetRaw();
-    $email   = $raw['gmail_email'] ?? '';
-    $appPass = decryptApiValue($raw['gmail_app_password'] ?? '');
-    $label   = $raw['gmail_label'] ?? 'Nexus';
+    ['email' => $email, 'pass' => $appPass, 'label' => $label] = gmailCredentials();
 
     if (empty($email) || empty($appPass)) {
         echo json_encode(['success' => false, 'synced' => 0, 'message' => 'Gmail no configurado']);
         exit;
     }
 
-    // dismissed_ids: message_ids que el usuario descartó eliminando la tarea en Nexus
+    $raw          = gmailGetRaw();
     $dismissedIds = $raw['gmail_dismissed_ids'] ?? [];
-    // processedMap: fallback para tareas creadas antes de la migración (sin gmail_message_id en DB)
-    $processedMap = $raw['gmail_processed_map'] ?? [];
+    // Legado: mapa de tareas creadas antes de que gmail_message_id existiera en la DB.
+    // Se purga automáticamente al hacer backfill en cada sync.
+    $legacyMap    = $raw['gmail_processed_map'] ?? [];
 
-    $mailbox = '{imap.gmail.com:993/imap/ssl}' . $label;
-    $mbox    = @imap_open($mailbox, $email, $appPass, 0, 1);
+    // ── Conectar ───────────────────────────────────────────────────────────
+    $mbox = @imap_open('{imap.gmail.com:993/imap/ssl}' . $label, $email, $appPass, 0, 1);
     if (!$mbox) {
         $errors = imap_errors() ?: [];
         echo json_encode(['success' => false, 'synced' => 0, 'message' => 'Error IMAP: ' . implode(' | ', $errors)]);
         exit;
     }
 
-    // Buscar TODOS los mensajes de la etiqueta (leidos y no leidos)
-    $msgs   = imap_search($mbox, 'ALL') ?: [];
     $userId = (int) $currentUser['id'];
-    $synced = 0;
     $db     = getDb();
+    $synced = 0;
 
-    // Cargar headers y construir presentIds en una sola pasada
+    // ── 1. Leer mensajes presentes en la etiqueta ──────────────────────────
+    $msgs       = imap_search($mbox, 'ALL') ?: [];
     $headers    = [];
     $presentIds = [];
-    foreach ($msgs as $msgnum) {
-        $h = imap_headerinfo($mbox, $msgnum);
-        $headers[$msgnum] = $h;
+
+    foreach ($msgs as $num) {
+        $h = imap_headerinfo($mbox, $num);
+        $headers[$num] = $h;
         if (!empty($h->message_id)) {
             $presentIds[] = trim($h->message_id);
         }
     }
 
-    // ── Limpieza por DB (fuente de verdad) ────────────────────────────────
-    // Elimina tareas cuyo correo ya no tiene la etiqueta, incluyendo huérfanas
-    // cuya referencia en el mapa pudo haberse perdido.
+    // ── 2. Eliminar tareas cuyo correo ya no tiene la etiqueta ─────────────
+    // Usa gmail_message_id en DB como fuente de verdad: cualquier tarea con
+    // gmail_message_id que no esté en presentIds se considera descartada.
     if (!empty($presentIds)) {
         $ph = implode(',', array_fill(0, count($presentIds), '?'));
         $db->prepare(
-            "DELETE FROM tasks WHERE user_id = ? AND gmail_message_id IS NOT NULL AND gmail_message_id NOT IN ($ph)"
+            "DELETE FROM tasks
+             WHERE user_id = ? AND gmail_message_id IS NOT NULL AND gmail_message_id NOT IN ($ph)"
         )->execute(array_merge([$userId], $presentIds));
     } else {
         $db->prepare(
@@ -195,44 +204,45 @@ if ($action === 'sync') {
         )->execute([$userId]);
     }
 
-    // Limpiar dismissed_ids que ya no están en la etiqueta (el correo fue quitado)
+    // Purgar dismissed_ids de correos que ya no tienen la etiqueta
     $dismissedIds = array_values(array_intersect($dismissedIds, $presentIds));
 
+    // ── 3. Procesar mensajes (si hay alguno) ───────────────────────────────
     if ($msgs) {
-        // ── Cruzar alianzas por etiqueta de Gmail ─────────────────────────
+
+        // ── 3a. Mapear mensaje → alianza via etiquetas de Gmail ───────────
         $messageAllianceMap = [];
-
         try {
-            $allianceStmt    = $db->query("SELECT id, name FROM alliances WHERE active = 1");
-            $activeAlliances = $allianceStmt->fetchAll(PDO::FETCH_ASSOC);
+            $activeAlliances = $db->query("SELECT id, name FROM alliances WHERE active = 1")
+                                  ->fetchAll(PDO::FETCH_ASSOC);
 
-            $gmailBoxes    = @imap_getmailboxes($mbox, '{imap.gmail.com:993/imap/ssl}', '*') ?: [];
-            $gmailLabelMap = [];
-            foreach ($gmailBoxes as $box) {
-                $boxLabel = imap_utf7_decode(str_replace('{imap.gmail.com:993/imap/ssl}', '', $box->name));
-                $gmailLabelMap[mb_strtolower($boxLabel)] = $boxLabel;
+            // Índice de carpetas Gmail por nombre en minúsculas
+            $gmailFolders = [];
+            foreach (@imap_getmailboxes($mbox, '{imap.gmail.com:993/imap/ssl}', '*') ?: [] as $box) {
+                $name = imap_utf7_decode(str_replace('{imap.gmail.com:993/imap/ssl}', '', $box->name));
+                $gmailFolders[mb_strtolower($name)] = $name;
             }
 
             foreach ($activeAlliances as $alliance) {
-                $lowerName = mb_strtolower($alliance['name']);
-                if (!isset($gmailLabelMap[$lowerName])) continue;
+                $folderKey = mb_strtolower($alliance['name']);
+                if (!isset($gmailFolders[$folderKey])) continue;
 
-                $alliancePath = '{imap.gmail.com:993/imap/ssl}' . $gmailLabelMap[$lowerName];
-                if (!@imap_reopen($mbox, $alliancePath)) { @imap_errors(); continue; }
+                $path = '{imap.gmail.com:993/imap/ssl}' . $gmailFolders[$folderKey];
+                if (!@imap_reopen($mbox, $path)) { @imap_errors(); continue; }
 
-                $allianceMsgs = @imap_search($mbox, 'ALL') ?: [];
-                foreach ($allianceMsgs as $mn) {
-                    $ah  = @imap_headerinfo($mbox, $mn);
-                    $mid = trim($ah->message_id ?? '');
-                    if (!empty($mid) && in_array($mid, $presentIds, true)) {
+                foreach (@imap_search($mbox, 'ALL') ?: [] as $mn) {
+                    $mid = trim(@imap_headerinfo($mbox, $mn)->message_id ?? '');
+                    if ($mid && in_array($mid, $presentIds, true)) {
                         $messageAllianceMap[$mid] = $alliance['id'];
                     }
                 }
                 @imap_errors();
             }
-        } catch (Exception $e) {}
+        } catch (Exception $e) {
+            // Continuar sin alianza si algo falla
+        }
 
-        // ── Tag "Correo" — find or create ─────────────────────────────────
+        // ── 3b. Tag "Correo" — obtener o crear ────────────────────────────
         $tagStmt = $db->prepare("SELECT id FROM tags WHERE LOWER(name) = 'correo' LIMIT 1");
         $tagStmt->execute();
         $correoTagId = $tagStmt->fetchColumn();
@@ -241,73 +251,69 @@ if ($action === 'sync') {
             $correoTagId = (int) $db->lastInsertId();
         }
 
-        $existsStmt  = $db->prepare("SELECT id FROM tasks WHERE gmail_message_id = ? AND user_id = ?");
-        $backfillStmt = $db->prepare("UPDATE tasks SET gmail_message_id = ? WHERE id = ? AND user_id = ? AND gmail_message_id IS NULL");
-        $checkStmt   = $db->prepare("SELECT id FROM tasks WHERE id = ? AND user_id = ?");
-        $tagInsStmt  = $db->prepare("INSERT IGNORE INTO task_tags (task_id, tag_id) VALUES (?, ?)");
+        // Prepared statements reutilizables
+        $stmtExists   = $db->prepare("SELECT id FROM tasks WHERE gmail_message_id = ? AND user_id = ?");
+        $stmtCheck    = $db->prepare("SELECT id FROM tasks WHERE id = ? AND user_id = ?");
+        $stmtBackfill = $db->prepare("UPDATE tasks SET gmail_message_id = ? WHERE id = ? AND user_id = ? AND gmail_message_id IS NULL");
+        $stmtInsert   = $db->prepare(
+            "INSERT INTO tasks (user_id, alliance_id, title, status, due_date, gmail_message_id, created_at, updated_at)
+             VALUES (?, ?, ?, 'pending', ?, ?, NOW(), NOW())"
+        );
+        $stmtTag      = $db->prepare("INSERT IGNORE INTO task_tags (task_id, tag_id) VALUES (?, ?)");
 
-        foreach ($msgs as $msgnum) {
-            $header    = $headers[$msgnum];
+        foreach ($msgs as $num) {
+            $header    = $headers[$num];
             $messageId = trim($header->message_id ?? '');
 
-            // Descartado por el usuario en Nexus: no recrear
-            if (!empty($messageId) && in_array($messageId, $dismissedIds, true)) continue;
+            // a) Descartado explícitamente: no recrear
+            if ($messageId && in_array($messageId, $dismissedIds, true)) continue;
 
-            // Tarea ya existe en DB con gmail_message_id (tareas post-migración): no duplicar
-            if (!empty($messageId)) {
-                $existsStmt->execute([$messageId, $userId]);
-                if ($existsStmt->fetchColumn()) continue;
+            // b) Ya existe en DB por gmail_message_id (sistema nuevo)
+            if ($messageId) {
+                $stmtExists->execute([$messageId, $userId]);
+                if ($stmtExists->fetchColumn()) continue;
             }
 
-            // Fallback: tarea pre-migración registrada en processedMap sin gmail_message_id
-            if (!empty($messageId) && isset($processedMap[$messageId])) {
-                $legacyId = $processedMap[$messageId];
-                $checkStmt->execute([$legacyId, $userId]);
-                if ($checkStmt->fetchColumn()) {
-                    // Backfill: vincular la tarea existente con el message_id
-                    $backfillStmt->execute([$messageId, $legacyId, $userId]);
-                    continue; // ya existe, no duplicar
+            // c) Backfill de tarea pre-migración registrada en legacyMap
+            if ($messageId && isset($legacyMap[$messageId])) {
+                $legacyId = $legacyMap[$messageId];
+                $stmtCheck->execute([$legacyId, $userId]);
+                if ($stmtCheck->fetchColumn()) {
+                    $stmtBackfill->execute([$messageId, $legacyId, $userId]);
+                    unset($legacyMap[$messageId]);
+                    continue; // tarea existente migrada, no duplicar
                 }
-                // Tarea eliminada: marcar como descartada
+                // Tarea del legacyMap ya no existe: descartar el correo
                 $dismissedIds[] = $messageId;
-                unset($processedMap[$messageId]);
+                unset($legacyMap[$messageId]);
                 continue;
             }
 
-            // Ignorar respuestas a mensajes que también están en la etiqueta
+            // d) Ignorar respuestas a mensajes que también están en la etiqueta
             $inReplyTo = trim($header->in_reply_to ?? '');
-            if (!empty($inReplyTo) && in_array($inReplyTo, $presentIds, true)) continue;
+            if ($inReplyTo && in_array($inReplyTo, $presentIds, true)) continue;
 
-            $subject = isset($header->subject) ? imap_utf8($header->subject) : '';
-            $subject = mb_substr(trim($subject), 0, 200);
-            if (empty($subject)) $subject = '(sin asunto)';
-
+            // e) Crear nueva tarea
+            $subject = $header->subject ? mb_substr(trim(imap_utf8($header->subject)), 0, 200) : '(sin asunto)';
             $dueDate = null;
             if (!empty($header->date)) {
                 $ts = strtotime($header->date);
                 if ($ts !== false) $dueDate = date('Y-m-d', $ts);
             }
 
-            $allianceId = $messageAllianceMap[$messageId] ?? null;
-
-            $stmt = $db->prepare(
-                "INSERT INTO tasks (user_id, alliance_id, title, status, due_date, gmail_message_id, created_at, updated_at)
-                 VALUES (?, ?, ?, 'pending', ?, ?, NOW(), NOW())"
-            );
-            $stmt->execute([$userId, $allianceId, $subject, $dueDate, $messageId ?: null]);
-            $newTaskId = (int) $db->lastInsertId();
-
-            $tagInsStmt->execute([$newTaskId, $correoTagId]);
+            $stmtInsert->execute([$userId, $messageAllianceMap[$messageId] ?? null, $subject, $dueDate, $messageId ?: null]);
+            $stmtTag->execute([(int) $db->lastInsertId(), $correoTagId]);
             $synced++;
         }
     }
 
     imap_close($mbox);
 
+    // ── 4. Persistir estado ────────────────────────────────────────────────
     gmailSave([
         'gmail_last_sync'       => date('Y-m-d H:i:s'),
         'gmail_dismissed_ids'   => $dismissedIds,
-        'gmail_processed_map'   => $processedMap, // se vacía gradualmente al hacer backfill
+        'gmail_processed_map'   => $legacyMap, // vacío cuando todos los registros hayan hecho backfill
     ]);
 
     if ($synced > 0) {

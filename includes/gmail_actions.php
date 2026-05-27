@@ -158,11 +158,10 @@ if ($action === 'sync') {
         exit;
     }
 
-    $raw          = gmailGetRaw();
-    $dismissedIds = $raw['gmail_dismissed_ids'] ?? [];
+    $raw       = gmailGetRaw();
     // Legado: mapa de tareas creadas antes de que gmail_message_id existiera en la DB.
     // Se purga automáticamente al hacer backfill en cada sync.
-    $legacyMap    = $raw['gmail_processed_map'] ?? [];
+    $legacyMap = $raw['gmail_processed_map'] ?? [];
 
     // ── Conectar ───────────────────────────────────────────────────────────
     $mbox = @imap_open('{imap.gmail.com:993/imap/ssl}' . $label, $email, $appPass, 0, 1);
@@ -213,9 +212,6 @@ if ($action === 'sync') {
             unset($legacyMap[$mid]);
         }
     }
-
-    // Purgar dismissed_ids de correos que ya no tienen la etiqueta
-    $dismissedIds = array_values(array_intersect($dismissedIds, $presentIds));
 
     // ── 3. Procesar mensajes (si hay alguno) ───────────────────────────────
     if ($msgs) {
@@ -275,10 +271,7 @@ if ($action === 'sync') {
             $header    = $headers[$num];
             $messageId = trim($header->message_id ?? '');
 
-            // a) Descartado explícitamente: no recrear
-            if ($messageId && in_array($messageId, $dismissedIds, true)) continue;
-
-            // b) Ya existe en DB por gmail_message_id (sistema nuevo)
+            // a) Ya existe en DB por gmail_message_id (sistema nuevo)
             if ($messageId) {
                 $stmtExists->execute([$messageId, $userId]);
                 if ($stmtExists->fetchColumn()) continue;
@@ -321,9 +314,8 @@ if ($action === 'sync') {
 
     // ── 4. Persistir estado ────────────────────────────────────────────────
     gmailSave([
-        'gmail_last_sync'       => date('Y-m-d H:i:s'),
-        'gmail_dismissed_ids'   => $dismissedIds,
-        'gmail_processed_map'   => $legacyMap, // vacío cuando todos los registros hayan hecho backfill
+        'gmail_last_sync'     => date('Y-m-d H:i:s'),
+        'gmail_processed_map' => $legacyMap, // vacío cuando todos los registros hayan hecho backfill
     ]);
 
     if ($synced > 0) {

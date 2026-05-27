@@ -5,6 +5,11 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [2.0.0] — 2026-05-26
 
+### Fix: Gmail sync — eliminar dismissed_ids, Gmail como fuente de verdad — 2026-05-27
+
+- **`includes/gmail_actions.php`**: eliminado `dismissed_ids`. El comportamiento correcto es: etiqueta presente = tarea existe, etiqueta ausente = tarea no existe. Eliminar una tarea en Nexus no bloquea su recreación; el flujo para descartar permanentemente es quitar la etiqueta en Gmail.
+- **`includes/tasks_actions.php`**: eliminada la lógica que añadía `gmail_dismissed_ids` al borrar una tarea.
+
 ### Refactor: reescritura completa de gmail_actions.php — 2026-05-27
 
 - Diseño limpio con flujo lineal y sin capas de parches acumulados.

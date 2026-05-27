@@ -153,6 +153,8 @@ if ($action === 'sync') {
 
     // dismissed_ids: message_ids que el usuario descartó eliminando la tarea en Nexus
     $dismissedIds = $raw['gmail_dismissed_ids'] ?? [];
+    // processedMap: fallback para tareas creadas antes de la migración (sin gmail_message_id en DB)
+    $processedMap = $raw['gmail_processed_map'] ?? [];
 
     $mailbox = '{imap.gmail.com:993/imap/ssl}' . $label;
     $mbox    = @imap_open($mailbox, $email, $appPass, 0, 1);
@@ -239,8 +241,10 @@ if ($action === 'sync') {
             $correoTagId = (int) $db->lastInsertId();
         }
 
-        $existsStmt = $db->prepare("SELECT id FROM tasks WHERE gmail_message_id = ? AND user_id = ?");
-        $tagInsStmt = $db->prepare("INSERT IGNORE INTO task_tags (task_id, tag_id) VALUES (?, ?)");
+        $existsStmt  = $db->prepare("SELECT id FROM tasks WHERE gmail_message_id = ? AND user_id = ?");
+        $backfillStmt = $db->prepare("UPDATE tasks SET gmail_message_id = ? WHERE id = ? AND user_id = ? AND gmail_message_id IS NULL");
+        $checkStmt   = $db->prepare("SELECT id FROM tasks WHERE id = ? AND user_id = ?");
+        $tagInsStmt  = $db->prepare("INSERT IGNORE INTO task_tags (task_id, tag_id) VALUES (?, ?)");
 
         foreach ($msgs as $msgnum) {
             $header    = $headers[$msgnum];
@@ -249,10 +253,25 @@ if ($action === 'sync') {
             // Descartado por el usuario en Nexus: no recrear
             if (!empty($messageId) && in_array($messageId, $dismissedIds, true)) continue;
 
-            // Tarea ya existe en DB para este mensaje: no duplicar
+            // Tarea ya existe en DB con gmail_message_id (tareas post-migración): no duplicar
             if (!empty($messageId)) {
                 $existsStmt->execute([$messageId, $userId]);
                 if ($existsStmt->fetchColumn()) continue;
+            }
+
+            // Fallback: tarea pre-migración registrada en processedMap sin gmail_message_id
+            if (!empty($messageId) && isset($processedMap[$messageId])) {
+                $legacyId = $processedMap[$messageId];
+                $checkStmt->execute([$legacyId, $userId]);
+                if ($checkStmt->fetchColumn()) {
+                    // Backfill: vincular la tarea existente con el message_id
+                    $backfillStmt->execute([$messageId, $legacyId, $userId]);
+                    continue; // ya existe, no duplicar
+                }
+                // Tarea eliminada: marcar como descartada
+                $dismissedIds[] = $messageId;
+                unset($processedMap[$messageId]);
+                continue;
             }
 
             // Ignorar respuestas a mensajes que también están en la etiqueta
@@ -286,8 +305,9 @@ if ($action === 'sync') {
     imap_close($mbox);
 
     gmailSave([
-        'gmail_last_sync'     => date('Y-m-d H:i:s'),
-        'gmail_dismissed_ids' => $dismissedIds,
+        'gmail_last_sync'       => date('Y-m-d H:i:s'),
+        'gmail_dismissed_ids'   => $dismissedIds,
+        'gmail_processed_map'   => $processedMap, // se vacía gradualmente al hacer backfill
     ]);
 
     if ($synced > 0) {

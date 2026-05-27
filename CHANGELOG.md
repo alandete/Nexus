@@ -5,6 +5,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [2.0.0] — 2026-05-26
 
+### Fix: sync Gmail elimina tarea al quitar etiqueta del correo — 2026-05-27
+
+- **`includes/gmail_actions.php`**: cuando un correo pierde la etiqueta en Gmail, el sync ahora elimina la tarea asociada en Nexus (además de limpiar el mapa). `task_tags` se elimina por CASCADE.
+
 ### Fix: ícono de sync Gmail no aparecía en Tareas — 2026-05-27
 
 - **`pages/tasks.php`**: corregida la lectura de credenciales Gmail; ahora usa el archivo por usuario (`user_api_[username].json`) en lugar del global `api_settings.json`, que es donde `gmail_actions.php` realmente las guarda.

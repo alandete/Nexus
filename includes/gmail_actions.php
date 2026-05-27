@@ -187,6 +187,11 @@ if ($action === 'sync') {
         // Limpiar del mapa entradas cuyo correo ya no tiene la etiqueta
         foreach (array_keys($processedMap) as $mid) {
             if (!in_array($mid, $presentIds, true)) {
+                $taskId = $processedMap[$mid];
+                if ($taskId > 0) {
+                    // Correo sin etiqueta → eliminar la tarea asociada
+                    $db->prepare("DELETE FROM tasks WHERE id = ? AND user_id = ?")->execute([$taskId, $userId]);
+                }
                 unset($processedMap[$mid]);
             }
         }

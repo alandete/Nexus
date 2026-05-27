@@ -9,9 +9,10 @@ $currentUser = getCurrentUser();
 $alliances = getAlliances();
 $activeAlliances = array_filter($alliances, fn($a) => !empty($a['active']));
 
-// Gmail sync disponible
-$gmailRaw    = file_exists(API_SETTINGS_FILE) ? (json_decode(file_get_contents(API_SETTINGS_FILE), true) ?? []) : [];
-$gmailActive = !empty($gmailRaw['gmail_email']) && !empty($gmailRaw['gmail_app_password']);
+// Gmail sync disponible (credenciales por usuario)
+$_gmailUserFile = DATA_PATH . '/user_api_' . preg_replace('/[^a-zA-Z0-9_\-]/', '_', $currentUser['username'] ?? '') . '.json';
+$gmailRaw       = file_exists($_gmailUserFile) ? (json_decode(file_get_contents($_gmailUserFile), true) ?? []) : [];
+$gmailActive    = !empty($gmailRaw['gmail_email']) && !empty($gmailRaw['gmail_app_password']);
 
 // Horario laboral del usuario actual
 $workSchedule = [];

@@ -5,6 +5,10 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [2.0.0] — 2026-05-26
 
+### Fix: ícono de sync Gmail no aparecía en Tareas — 2026-05-27
+
+- **`pages/tasks.php`**: corregida la lectura de credenciales Gmail; ahora usa el archivo por usuario (`user_api_[username].json`) en lugar del global `api_settings.json`, que es donde `gmail_actions.php` realmente las guarda.
+
 ### Fix: tooltips de la topbar — 2026-05-26
 
 - **`assets/css/styles.css`**: color del tooltip cambiado de `var(--app-brand)` a `var(--ds-neutral-1000)` para diferenciarlo de la barra superior.

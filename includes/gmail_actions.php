@@ -184,6 +184,13 @@ if ($action === 'sync') {
             }
         }
 
+        // Limpiar del mapa entradas cuyo correo ya no tiene la etiqueta
+        foreach (array_keys($processedMap) as $mid) {
+            if (!in_array($mid, $presentIds, true)) {
+                unset($processedMap[$mid]);
+            }
+        }
+
         // ── Cruzar alianzas por etiqueta de Gmail ─────────────────────────
         // Usa X-GM-LABELS para buscar mensajes con etiqueta de alianza
         // SIN cambiar de carpeta — seguimos en la carpeta Nexus
@@ -246,12 +253,16 @@ if ($action === 'sync') {
 
             // Si ya fue procesado, verificar que la tarea siga existiendo
             if (!empty($messageId) && isset($processedMap[$messageId])) {
+                if ($processedMap[$messageId] === -1) {
+                    continue; // Descartado explícitamente por el usuario, no recrear
+                }
                 $checkStmt->execute([$processedMap[$messageId], $userId]);
                 if ($checkStmt->fetchColumn()) {
                     continue; // Tarea existe, no duplicar
                 }
-                // Tarea fue eliminada: limpiar el registro y volver a crear
-                unset($processedMap[$messageId]);
+                // Tarea eliminada en Nexus: marcar como descartada para no recrear
+                $processedMap[$messageId] = -1;
+                continue;
             }
 
             // Si es una respuesta a otro mensaje que también tiene la etiqueta, saltarlo

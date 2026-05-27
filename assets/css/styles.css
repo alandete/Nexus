@@ -1436,7 +1436,7 @@ select.form-control {
     position: fixed;
     z-index: var(--ds-z-tooltip);
     padding: var(--ds-space-050) var(--ds-space-100);
-    background: var(--app-brand);
+    background: var(--ds-neutral-1000);
     color: var(--ds-text-inverse);
     font-size: var(--ds-font-size-body-sm);
     font-weight: var(--ds-font-weight-medium);

@@ -5,6 +5,15 @@ Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
 ## [2.0.0] — 2026-05-26
 
+### Fix: tooltips de la topbar — 2026-05-26
+
+- **`assets/css/styles.css`**: color del tooltip cambiado de `var(--app-brand)` a `var(--ds-neutral-1000)` para diferenciarlo de la barra superior.
+- **`assets/js/scripts.js`**: el clamp de posición del tooltip respeta la altura real de la topbar (`getBoundingClientRect`) en lugar del valor fijo de 8px, evitando que quede solapado con la barra.
+
+### Fix: sincronización Gmail no recrea tareas eliminadas — 2026-05-26
+
+- **`includes/gmail_actions.php`**: si una tarea creada desde Gmail es eliminada en Nexus, el sync la marca como descartada (`-1`) en lugar de borrar el registro y recrearla en cada ciclo. Además, al inicio de cada sync se limpian del mapa las entradas de correos que ya no tienen la etiqueta, eliminando registros huérfanos.
+
 ### Fix: sesión intermitente en import CSV — 2026-05-26
 
 - **`config/config.php`**: `gc_maxlifetime` y cookie `lifetime` extendidos a 8 horas (28 800 s); intervalo de regeneración de ID aumentado a 1 h; `session_regenerate_id(false)` para no borrar la sesión anterior y evitar race condition en peticiones simultáneas.

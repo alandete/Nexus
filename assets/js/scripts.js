@@ -177,10 +177,12 @@ var Skeleton = (function () {
                     left = rect.right + gap;
             }
 
-            // Keep within viewport
+            // Keep within viewport (respect topbar height)
+            var topbarEl = document.querySelector('.topbar');
+            var topbarH = topbarEl ? topbarEl.getBoundingClientRect().bottom : 56;
             if (left + tw > window.innerWidth - 8) left = window.innerWidth - tw - 8;
             if (left < 8) left = 8;
-            if (top < 8) top = 8;
+            if (top < topbarH + 4) top = topbarH + 4;
 
             tooltip.style.top = top + 'px';
             tooltip.style.left = left + 'px';

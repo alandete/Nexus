@@ -157,6 +157,7 @@ $quickLinksMeta = [
     <meta name="robots" content="noindex, nofollow">
     <?php endif; ?>
     <meta name="csrf-token" content="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
+    <meta name="app-base"  content="<?= htmlspecialchars(APP_BASE_URL) ?>"  >
     <title><?= htmlspecialchars($projectInfo['app_name']) ?><?= !empty($projectInfo['tagline']) ? ' - ' . htmlspecialchars($projectInfo['tagline']) : '' ?></title>
     <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg">
 

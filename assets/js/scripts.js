@@ -3,6 +3,49 @@
  * Top bar + Sidebar layout
  */
 
+// ─── CSRF auto-refresh ────────────────────────────────────────────────────────
+// Intercepta fetch: cuando un endpoint devuelve 403 por token CSRF inválido,
+// obtiene un token nuevo del servidor y reintenta la petición original.
+(function () {
+    var _fetch    = window.fetch;
+    var refreshing = false;
+
+    function csrfEndpoint() {
+        var base = (document.querySelector('meta[name="app-base"]') || {}).content || '';
+        return base.replace(/\/$/, '') + '/includes/csrf_token_actions.php';
+    }
+
+    function updateMetaToken(token) {
+        var meta = document.querySelector('meta[name="csrf-token"]');
+        if (meta) meta.content = token;
+    }
+
+    window.fetch = function (url, opts) {
+        return _fetch(url, opts).then(function (res) {
+            if (res.status !== 403 || refreshing) return res;
+            return res.clone().json().then(function (data) {
+                var msg = (data && data.message) ? data.message.toLowerCase() : '';
+                if (!msg.includes('csrf')) return res;
+
+                refreshing = true;
+                return _fetch(csrfEndpoint(), { credentials: 'same-origin' })
+                    .then(function (r) { return r.json(); })
+                    .then(function (td) {
+                        refreshing = false;
+                        if (!td || !td.token) return res;
+                        updateMetaToken(td.token);
+                        var newOpts  = Object.assign({}, opts || {});
+                        newOpts.headers = Object.assign({}, newOpts.headers || {}, {
+                            'X-CSRF-TOKEN': td.token,
+                        });
+                        return _fetch(url, newOpts);
+                    })
+                    .catch(function () { refreshing = false; return res; });
+            }).catch(function () { return res; });
+        });
+    };
+})();
+
 // ─── Skeleton ────────────────────────────────────────────────────────────────
 var Skeleton = (function () {
     function _el(id) { return document.getElementById(id); }

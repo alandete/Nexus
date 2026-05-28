@@ -3,6 +3,13 @@
 Todos los cambios relevantes del proyecto se documentan en este archivo.
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+### Fix: "Token CSRF inválido" tras inactividad con sesión activa — 2026-05-28
+
+- **`includes/auth.php`**: `rememberCheckCookie()` ahora genera `$_SESSION['csrf_token']` al restaurar la sesión. Antes la sesión se restauraba sin token CSRF y todos los endpoints devolvían 403.
+- **`includes/csrf_token_actions.php`**: endpoint GET que devuelve el token CSRF activo (requiere login). Usado por el interceptor JS para refrescar el token sin recargar la página.
+- **`assets/js/scripts.js`**: interceptor global de `fetch` — si un endpoint devuelve 403 con mensaje CSRF, obtiene un token nuevo del servidor, actualiza el meta tag y reintenta la petición original de forma transparente.
+- **`index.php`**: añadida `<meta name="app-base">` con `APP_BASE_URL` para que el interceptor construya la URL del endpoint independientemente del subdirectorio.
+
 ### Fix: "recuérdame" no restauraba sesión en endpoints AJAX — 2026-05-27
 
 - **`includes/functions.php`**: al final del archivo se ejecuta `rememberCheckCookie()` si la sesión está vacía y existe la cookie `nexus_remember`. Antes solo se aplicaba en `index.php` y una acción de alianzas; ahora todos los endpoints AJAX (Gmail, tareas, imports, etc.) restauran la sesión automáticamente sin pedir relogin.

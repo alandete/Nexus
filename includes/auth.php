@@ -278,7 +278,8 @@ function rememberCheckCookie(): bool
         'photo'    => $user['photo'] ?? null,
         'lang'     => $user['lang'] ?? 'es',
     ];
-    $_SESSION['lang'] = $user['lang'] ?? 'es';
+    $_SESSION['lang']       = $user['lang'] ?? 'es';
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 
     session_regenerate_id(true);
     $_SESSION['_created'] = time();

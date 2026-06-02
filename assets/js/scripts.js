@@ -3,12 +3,16 @@
  * Top bar + Sidebar layout
  */
 
-// ─── CSRF auto-refresh ────────────────────────────────────────────────────────
-// Intercepta fetch: cuando un endpoint devuelve 403 por token CSRF inválido,
-// obtiene un token nuevo del servidor y reintenta la petición original.
+// ─── CSRF + session auto-refresh ─────────────────────────────────────────────
+// Intercepta fetch:
+//   403 + mensaje CSRF → obtiene token nuevo y reintenta.
+//   401              → verifica si la sesión fue restaurada por petición
+//                      concurrente (recuérdame); si sí, reintenta con token
+//                      fresco; si no, redirige al login.
 (function () {
-    var _fetch    = window.fetch;
-    var refreshing = false;
+    var _fetch       = window.fetch;
+    var refreshingCs = false; // guard CSRF
+    var refreshingSs = false; // guard session
 
     function csrfEndpoint() {
         var base = (document.querySelector('meta[name="app-base"]') || {}).content || '';
@@ -22,16 +26,40 @@
 
     window.fetch = function (url, opts) {
         return _fetch(url, opts).then(function (res) {
-            if (res.status !== 403 || refreshing) return res;
+
+            // ── 401: sesión expirada ──────────────────────────────────────────
+            if (res.status === 401 && !refreshingSs) {
+                refreshingSs = true;
+                // Consultar csrf_token_actions.php: devuelve 200 si la sesión
+                // fue restaurada por una petición concurrente (recuérdame).
+                return _fetch(csrfEndpoint(), { credentials: 'same-origin' })
+                    .then(function (r) {
+                        refreshingSs = false;
+                        if (r.status !== 200) return res; // sesión realmente caducada
+                        return r.json().then(function (td) {
+                            if (!td || !td.token) return res;
+                            updateMetaToken(td.token);
+                            var newOpts = Object.assign({}, opts || {});
+                            newOpts.headers = Object.assign({}, newOpts.headers || {}, {
+                                'X-CSRF-TOKEN': td.token,
+                            });
+                            return _fetch(url, newOpts);
+                        });
+                    })
+                    .catch(function () { refreshingSs = false; return res; });
+            }
+
+            // ── 403: token CSRF inválido ──────────────────────────────────────
+            if (res.status !== 403 || refreshingCs) return res;
             return res.clone().json().then(function (data) {
                 var msg = (data && data.message) ? data.message.toLowerCase() : '';
                 if (!msg.includes('csrf')) return res;
 
-                refreshing = true;
+                refreshingCs = true;
                 return _fetch(csrfEndpoint(), { credentials: 'same-origin' })
                     .then(function (r) { return r.json(); })
                     .then(function (td) {
-                        refreshing = false;
+                        refreshingCs = false;
                         if (!td || !td.token) return res;
                         updateMetaToken(td.token);
                         var newOpts  = Object.assign({}, opts || {});
@@ -40,7 +68,7 @@
                         });
                         return _fetch(url, newOpts);
                     })
-                    .catch(function () { refreshing = false; return res; });
+                    .catch(function () { refreshingCs = false; return res; });
             }).catch(function () { return res; });
         });
     };

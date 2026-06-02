@@ -235,26 +235,21 @@ function rememberCheckCookie(): bool
     $hash = hash('sha256', $raw);
 
     try {
+        // DELETE atómico: solo una petición concurrente puede eliminar el token.
+        // Si rowCount === 0, otra petición ya lo usó; no borrar la cookie (puede
+        // contener el token rotado emitido por esa otra petición).
         $stmt = $db->prepare(
-            "SELECT id FROM user_remember_tokens
-             WHERE user_id = ? AND token_hash = ? AND expires_at > NOW()
-             LIMIT 1"
+            "DELETE FROM user_remember_tokens
+             WHERE user_id = ? AND token_hash = ? AND expires_at > NOW()"
         );
         $stmt->execute([$userId, $hash]);
-        $row = $stmt->fetch();
     } catch (PDOException $e) {
         return false;
     }
 
-    if (!$row) {
-        rememberClearCookie();
+    if ($stmt->rowCount() === 0) {
         return false;
     }
-
-    // Token válido: revocar el actual y emitir uno nuevo (rotación)
-    try {
-        $db->prepare("DELETE FROM user_remember_tokens WHERE id = ?")->execute([$row['id']]);
-    } catch (PDOException $e) {}
 
     // Cargar datos del usuario
     $users = getUsers();
@@ -281,7 +276,7 @@ function rememberCheckCookie(): bool
     $_SESSION['lang']       = $user['lang'] ?? 'es';
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 
-    session_regenerate_id(true);
+    session_regenerate_id(false); // false: conservar sesión anterior para peticiones en vuelo
     $_SESSION['_created'] = time();
 
     // Emitir nuevo token (rotación)

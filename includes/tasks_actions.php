@@ -382,19 +382,23 @@ function timerStart(PDO $db, int $userId): void
         return;
     }
 
-    // Tarea completada: comportamiento según si es recurrente y si fue el mismo día
+    // Tarea completada: comportamiento según si es recurrente, si fue el mismo día
+    // y si el usuario modificó el título (señal de que quiere una tarea distinta).
     if ($existingTask['status'] === 'completed') {
-        $recurring = (bool) $existingTask['is_recurring'];
+        $recurring    = (bool) $existingTask['is_recurring'];
+        $titleChanged = !empty($title) && $title !== $existingTask['title'];
 
         $lastDayStmt = $db->prepare("SELECT MAX(DATE(start_time)) FROM time_entries WHERE task_id = ? AND user_id = ?");
         $lastDayStmt->execute([$taskId, $userId]);
         $lastDay = $lastDayStmt->fetchColumn();
         $sameDay = ($lastDay === date('Y-m-d'));
 
-        if (!$recurring && !$sameDay) {
-            // No recurrente + día distinto → instancia nueva sin due_date
+        if (!$recurring && ($titleChanged || !$sameDay)) {
+            // Título distinto → nueva instancia con el nombre que el usuario indicó.
+            // Día distinto → nueva instancia con el nombre original.
+            $newTitle = $titleChanged ? $title : $existingTask['title'];
             $ins = $db->prepare("INSERT INTO tasks (user_id, alliance_id, title, status) VALUES (?, ?, ?, 'in_progress')");
-            $ins->execute([$userId, $existingTask['alliance_id'], $existingTask['title']]);
+            $ins->execute([$userId, $existingTask['alliance_id'], $newTitle]);
             $newTaskId = (int) $db->lastInsertId();
 
             $tagStmt = $db->prepare("SELECT tag_id FROM task_tags WHERE task_id = ?");
@@ -407,7 +411,7 @@ function timerStart(PDO $db, int $userId): void
 
             $taskId = $newTaskId;
         } elseif (!$recurring && $sameDay) {
-            // No recurrente + mismo día → reabrir y limpiar due_date vencido
+            // Mismo nombre + mismo día → reabrir y limpiar due_date vencido
             $db->prepare("UPDATE tasks SET status = 'in_progress', due_date = IF(due_date < CURDATE(), NULL, due_date) WHERE id = ?")
                ->execute([$taskId]);
         } else {

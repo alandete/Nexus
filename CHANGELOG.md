@@ -3,6 +3,13 @@
 Todos los cambios relevantes del proyecto se documentan en este archivo.
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+### Fix: re-login frecuente tras inactividad y tarea duplicada al cambiar nombre — 2026-06-02
+
+- **`includes/auth.php`**: `rememberCheckCookie()` usa `DELETE` atómico en lugar de `SELECT + DELETE`; el hilo que pierde la carrera devuelve `false` sin borrar la cookie (que ya contiene el token rotado por el hilo ganador). `session_regenerate_id(true)` → `false` para no invalidar peticiones en vuelo con la sesión anterior.
+- **`assets/js/scripts.js`**: el interceptor `fetch` ahora maneja también 401 — verifica si la sesión fue restaurada por una petición concurrente (recuérdame) antes de redirigir al login; si sí, reintenta con el token CSRF fresco.
+- **`includes/tasks_actions.php`**: `timerStart()` — si el usuario modifica el título antes de darle play a una tarea completada, se crea una instancia nueva (con alianza y etiquetas copiadas) en lugar de reabrir el registro original; el nombre original sigue intacto.
+- **`.gitignore`**: ignorar `docs/*.txt` y `assets/img/Propuesta logo/` para evitar bloqueo del WAF de Cloudflare al hacer push.
+
 ### Fix: comando cron apuntaba a /dev/null en lugar del log propio — 2026-06-01
 
 - **`pages/snapshots.php`** y **`assets/js/snapshots.js`**: el comando cron que muestra la UI ahora redirige la salida a `data/cron_run.log` dentro del proyecto en lugar de `/dev/null`, de modo que cualquiera que lo copie directamente tiene el comando correcto con trazabilidad.

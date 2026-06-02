@@ -50,3 +50,7 @@ desktop.ini
 
 # Claude
 .claude/
+
+# Documentacion auxiliar (borradores y TXT redundantes con MD ya versionados)
+docs/*.txt
+assets/img/Propuesta logo/

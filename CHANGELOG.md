@@ -3,6 +3,10 @@
 Todos los cambios relevantes del proyecto se documentan en este archivo.
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+### Fix: comando cron apuntaba a /dev/null en lugar del log propio — 2026-06-01
+
+- **`pages/snapshots.php`** y **`assets/js/snapshots.js`**: el comando cron que muestra la UI ahora redirige la salida a `data/cron_run.log` dentro del proyecto en lugar de `/dev/null`, de modo que cualquiera que lo copie directamente tiene el comando correcto con trazabilidad.
+
 ### Fix: backups automáticos sin diagnóstico — 2026-06-01
 
 - **`cron/backup_cron.php`**: añadido parámetro `force=1` para ejecutar un backup inmediato sin actualizar `last_run` ni respetar la frecuencia mínima (útil para probar). Cada ejecución (éxito o error) se registra en `data/cron_log.json` (últimas 20 entradas).

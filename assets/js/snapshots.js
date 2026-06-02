@@ -365,7 +365,7 @@
         const h   = String(hour ?? 23).padStart(2, '0');
         const day = { daily: '* * *', weekly: '* * 0', monthly: '1 * *' }[freq] || '* * *';
         const url = sched.baseUrl + '?token=' + encodeURIComponent(token);
-        return '0 ' + h + ' ' + day + ' curl -s "' + url + '" > /dev/null 2>&1';
+        return '0 ' + h + ' ' + day + ' curl -s "' + url + '" >> ' + (sched.cronLogPath || '/tmp/nexus-cron.log') + ' 2>&1';
     }
 
     function updateCronInput(token, freq, hour) {

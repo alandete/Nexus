@@ -32,7 +32,8 @@ if (file_exists($cronLogFile)) {
 $cronDayPart = ['daily' => '* * *', 'weekly' => '* * 0', 'monthly' => '1 * *'];
 $cronTime    = '0 ' . $schedHour . ' ' . ($cronDayPart[$schedFrequency] ?? '* * *');
 $cronUrl     = rtrim(APP_BASE_URL, '/') . '/cron/backup_cron.php?token=' . urlencode($schedToken);
-$cronCmd     = $schedToken ? ($cronTime . ' curl -s "' . $cronUrl . '" > /dev/null 2>&1') : '';
+$cronLogPath = rtrim(str_replace('\\', '/', BASE_PATH), '/') . '/data/cron_run.log';
+$cronCmd     = $schedToken ? ($cronTime . ' curl -s "' . $cronUrl . '" >> ' . $cronLogPath . ' 2>&1') : '';
 
 // Helpers locales para leer metadata sin cargar todo backup_actions.php
 $__getFavorites = function (): array {
@@ -461,6 +462,7 @@ window.__SCHEDULE__ = {
     token:     <?= json_encode($schedToken) ?>,
     frequency: <?= json_encode($schedFrequency) ?>,
     hour:      <?= $schedHour ?>,
-    baseUrl:   <?= json_encode(rtrim(APP_BASE_URL, '/') . '/cron/backup_cron.php') ?>,
+    baseUrl:    <?= json_encode(rtrim(APP_BASE_URL, '/') . '/cron/backup_cron.php') ?>,
+    cronLogPath: <?= json_encode($cronLogPath) ?>,
 };
 </script>

@@ -3,6 +3,12 @@
 Todos los cambios relevantes del proyecto se documentan en este archivo.
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+### Mejora: slogan de la app en el encabezado del PDF de reportes — 2026-06-02
+
+- **`pages/reports.php`**: `window.__REPORTS__` ahora incluye `appName` y `appTagline` tomados de la configuración del proyecto.
+- **`assets/js/reports.js`**: el encabezado de impresión usa el nombre dinámico de la app y muestra el slogan debajo si está configurado.
+- **`assets/css/styles.css`**: estilos `.print-doc-app-info` y `.print-doc-app-tagline` para el bloque de identidad en el PDF.
+
 ### Fix: re-login frecuente tras inactividad y tarea duplicada al cambiar nombre — 2026-06-02
 
 - **`includes/auth.php`**: `rememberCheckCookie()` usa `DELETE` atómico en lugar de `SELECT + DELETE`; el hilo que pierde la carrera devuelve `false` sin borrar la cookie (que ya contiene el token rotado por el hilo ganador). `session_regenerate_id(true)` → `false` para no invalidar peticiones en vuelo con la sesión anterior.

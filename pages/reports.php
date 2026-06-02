@@ -144,5 +144,7 @@ window.__REPORTS__ = {
         name: <?= json_encode($currentUser['name'] ?? '', JSON_UNESCAPED_UNICODE) ?>,
         username: <?= json_encode($currentUser['username'] ?? '', JSON_UNESCAPED_UNICODE) ?>,
     },
+    appName:    <?= json_encode($projectInfo['app_name'] ?? 'Nexus', JSON_UNESCAPED_UNICODE) ?>,
+    appTagline: <?= json_encode($projectInfo['tagline'] ?? '', JSON_UNESCAPED_UNICODE) ?>,
 };
 </script>

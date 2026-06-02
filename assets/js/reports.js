@@ -326,11 +326,17 @@
         `;
 
         // Cabecera de impresion: izq logo+app | der tipo de informe + nombre usuario
+        const _meta     = window.__REPORTS__ || {};
+        const _appName  = _meta.appName    || 'Nexus';
+        const _tagline  = _meta.appTagline || '';
         const printHeader = `
             <div class="print-doc-header" aria-hidden="true">
                 <div class="print-doc-branding">
-                    <img src="assets/img/favicon.svg" class="print-doc-logo" alt="Nexus">
-                    <span class="print-doc-app-name">Nexus</span>
+                    <img src="assets/img/favicon.svg" class="print-doc-logo" alt="${escapeHtml(_appName)}">
+                    <div class="print-doc-app-info">
+                        <span class="print-doc-app-name">${escapeHtml(_appName)}</span>
+                        ${_tagline ? `<span class="print-doc-app-tagline">${escapeHtml(_tagline)}</span>` : ''}
+                    </div>
                 </div>
                 <div class="print-doc-meta">
                     <div class="print-doc-report-type">Informe ${escapeHtml(typeLabel)} de actividades</div>

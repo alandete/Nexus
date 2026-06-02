@@ -1,4 +1,4 @@
-(function () {
+﻿(function () {
     'use strict';
 
     const ENDPOINT   = 'includes/image_optimizer_actions.php';
@@ -78,7 +78,7 @@
         try {
             const fd = new FormData();
             fd.append('action', 'status');
-            const res  = await fetch(ENDPOINT, { method: 'POST', headers: { 'X-CSRF-TOKEN': csrfToken }, body: fd });
+            const res  = await fetch(ENDPOINT, { method: 'POST', headers: { 'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]')?.content || csrfToken) }, body: fd });
             const data = await res.json();
             if (!data.success) return;
 
@@ -237,7 +237,7 @@
 
             let data;
             try {
-                const res = await fetch(ENDPOINT, { method: 'POST', headers: { 'X-CSRF-TOKEN': csrfToken }, body: fd });
+                const res = await fetch(ENDPOINT, { method: 'POST', headers: { 'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]')?.content || csrfToken) }, body: fd });
                 data = await res.json();
             } catch (_) {
                 data = { success: false, message: 'Error de red' };
@@ -384,7 +384,7 @@
 
         let data;
         try {
-            const res = await fetch(ENDPOINT, { method: 'POST', headers: { 'X-CSRF-TOKEN': csrfToken }, body: fd });
+            const res = await fetch(ENDPOINT, { method: 'POST', headers: { 'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]')?.content || csrfToken) }, body: fd });
             data = await res.json();
         } catch (_) {
             data = { success: false, message: 'Error de red' };
@@ -499,7 +499,7 @@
 
         let data;
         try {
-            const res = await fetch(ENDPOINT, { method: 'POST', headers: { 'X-CSRF-TOKEN': csrfToken }, body: fd });
+            const res = await fetch(ENDPOINT, { method: 'POST', headers: { 'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]')?.content || csrfToken) }, body: fd });
             data = await res.json();
         } catch (_) {
             data = { success: false, message: 'Error de red' };

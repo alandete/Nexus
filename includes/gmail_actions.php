@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * Nexus 2.0 — Integración Gmail IMAP
  *
@@ -17,6 +17,7 @@ header('Cache-Control: no-store, no-cache, must-revalidate');
 header('Pragma: no-cache');
 
 if (!isLoggedIn()) {
+    http_response_code(401);
     echo json_encode(['success' => false, 'message' => 'No autorizado']);
     exit;
 }

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * Nexus 2.0 — Rise Patch Actions
  * Estrategia: escanea solo los JS, copia el ZIP original íntegro y reemplaza
@@ -12,6 +12,7 @@ require_once __DIR__ . '/functions.php';
 header('Content-Type: application/json; charset=utf-8');
 
 if (!isLoggedIn()) {
+    http_response_code(401);
     echo json_encode(['success' => false, 'message' => 'No autorizado']);
     exit;
 }

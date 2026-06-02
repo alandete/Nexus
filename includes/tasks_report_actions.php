@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * Nexus 2.0 — Reporte mensual de actividades de tareas
  * Endpoint JSON con estadisticas por mes y alianza (opcional: tareas y etiquetas).
@@ -12,6 +12,7 @@ header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store, no-cache, must-revalidate');
 
 if (!isLoggedIn()) {
+    http_response_code(401);
     echo json_encode(['success' => false, 'message' => 'No autorizado']);
     exit;
 }

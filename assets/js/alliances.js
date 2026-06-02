@@ -1,4 +1,4 @@
-(function () {
+﻿(function () {
     'use strict';
 
     const ENDPOINT  = 'includes/alliance_actions.php';
@@ -128,7 +128,7 @@
             const fd = new FormData();
             fd.append('action', 'check_url');
             fd.append('url', val);
-            const res  = await fetch(ENDPOINT, { method: 'POST', headers: { 'X-CSRF-TOKEN': csrfToken }, body: fd });
+            const res  = await fetch(ENDPOINT, { method: 'POST', headers: { 'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]')?.content || csrfToken) }, body: fd });
             const json = await res.json();
             input.classList.remove('is-checking');
             input.classList.toggle('is-valid',   !!json.reachable);
@@ -175,7 +175,7 @@
 
             const res  = await fetch(ENDPOINT, {
                 method:  'POST',
-                headers: { 'X-CSRF-TOKEN': csrfToken },
+                headers: { 'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]')?.content || csrfToken) },
                 body:    fd,
             });
             const json = await res.json();

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * Nexus 2.0 — Backup Schedule Actions
  * Guarda y actualiza la configuración de backup automático
@@ -12,6 +12,7 @@ header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
 
 if (!isLoggedIn()) {
+    http_response_code(401);
     echo json_encode(['success' => false, 'message' => 'No autorizado']);
     exit;
 }

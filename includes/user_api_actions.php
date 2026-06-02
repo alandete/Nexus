@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * Nexus 2.0 — User API Actions
  * Gestiona las claves iLovePDF por usuario (cada usuario administra las suyas)
@@ -11,6 +11,7 @@ header('Content-Type: application/json; charset=utf-8');
 header('Cache-Control: no-store');
 
 if (!isLoggedIn()) {
+    http_response_code(401);
     echo json_encode(['success' => false, 'message' => 'No autorizado']);
     exit;
 }

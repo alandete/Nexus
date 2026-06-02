@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * NexusApp - Diagnóstico del sistema
  * Ejecuta verificaciones y retorna resultados con sugerencias de solución
@@ -13,6 +13,7 @@ header('Cache-Control: no-store, no-cache, must-revalidate');
 header('Pragma: no-cache');
 
 if (!isLoggedIn()) {
+    http_response_code(401);
     echo json_encode(['success' => false, 'message' => 'No autorizado']);
     exit;
 }

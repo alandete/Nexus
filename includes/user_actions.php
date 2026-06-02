@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * S4Learning - Acciones de Usuarios (CRUD)
  * Maneja creación, edición y eliminación de usuarios
@@ -12,6 +12,7 @@ header('Content-Type: application/json');
 
 // Verificar sesión
 if (!isLoggedIn()) {
+    http_response_code(401);
     echo json_encode(['success' => false, 'message' => 'No autorizado']);
     exit;
 }

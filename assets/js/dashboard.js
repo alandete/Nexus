@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Nexus 2.0 — Dashboard JS
  * Timer activo y tiempo del dia
  */
@@ -16,7 +16,7 @@
         }
         return fetch('includes/tasks_actions.php', {
             method: 'POST',
-            headers: { 'X-CSRF-TOKEN': csrfToken },
+            headers: { 'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]')?.content || csrfToken) },
             body: fd
         }).then(function(r) { return r.json(); });
     }

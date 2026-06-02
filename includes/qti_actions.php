@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 /**
  * S4Learning - QTI Actions Handler
  * Procesa archivos .docx/.xlsx y genera formato QTI 1.2 para Canvas LMS
@@ -14,6 +14,7 @@ header('Content-Type: application/json; charset=utf-8');
 
 // Verificar sesion
 if (!isLoggedIn()) {
+    http_response_code(401);
     echo json_encode(['success' => false, 'message' => 'No autorizado']);
     exit;
 }

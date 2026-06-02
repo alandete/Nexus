@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Nexus 2.0 — Reportes de actividades (Fase 4.5)
  * Filtros: tipo de reporte, rango (semanal/mensual/personalizado), usuario.
  * Auto-carga inicial con defaults (resumido + mes actual + usuario logueado).
@@ -1032,6 +1032,7 @@
                 document.body.classList.remove('is-printing-report');
                 document.title = originalTitle;
                 printDateStyle.remove();
+                document.getElementById('print-tagline-style')?.remove();
                 if (_authorMetaCreated) { _authorMeta.remove(); } else { _authorMeta.content = _originalAuthor; }
                 if (_subjectMetaCreated) { _subjectMeta.remove(); } else { _subjectMeta.content = _originalSubject; }
                 if (chartInstance) {

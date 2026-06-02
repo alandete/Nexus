@@ -988,7 +988,7 @@
             document.head.appendChild(_authorMeta);
         }
         const _originalAuthor = _authorMeta.content;
-        _authorMeta.content = userName;
+        _authorMeta.content = _appName;
 
         let _subjectMeta = document.querySelector('meta[name="subject"]');
         const _subjectMetaCreated = !_subjectMeta;

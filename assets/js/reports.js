@@ -966,10 +966,39 @@
 
     function exportPDF() {
         if (!lastReport) return;
+
+        const _meta      = window.__REPORTS__ || {};
+        const _appName   = _meta.appName || 'Nexus';
+        const userName   = lastReport.user.name || lastReport.user.username || '';
+        const p          = lastReport.period;
+        const typeLabel  = state.type === 'detailed'
+            ? t('reports.type_detailed', 'Detallado')
+            : t('reports.type_summary', 'Resumido');
+
+        // Título del documento PDF
         const originalTitle = document.title;
-        const u = lastReport.user.username || lastReport.user.name || 'user';
-        const p = lastReport.period;
-        document.title = `Reporte ${u} ${p.start} a ${p.end}`;
+        document.title = `${_appName} — Informe ${typeLabel} — ${userName}${p.label ? ' — ' + p.label : ''}`;
+
+        // Autor y asunto del PDF (Chrome/Edge los incluyen en los metadatos al imprimir)
+        let _authorMeta = document.querySelector('meta[name="author"]');
+        const _authorMetaCreated = !_authorMeta;
+        if (!_authorMeta) {
+            _authorMeta = document.createElement('meta');
+            _authorMeta.name = 'author';
+            document.head.appendChild(_authorMeta);
+        }
+        const _originalAuthor = _authorMeta.content;
+        _authorMeta.content = userName;
+
+        let _subjectMeta = document.querySelector('meta[name="subject"]');
+        const _subjectMetaCreated = !_subjectMeta;
+        if (!_subjectMeta) {
+            _subjectMeta = document.createElement('meta');
+            _subjectMeta.name = 'subject';
+            document.head.appendChild(_subjectMeta);
+        }
+        const _originalSubject = _subjectMeta.content;
+        _subjectMeta.content = `Informe ${typeLabel} de actividades`;
 
         // Redimensionar el grafico a las proporciones de impresion (8cm ≈ 302px a 96dpi)
         // y ocultar la leyenda Chart.js. Quitar responsive para que el resize persista.
@@ -1003,6 +1032,8 @@
                 document.body.classList.remove('is-printing-report');
                 document.title = originalTitle;
                 printDateStyle.remove();
+                if (_authorMetaCreated) { _authorMeta.remove(); } else { _authorMeta.content = _originalAuthor; }
+                if (_subjectMetaCreated) { _subjectMeta.remove(); } else { _subjectMeta.content = _originalSubject; }
                 if (chartInstance) {
                     chartInstance.options.responsive = true;
                     chartInstance.options.plugins.legend.display = true;

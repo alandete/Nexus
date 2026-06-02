@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Nexus 2.0 — Snapshots (Copias de seguridad)
  * Listar, crear, restaurar, descargar, favoritos, eliminar
  */
@@ -28,7 +28,7 @@
         Object.keys(data).forEach(k => fd.append(k, data[k] ?? ''));
         const res = await fetch('includes/backup_actions.php', {
             method: 'POST',
-            headers: { 'X-CSRF-TOKEN': csrfToken },
+            headers: { 'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]')?.content || csrfToken) },
             body: fd,
         });
         return res.json();
@@ -202,7 +202,7 @@
             if (cleanup) {
                 await fetch('includes/cleanup_actions.php', {
                     method: 'POST',
-                    headers: { 'X-CSRF-TOKEN': csrfToken },
+                    headers: { 'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]')?.content || csrfToken) },
                     body: new URLSearchParams({ action: 'clean' }),
                 }).catch(() => {});
             }
@@ -353,7 +353,7 @@
         Object.keys(data).forEach(k => fd.append(k, data[k] ?? ''));
         const res = await fetch('includes/backup_schedule_actions.php', {
             method: 'POST',
-            headers: { 'X-CSRF-TOKEN': csrfToken },
+            headers: { 'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]')?.content || csrfToken) },
             body: fd,
         });
         return res.json();

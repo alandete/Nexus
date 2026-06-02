@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Nexus 2.0 — System
  * Ejecuta diagnostico y renderiza resultados
  */
@@ -35,7 +35,7 @@
         try {
             const res = await fetch('includes/diagnostics_actions.php', {
                 method: 'POST',
-                headers: { 'X-CSRF-TOKEN': csrfToken },
+                headers: { 'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]')?.content || csrfToken) },
             });
             const data = await res.json();
 
@@ -117,7 +117,7 @@
         try {
             const res = await fetch('includes/deps_check_actions.php', {
                 method: 'POST',
-                headers: { 'X-CSRF-TOKEN': csrfToken },
+                headers: { 'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]')?.content || csrfToken) },
             });
             const data = await res.json();
 

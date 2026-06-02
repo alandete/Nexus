@@ -1,4 +1,4 @@
-(function () {
+﻿(function () {
     'use strict';
 
     const ENDPOINT  = 'includes/pdf_optimizer_actions.php';
@@ -22,7 +22,7 @@
         try {
             const fd = new FormData();
             fd.append('action', 'status');
-            const res  = await fetch(ENDPOINT, { method: 'POST', headers: { 'X-CSRF-TOKEN': csrfToken }, body: fd });
+            const res  = await fetch(ENDPOINT, { method: 'POST', headers: { 'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]')?.content || csrfToken) }, body: fd });
             const data = await res.json();
             if (!data.success) return;
 
@@ -155,7 +155,7 @@
         const controller = new AbortController();
         const timer = setTimeout(() => controller.abort(), 180000);
         try {
-            const res = await fetch(ENDPOINT, { method: 'POST', headers: { 'X-CSRF-TOKEN': csrfToken }, body: fd, signal: controller.signal });
+            const res = await fetch(ENDPOINT, { method: 'POST', headers: { 'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]')?.content || csrfToken) }, body: fd, signal: controller.signal });
             data = await res.json();
         } catch (err) {
             data = { success: false, message: err.name === 'AbortError' ? 'El proceso tardó demasiado. Intenta con un archivo más pequeño.' : 'Error de red' };

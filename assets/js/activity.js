@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Nexus 2.0 — Activity Log
  * Tabla filtrable con paginacion via AJAX
  */
@@ -74,7 +74,7 @@
             });
 
             const res = await fetch('includes/reports_actions.php?' + params.toString(), {
-                headers: { 'X-CSRF-TOKEN': csrfToken },
+                headers: { 'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]')?.content || csrfToken) },
             });
             const data = await res.json();
 
@@ -283,7 +283,7 @@
             fd.append('action', 'clear');
             const res = await fetch('includes/reports_actions.php', {
                 method: 'POST',
-                headers: { 'X-CSRF-TOKEN': csrfToken },
+                headers: { 'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]')?.content || csrfToken) },
                 body: fd,
             });
             const data = await res.json();

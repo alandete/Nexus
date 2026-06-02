@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Nexus 2.0 — Integrations (iLovePDF / iLoveIMG)
  * Guarda claves encriptadas, prueba conexion, muestra info del plan
  */
@@ -75,7 +75,7 @@
         Object.keys(data).forEach(k => fd.append(k, data[k] ?? ''));
         const res = await fetch('includes/user_api_actions.php', {
             method: 'POST',
-            headers: { 'X-CSRF-TOKEN': csrfToken },
+            headers: { 'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]')?.content || csrfToken) },
             body: fd,
         });
         return res.json();
@@ -86,7 +86,7 @@
         Object.keys(data).forEach(k => fd.append(k, data[k] ?? ''));
         const res = await fetch('includes/api_settings_actions.php', {
             method: 'POST',
-            headers: { 'X-CSRF-TOKEN': csrfToken },
+            headers: { 'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]')?.content || csrfToken) },
             body: fd,
         });
         return res.json();
@@ -219,7 +219,7 @@
         Object.keys(data).forEach(k => fd.append(k, data[k] ?? ''));
         const res = await fetch('includes/gmail_actions.php', {
             method: 'POST',
-            headers: { 'X-CSRF-TOKEN': csrfToken },
+            headers: { 'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]')?.content || csrfToken) },
             body: fd,
         });
         if (res.status === 401) {

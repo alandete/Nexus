@@ -1,4 +1,4 @@
-(function () {
+﻿(function () {
     'use strict';
 
     const ENDPOINT  = 'includes/gift_actions.php';
@@ -133,7 +133,7 @@
         try {
             const res = await fetch(ENDPOINT, {
                 method: 'POST',
-                headers: { 'X-CSRF-TOKEN': csrfToken },
+                headers: { 'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]')?.content || csrfToken) },
                 body: fd,
             });
             data = await res.json();

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Nexus 2.0 — Administrar tareas (Ajustes)
  * Sub-fase 5: CRUD de etiquetas (edicion inline) + tabs
  */
@@ -22,7 +22,7 @@
         Object.keys(payload).forEach(k => fd.append(k, payload[k] ?? ''));
         const res = await fetch('includes/tasks_actions.php', {
             method: 'POST',
-            headers: { 'X-CSRF-TOKEN': csrfToken },
+            headers: { 'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]')?.content || csrfToken) },
             body: fd,
         });
         return res.json();
@@ -701,7 +701,7 @@
             fd.append('entries', JSON.stringify(resolved));
             const res = await fetch('includes/io_actions.php', {
                 method: 'POST',
-                headers: { 'X-CSRF-TOKEN': csrfToken },
+                headers: { 'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]')?.content || csrfToken) },
                 body: fd,
             });
             if (res.status === 401) {
@@ -824,7 +824,7 @@
             Object.keys(payload).forEach(k => fd.append(k, payload[k]));
             const res = await fetch('includes/tasks_cleanup_actions.php', {
                 method: 'POST',
-                headers: { 'X-CSRF-TOKEN': csrfToken },
+                headers: { 'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]')?.content || csrfToken) },
                 body: fd,
             });
             return res.json();
@@ -1039,7 +1039,7 @@
             fd.append('file', file);
             const res = await fetch('includes/tasks_actions.php', {
                 method: 'POST',
-                headers: { 'X-CSRF-TOKEN': csrfToken },
+                headers: { 'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]')?.content || csrfToken) },
                 body: fd,
             });
             const data = await res.json();

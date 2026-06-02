@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Nexus 2.0 — Users Management
  * CRUD con busqueda, filtros y validacion inline
  */
@@ -36,7 +36,7 @@
         });
         const res = await fetch('includes/user_actions.php', {
             method: 'POST',
-            headers: { 'X-CSRF-TOKEN': csrfToken },
+            headers: { 'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]')?.content || csrfToken) },
             body: fd,
         });
         return res.json();
@@ -535,7 +535,7 @@
         Object.keys(data).forEach(k => fd.append(k, data[k] ?? ''));
         const res = await fetch('includes/user_api_actions.php', {
             method: 'POST',
-            headers: { 'X-CSRF-TOKEN': csrfToken },
+            headers: { 'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]')?.content || csrfToken) },
             body: fd,
         });
         return res.json();
@@ -679,7 +679,7 @@
             fd.append('calendar_ical_url', url);
             const res = await fetch('includes/user_actions.php', {
                 method: 'POST',
-                headers: { 'X-CSRF-TOKEN': csrfToken },
+                headers: { 'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]')?.content || csrfToken) },
                 body: fd,
             });
             return res.json();
@@ -697,7 +697,7 @@
                 fd.append('username', targetUsername);
                 fd.append('active', active ? '1' : '0');
                 try {
-                    const res  = await fetch('includes/user_actions.php', { method: 'POST', headers: { 'X-CSRF-TOKEN': csrfToken }, body: fd });
+                    const res  = await fetch('includes/user_actions.php', { method: 'POST', headers: { 'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]')?.content || csrfToken) }, body: fd });
                     const data = await res.json();
                     if (data.success) {
                         if (usersData[targetUsername]) usersData[targetUsername].calendar_active = active;

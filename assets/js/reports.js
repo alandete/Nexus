@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Nexus 2.0 — Reportes de actividades (Fase 4.5)
  * Filtros: tipo de reporte, rango (semanal/mensual/personalizado), usuario.
  * Auto-carga inicial con defaults (resumido + mes actual + usuario logueado).
@@ -37,7 +37,7 @@
         Object.keys(payload).forEach(k => fd.append(k, payload[k] ?? ''));
         const res = await fetch('includes/tasks_report_actions.php', {
             method: 'POST',
-            headers: { 'X-CSRF-TOKEN': csrfToken },
+            headers: { 'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]')?.content || csrfToken) },
             body: fd,
         });
         return res.json();

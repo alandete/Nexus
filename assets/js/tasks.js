@@ -106,13 +106,17 @@
         return null;
     }
 
+    function liveToken() {
+        return document.querySelector('meta[name="csrf-token"]')?.content || csrfToken;
+    }
+
     async function api(action, data = {}) {
         const fd = new FormData();
         fd.append('action', action);
         Object.keys(data).forEach(k => fd.append(k, data[k] ?? ''));
         const res = await fetch('includes/tasks_actions.php', {
             method: 'POST',
-            headers: { 'X-CSRF-TOKEN': csrfToken },
+            headers: { 'X-CSRF-TOKEN': liveToken() },
             body: fd,
         });
         return res.json();

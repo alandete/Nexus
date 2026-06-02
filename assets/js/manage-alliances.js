@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Nexus 2.0 — Manage Alliances
  * CRUD con vista tarjetas/tabla, busqueda, filtros, gestion de archivos
  */
@@ -64,7 +64,7 @@
         });
         const res = await fetch('includes/manage_alliances_actions.php', {
             method: 'POST',
-            headers: { 'X-CSRF-TOKEN': csrfToken },
+            headers: { 'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]')?.content || csrfToken) },
             body: fd,
         });
         return res.json();
@@ -599,7 +599,7 @@
                 try {
                     const res = await fetch('includes/manage_alliances_actions.php', {
                         method: 'POST',
-                        headers: { 'X-CSRF-TOKEN': csrfToken },
+                        headers: { 'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]')?.content || csrfToken) },
                         body: formData,
                     });
                     const data = await res.json();

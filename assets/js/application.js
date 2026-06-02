@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Nexus 2.0 — Application Settings
  * Guarda configuracion, preview de colores en vivo, gestion de assets
  */
@@ -200,7 +200,7 @@
         try {
             const res = await fetch('includes/projectinfo_actions.php', {
                 method: 'POST',
-                headers: { 'X-CSRF-TOKEN': csrfToken },
+                headers: { 'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]')?.content || csrfToken) },
                 body: fd,
             });
             const result = await res.json();

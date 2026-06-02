@@ -8517,9 +8517,16 @@ a.stat-card:hover {
     margin: 1.4cm 1.5cm 1.6cm 1.5cm;
 }
 
-/* Numero de pagina en el margen inferior derecho (CSS Paged Media, funciona en Chrome/Edge) */
+/* Pie de página: izq paginación | centro app+slogan | der fecha generación */
 @page {
     @bottom-left {
+        content: "Página " counter(page);
+        font-size: 7pt;
+        color: #888;
+        font-family: system-ui, -apple-system, sans-serif;
+        vertical-align: top;
+    }
+    @bottom-center {
         content: "Nexus";
         font-size: 7pt;
         font-weight: 700;
@@ -8528,7 +8535,7 @@ a.stat-card:hover {
         vertical-align: top;
     }
     @bottom-right {
-        content: "Página " counter(page);
+        content: "";
         font-size: 7pt;
         color: #888;
         font-family: system-ui, -apple-system, sans-serif;
@@ -8615,26 +8622,12 @@ a.stat-card:hover {
         flex-shrink: 0;
     }
 
-    .print-doc-app-info {
-        display: flex;
-        flex-direction: column;
-        gap: 0;
-    }
-
     .print-doc-app-name {
         font-size: 17pt;
         font-weight: 700;
         color: #000;
         letter-spacing: -0.02em;
         line-height: 1;
-    }
-
-    .print-doc-app-tagline {
-        font-size: 7pt;
-        font-weight: 400;
-        color: #666;
-        line-height: 1.2;
-        letter-spacing: 0;
     }
 
     .print-doc-meta {

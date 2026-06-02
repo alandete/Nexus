@@ -329,14 +329,21 @@
         const _meta     = window.__REPORTS__ || {};
         const _appName  = _meta.appName    || 'Nexus';
         const _tagline  = _meta.appTagline || '';
+        // Inyectar tagline en @bottom-left si está configurado
+        const _existingTaglineStyle = document.getElementById('print-tagline-style');
+        if (_existingTaglineStyle) _existingTaglineStyle.remove();
+        if (_tagline) {
+            const s = document.createElement('style');
+            s.id = 'print-tagline-style';
+            s.textContent = `@page { @bottom-center { content: "${_appName.replace(/"/g, '\\"')}  ·  ${_tagline.replace(/"/g, '\\"')}"; } }`;
+            document.head.appendChild(s);
+        }
+
         const printHeader = `
             <div class="print-doc-header" aria-hidden="true">
                 <div class="print-doc-branding">
                     <img src="assets/img/favicon.svg" class="print-doc-logo" alt="${escapeHtml(_appName)}">
-                    <div class="print-doc-app-info">
-                        <span class="print-doc-app-name">${escapeHtml(_appName)}</span>
-                        ${_tagline ? `<span class="print-doc-app-tagline">${escapeHtml(_tagline)}</span>` : ''}
-                    </div>
+                    <span class="print-doc-app-name">${escapeHtml(_appName)}</span>
                 </div>
                 <div class="print-doc-meta">
                     <div class="print-doc-report-type">Informe ${escapeHtml(typeLabel)} de actividades</div>
@@ -983,7 +990,7 @@
         const printDateStyle = document.createElement('style');
         printDateStyle.id = '__nexus_print_date__';
         if (genDateStr) {
-            printDateStyle.textContent = `@page { @bottom-center { content: "Generado: ${genDateStr}"; font-size: 7pt; color: #888; font-family: system-ui,-apple-system,sans-serif; vertical-align: top; } }`;
+            printDateStyle.textContent = `@page { @bottom-right { content: "Generado: ${genDateStr}"; font-size: 7pt; color: #888; font-family: system-ui,-apple-system,sans-serif; vertical-align: top; } }`;
         }
         document.head.appendChild(printDateStyle);
 

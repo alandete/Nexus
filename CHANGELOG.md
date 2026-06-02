@@ -3,6 +3,14 @@
 Todos los cambios relevantes del proyecto se documentan en este archivo.
 Formato basado en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/).
 
+### Fix: backups automáticos sin diagnóstico — 2026-06-01
+
+- **`cron/backup_cron.php`**: añadido parámetro `force=1` para ejecutar un backup inmediato sin actualizar `last_run` ni respetar la frecuencia mínima (útil para probar). Cada ejecución (éxito o error) se registra en `data/cron_log.json` (últimas 20 entradas).
+- **`pages/snapshots.php`**: botón **"Ejecutar ahora"** junto a "Guardar" (solo visible cuando hay token). Muestra las últimas 5 ejecuciones del cron con estado, fuente (Cron/Manual), mensaje y tamaño.
+- **`assets/js/snapshots.js`**: handler del botón — llama a la URL del cron con `force=1`, muestra toast con resultado y recarga la página para reflejar el nuevo log.
+- **`assets/css/styles.css`**: estilos `.cron-log-*` para la lista de ejecuciones.
+- **`lang/es/snapshots.php`** y **`lang/en/snapshots.php`**: cadenas para los nuevos elementos.
+
 ### Fix: "Token CSRF inválido" tras inactividad con sesión activa — 2026-05-28
 
 - **`includes/auth.php`**: `rememberCheckCookie()` ahora genera `$_SESSION['csrf_token']` al restaurar la sesión. Antes la sesión se restauraba sin token CSRF y todos los endpoints devolvían 403.

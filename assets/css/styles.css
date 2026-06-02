@@ -6755,6 +6755,34 @@ a.stat-card:hover {
 }
 
 /* ============================================
+   CRON LOG
+   ============================================ */
+.cron-log-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ds-space-050);
+}
+
+.cron-log-entry {
+    display: flex;
+    align-items: center;
+    gap: var(--ds-space-075);
+    padding: var(--ds-space-075) var(--ds-space-100);
+    border-radius: var(--ds-border-radius);
+    font-size: var(--ds-font-size-small);
+    background: var(--ds-background-neutral);
+    border-left: 3px solid transparent;
+}
+
+.cron-log-ok  { border-left-color: var(--ds-icon-success); }
+.cron-log-err { border-left-color: var(--ds-icon-danger); }
+
+.cron-log-ts     { color: var(--ds-text-subtle); white-space: nowrap; }
+.cron-log-msg    { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cron-log-size   { white-space: nowrap; }
+.cron-log-icon   { line-height: 1; }
+
+/* ============================================
    ACTIVITY LOG
    ============================================ */
 .activity-filter-bar {

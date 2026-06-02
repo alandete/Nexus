@@ -463,6 +463,32 @@
             });
         }
 
+        // Ejecutar ahora (force=1, no actualiza last_run)
+        const runNowBtn = document.getElementById('btnRunNow');
+        if (runNowBtn) {
+            runNowBtn.addEventListener('click', async () => {
+                runNowBtn.disabled = true;
+                runNowBtn.classList.add('is-loading');
+                const url = sched.baseUrl + '?token=' + encodeURIComponent(currentToken) + '&force=1';
+                try {
+                    const res  = await fetch(url);
+                    const data = await res.json();
+                    if (data.success) {
+                        Toast.success(t('snapshots.cron_run_ok', 'Backup ejecutado: ') + (data.filename || ''));
+                        setTimeout(() => window.location.reload(), 1500);
+                    } else {
+                        Toast.error(data.message || t('snapshots.cron_run_err', 'Error al ejecutar el backup.'));
+                        setTimeout(() => window.location.reload(), 1500);
+                    }
+                } catch {
+                    Toast.error(t('common.err_network', 'Error de red.'));
+                } finally {
+                    runNowBtn.disabled = false;
+                    runNowBtn.classList.remove('is-loading');
+                }
+            });
+        }
+
         // Chips de tipo
         document.querySelectorAll('[data-sched-type]').forEach(chip => {
             chip.addEventListener('click', () => {

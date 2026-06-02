@@ -21,6 +21,14 @@ $schedHour      = (int) ($schedule['hour'] ?? 23);
 $schedToken     = $schedule['token']     ?? '';
 $schedLastRun   = $schedule['last_run']  ?? null;
 
+// Log de ejecuciones del cron
+$cronLogFile = DATA_PATH . '/cron_log.json';
+$cronLog     = [];
+if (file_exists($cronLogFile)) {
+    $decoded = json_decode(file_get_contents($cronLogFile), true);
+    if (is_array($decoded)) $cronLog = array_slice($decoded, 0, 5);
+}
+
 $cronDayPart = ['daily' => '* * *', 'weekly' => '* * 0', 'monthly' => '1 * *'];
 $cronTime    = '0 ' . $schedHour . ' ' . ($cronDayPart[$schedFrequency] ?? '* * *');
 $cronUrl     = rtrim(APP_BASE_URL, '/') . '/cron/backup_cron.php?token=' . urlencode($schedToken);
@@ -261,12 +269,40 @@ $nonFavFull = count(array_filter($backups, fn($b) => $b['type'] === 'full' && !$
                     <i class="bi bi-arrow-repeat" aria-hidden="true"></i>
                     <?= __('snapshots.btn_regen_token') ?>
                 </button>
+                <button type="button" class="btn btn-default btn-sm" id="btnRunNow"
+                        data-tooltip="<?= __('snapshots.btn_run_now_tip') ?>" data-tooltip-position="top">
+                    <i class="bi bi-play-fill" aria-hidden="true"></i>
+                    <?= __('snapshots.btn_run_now') ?>
+                </button>
                 <?php endif; ?>
                 <button type="button" class="btn btn-primary btn-sm" id="btnSaveSchedule">
                     <?= __('snapshots.btn_save_schedule') ?>
                 </button>
             </div>
         </div>
+
+        <?php if (!empty($cronLog)): ?>
+        <div class="mt-200">
+            <p class="form-label" style="margin-bottom:var(--ds-space-100);"><?= __('snapshots.cron_log_title') ?></p>
+            <div class="cron-log-list">
+                <?php foreach ($cronLog as $entry): ?>
+                <div class="cron-log-entry <?= $entry['success'] ? 'cron-log-ok' : 'cron-log-err' ?>">
+                    <span class="cron-log-ts"><?= htmlspecialchars($entry['ts']) ?></span>
+                    <span class="cron-log-source lozenge <?= $entry['source'] === 'manual' ? 'lozenge-info' : 'lozenge-default' ?>">
+                        <?= $entry['source'] === 'manual' ? __('snapshots.cron_source_manual') : __('snapshots.cron_source_auto') ?>
+                    </span>
+                    <span class="cron-log-icon">
+                        <i class="bi <?= $entry['success'] ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger' ?>" aria-hidden="true"></i>
+                    </span>
+                    <span class="cron-log-msg"><?= htmlspecialchars($entry['message'] ?: ($entry['file'] ?? '')) ?></span>
+                    <?php if (!empty($entry['size'])): ?>
+                    <span class="cron-log-size text-subtle"><?= htmlspecialchars($entry['size']) ?></span>
+                    <?php endif; ?>
+                </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+        <?php endif; ?>
     </div>
 </section>
 <?php endif; ?>

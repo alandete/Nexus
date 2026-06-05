@@ -61,7 +61,7 @@ $validPages = [
     'utilities-images', 'utilities-pdf', 'utilities-gift', 'utilities-rise',
     'reports',
     'settings', 'users', 'manage-alliances', 'manage-tasks', 'application', 'integrations', 'my-integrations',
-    'snapshots', 'system', 'activity',
+    'snapshots', 'system', 'activity', 'project-progress',
     'login', 'logout',
     'forgot-password', 'reset-password',
     '403', '404', '500',

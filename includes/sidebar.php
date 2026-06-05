@@ -10,7 +10,7 @@ $currentPage = isset($_GET['page']) ? $_GET['page'] : 'home';
 $currentUser = getCurrentUser();
 
 // Determinar que secciones del sidebar estan expandidas
-$settingsPages  = ['settings', 'users', 'manage-alliances', 'manage-tasks', 'application', 'integrations', 'snapshots', 'system', 'activity'];
+$settingsPages  = ['settings', 'users', 'manage-alliances', 'manage-tasks', 'application', 'integrations', 'snapshots', 'system', 'activity', 'project-progress'];
 $isAdmin        = ($currentUser['role'] ?? '') === 'admin';
 $isSettingsActive  = in_array($currentPage, $settingsPages);
 $utilitiesPages = ['utilities-images', 'utilities-pdf', 'utilities-gift', 'utilities-rise'];
@@ -184,6 +184,12 @@ $isUtilitiesActive = in_array($currentPage, $utilitiesPages);
                         <a class="sidebar-sublink <?= $currentPage === 'activity' ? 'active' : '' ?>" href="<?= url('activity') ?>" role="menuitem">
                             <i class="bi bi-clock-history sidebar-link-icon" aria-hidden="true"></i>
                             <span class="sidebar-link-text"><?= __('menu.activity') ?></span>
+                        </a>
+                    </li>
+                    <li role="none">
+                        <a class="sidebar-sublink <?= $currentPage === 'project-progress' ? 'active' : '' ?>" href="<?= url('project-progress') ?>" role="menuitem">
+                            <i class="bi bi-bar-chart-steps sidebar-link-icon" aria-hidden="true"></i>
+                            <span class="sidebar-link-text"><?= __('menu.project_progress') ?></span>
                         </a>
                     </li>
                     <?php endif; ?>

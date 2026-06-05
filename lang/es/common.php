@@ -30,8 +30,9 @@ return [
         'integrations'    => 'Integraciones',
         'my_integrations' => 'Mis claves API',
         'backups' => 'Copias de seguridad',
-        'system' => 'Sistema',
-        'activity' => 'Actividad',
+        'system'           => 'Sistema',
+        'activity'         => 'Actividad',
+        'project_progress' => 'Progreso del proyecto',
         'docs'    => 'Documentación',
         'reports' => 'Reportes',
     ],
@@ -214,8 +215,9 @@ return [
         'integrations_desc'    => 'Claves API para servicios externos.',
         'my_integrations_desc' => 'Configura tus propias claves de iLovePDF e iLoveIMG.',
         'backups_desc'      => 'Copias de seguridad automáticas y manuales.',
-        'system_desc'       => 'Dependencias, base de datos y diagnóstico.',
-        'activity_desc'     => 'Historial de acciones con filtros.',
+        'system_desc'            => 'Dependencias, base de datos y diagnóstico.',
+        'activity_desc'          => 'Historial de acciones con filtros.',
+        'project_progress_desc'  => 'Estado de las fases de desarrollo del proyecto.',
     ],
 
     // Ajustes

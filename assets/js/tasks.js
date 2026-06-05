@@ -256,6 +256,9 @@
         const dropdown = _getDropdown();
         if (!dropdown) return;
 
+        // Capturar rect antes de cualquier re-render que pueda desconectar el chip del DOM
+        const rect = chip.getBoundingClientRect();
+
         // Toggle: si ya está abierto en el mismo modo, cerrar
         if (!dropdown.classList.contains('d-none') && _dropdownMode === mode) {
             closeTrackerDropdown();
@@ -284,9 +287,11 @@
             searchEl.oninput = () => _renderTagList(listEl, searchEl.value);
         }
 
-        const rect = chip.getBoundingClientRect();
+        const dropW = 280;
+        const margin = 8;
+        const left = Math.max(margin, Math.min(rect.left, window.innerWidth - dropW - margin));
         dropdown.style.top  = (rect.bottom + 4) + 'px';
-        dropdown.style.left = rect.left + 'px';
+        dropdown.style.left = left + 'px';
         dropdown.classList.remove('d-none');
         searchEl.focus();
     }
@@ -1809,6 +1814,7 @@
                 key: 'resume',
                 icon: 'bi-play-fill',
                 label: t('tasks.btn_resume', 'Reanudar'),
+                variant: 'success',
                 visible: (item) => !(state.running && state.taskId == item.task_id),
             },
             { key: 'edit',   icon: 'bi-pencil', label: t('tasks.btn_edit',   'Editar') },

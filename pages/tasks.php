@@ -77,6 +77,7 @@ if (isDBAvailable()) {
                    aria-controls="trackerAutocomplete">
             <div class="tracker-autocomplete d-none" id="trackerAutocomplete" role="listbox" aria-label="<?= __('tasks.autocomplete_label') ?>"></div>
         </div>
+        <div class="tracker-pretimer-meta" id="trackerPretimerMeta"></div>
         <button type="button" class="tracker-play-btn" id="btnStartTimer"
                 aria-label="<?= __('tasks.btn_start_timer') ?>"
                 data-tooltip="<?= __('tasks.btn_start_timer') ?>" data-tooltip-position="left">
@@ -130,11 +131,20 @@ if (isDBAvailable()) {
     </div>
 </section>
 
+<!-- Dropdown inline del tracker (alianza / etiquetas) -->
+<div id="trackerInlineDropdown" class="tracker-inline-dropdown d-none" role="dialog">
+    <div class="tracker-dropdown-search-wrap">
+        <i class="bi bi-search tracker-dropdown-search-icon" aria-hidden="true"></i>
+        <input type="search" id="trackerDropdownSearch" class="tracker-dropdown-search" autocomplete="off">
+    </div>
+    <div id="trackerDropdownList" class="tracker-dropdown-list" role="listbox"></div>
+</div>
+
 <!-- ============ LISTADO DE TAREAS (Sub-fase 4.2) ============ -->
 <section class="tasks-list-section" aria-labelledby="tasks-list-title">
     <h2 class="visually-hidden" id="tasks-list-title"><?= __('tasks.list_title') ?></h2>
 
-    <!-- Seccion: proximas (cards compactas, max 5 visibles) -->
+    <!-- Seccion: proximas (cards compactas / vista tabla) -->
     <div class="tasks-section" id="sectionScheduled">
         <div class="tasks-section-header">
             <h3 class="tasks-section-title">
@@ -142,8 +152,24 @@ if (isDBAvailable()) {
                 <?= __('tasks.tab_scheduled') ?>
                 <span class="tasks-section-count" id="countScheduled">0</span>
             </h3>
+            <div class="tasks-section-right">
+                <div class="view-toggle" id="scheduledViewToggle" role="group" aria-label="<?= __('tasks.view_toggle_label') ?>">
+                    <button type="button" class="btn-icon view-toggle-btn is-active" id="btnViewCards"
+                            data-view="cards"
+                            data-tooltip="<?= __('tasks.view_cards') ?>" data-tooltip-position="top"
+                            aria-label="<?= __('tasks.view_cards') ?>">
+                        <i class="bi bi-grid" aria-hidden="true"></i>
+                    </button>
+                    <button type="button" class="btn-icon view-toggle-btn" id="btnViewTable"
+                            data-view="table"
+                            data-tooltip="<?= __('tasks.view_table') ?>" data-tooltip-position="top"
+                            aria-label="<?= __('tasks.view_table') ?>">
+                        <i class="bi bi-list-ul" aria-hidden="true"></i>
+                    </button>
+                </div>
+            </div>
         </div>
-        <div class="tasks-panel-content tasks-cards-grid" id="contentScheduled"></div>
+        <div class="tasks-panel-content" id="contentScheduled"></div>
     </div>
 
     <!-- Seccion: activas (layout tabla) - se oculta si esta vacia -->
@@ -248,7 +274,9 @@ if (isDBAvailable()) {
                 <?= __('tasks.tab_yesterday') ?>
                 <span class="tasks-section-count" id="countYesterday">0</span>
             </h3>
-            <span class="tasks-section-time text-subtle text-sm" id="timeYesterday"></span>
+            <div class="tasks-section-right">
+                <span class="tasks-section-time text-subtle text-sm" id="timeYesterday"></span>
+            </div>
         </div>
         <div class="tasks-panel-content tasks-grid-table" id="contentYesterday" role="grid"></div>
     </div>

@@ -21,6 +21,8 @@
     const alliances = window.__TASKS_ALLIANCES__ || [];
     let allTags = (window.__TASKS_TAGS__ || []).map(t => ({ ...t, id: parseInt(t.id, 10) }));
 
+    let scheduledView = localStorage.getItem('nexus_scheduled_view') || 'cards';
+
     const state = {
         running: false,
         taskId: null,
@@ -141,27 +143,26 @@
         if (meta) {
             const chips = [];
 
-            // Etiquetas: un solo chip con el conteo + tooltip custom del proyecto con los nombres.
-            // Solo en el tracker — el listado de tareas sigue mostrando cada etiqueta.
+            // Etiquetas: chip editable — abre dropdown inline al hacer clic.
             if (state.tagNames) {
                 const tagList = state.tagNames.split(',').map(n => n.trim()).filter(Boolean);
                 const count = tagList.length;
                 const label = count === 1
                     ? t('tasks.tag_singular', 'etiqueta')
                     : t('tasks.tag_plural',   'etiquetas');
-                chips.push(`<span class="tracker-meta-chip" data-tooltip="${escapeHtml(tagList.join(', '))}" data-tooltip-position="top"><i class="bi bi-tag" aria-hidden="true"></i>${count} ${escapeHtml(label)}</span>`);
+                chips.push(`<button type="button" class="tracker-meta-chip tracker-meta-editable" data-edit="tags" data-tooltip="${escapeHtml(tagList.join(', '))}" data-tooltip-position="top" aria-label="${escapeHtml(t('tasks.edit_tags', 'Editar etiquetas'))}"><i class="bi bi-tag" aria-hidden="true"></i>${count} ${escapeHtml(label)}<i class="bi bi-chevron-down tracker-chip-chevron" aria-hidden="true"></i></button>`);
             } else {
-                chips.push(`<span class="tracker-meta-chip tracker-meta-empty"><i class="bi bi-tag" aria-hidden="true"></i>${escapeHtml(t('tasks.no_tags', 'Sin etiquetas'))}</span>`);
+                chips.push(`<button type="button" class="tracker-meta-chip tracker-meta-empty tracker-meta-editable" data-edit="tags" aria-label="${escapeHtml(t('tasks.edit_tags', 'Editar etiquetas'))}"><i class="bi bi-tag" aria-hidden="true"></i>${escapeHtml(t('tasks.no_tags', 'Sin etiquetas'))}<i class="bi bi-chevron-down tracker-chip-chevron" aria-hidden="true"></i></button>`);
             }
 
-            // Alianza
+            // Alianza: chip editable — abre dropdown inline al hacer clic.
             if (state.allianceName) {
                 const color = resolveAllianceColor({ alliance_id: state.allianceId, alliance_name: state.allianceName });
                 const styleAttr = color ? ` style="--alliance-color: ${escapeHtml(color)};"` : '';
                 const hasColorCls = color ? ' has-alliance-color' : '';
-                chips.push(`<span class="tracker-meta-chip tracker-meta-alliance${hasColorCls}"${styleAttr}><i class="bi bi-building" aria-hidden="true"></i>${escapeHtml(state.allianceName)}</span>`);
+                chips.push(`<button type="button" class="tracker-meta-chip tracker-meta-alliance tracker-meta-editable${hasColorCls}"${styleAttr} data-edit="alliance" aria-label="${escapeHtml(t('tasks.edit_alliance', 'Editar alianza'))}"><i class="bi bi-building" aria-hidden="true"></i>${escapeHtml(state.allianceName)}<i class="bi bi-chevron-down tracker-chip-chevron" aria-hidden="true"></i></button>`);
             } else {
-                chips.push(`<span class="tracker-meta-chip tracker-meta-empty"><i class="bi bi-building" aria-hidden="true"></i>${escapeHtml(t('tasks.no_alliance', 'Sin alianza'))}</span>`);
+                chips.push(`<button type="button" class="tracker-meta-chip tracker-meta-empty tracker-meta-editable" data-edit="alliance" aria-label="${escapeHtml(t('tasks.edit_alliance', 'Editar alianza'))}"><i class="bi bi-building" aria-hidden="true"></i>${escapeHtml(t('tasks.no_alliance', 'Sin alianza'))}<i class="bi bi-chevron-down tracker-chip-chevron" aria-hidden="true"></i></button>`);
             }
 
             // Prioridad (solo si difiere de media)
@@ -200,6 +201,32 @@
         }
     }
 
+    function renderPreTimerMeta() {
+        const el = document.getElementById('trackerPretimerMeta');
+        if (!el) return;
+
+        const tagChip = state.tagNames
+            ? (() => {
+                const list = state.tagNames.split(',').map(n => n.trim()).filter(Boolean);
+                const count = list.length;
+                const label = count === 1 ? t('tasks.tag_singular', 'etiqueta') : t('tasks.tag_plural', 'etiquetas');
+                return `<button type="button" class="tracker-meta-chip tracker-meta-editable" data-edit="tags" data-tooltip="${escapeHtml(list.join(', '))}" data-tooltip-position="top" aria-label="${escapeHtml(t('tasks.edit_tags', 'Editar etiquetas'))}"><i class="bi bi-tag" aria-hidden="true"></i>${count} ${escapeHtml(label)}<i class="bi bi-chevron-down tracker-chip-chevron" aria-hidden="true"></i></button>`;
+            })()
+            : `<button type="button" class="tracker-meta-chip tracker-meta-empty tracker-meta-editable" data-edit="tags" aria-label="${escapeHtml(t('tasks.edit_tags', 'Editar etiquetas'))}"><i class="bi bi-tag" aria-hidden="true"></i>${escapeHtml(t('tasks.no_tags', 'Sin etiquetas'))}<i class="bi bi-chevron-down tracker-chip-chevron" aria-hidden="true"></i></button>`;
+
+        const allianceChip = (() => {
+            if (state.allianceName) {
+                const color = resolveAllianceColor({ alliance_id: state.allianceId, alliance_name: state.allianceName });
+                const styleAttr = color ? ` style="--alliance-color: ${escapeHtml(color)};"` : '';
+                const hasColorCls = color ? ' has-alliance-color' : '';
+                return `<button type="button" class="tracker-meta-chip tracker-meta-alliance tracker-meta-editable${hasColorCls}"${styleAttr} data-edit="alliance" aria-label="${escapeHtml(t('tasks.edit_alliance', 'Editar alianza'))}"><i class="bi bi-building" aria-hidden="true"></i>${escapeHtml(state.allianceName)}<i class="bi bi-chevron-down tracker-chip-chevron" aria-hidden="true"></i></button>`;
+            }
+            return `<button type="button" class="tracker-meta-chip tracker-meta-empty tracker-meta-editable" data-edit="alliance" aria-label="${escapeHtml(t('tasks.edit_alliance', 'Editar alianza'))}"><i class="bi bi-building" aria-hidden="true"></i>${escapeHtml(t('tasks.no_alliance', 'Sin alianza'))}<i class="bi bi-chevron-down tracker-chip-chevron" aria-hidden="true"></i></button>`;
+        })();
+
+        el.innerHTML = tagChip + allianceChip;
+    }
+
     function renderEmpty() {
         const row = document.getElementById('trackerInputRow');
         const active = document.getElementById('trackerActive');
@@ -213,6 +240,142 @@
             input.value = '';
             input.focus();
         }
+        renderPreTimerMeta();
+    }
+
+    /** ========================================================
+     * Dropdown inline del tracker (alianza / etiquetas)
+     * ======================================================== */
+
+    let _dropdownMode = null;
+    let _pendingTagIds = [];
+
+    function _getDropdown() { return document.getElementById('trackerInlineDropdown'); }
+
+    function openTrackerDropdown(chip, mode) {
+        const dropdown = _getDropdown();
+        if (!dropdown) return;
+
+        // Toggle: si ya está abierto en el mismo modo, cerrar
+        if (!dropdown.classList.contains('d-none') && _dropdownMode === mode) {
+            closeTrackerDropdown();
+            return;
+        }
+
+        // Si había otro dropdown abierto, cerrarlo primero (guarda pendientes de tags)
+        if (!dropdown.classList.contains('d-none')) {
+            closeTrackerDropdown();
+        }
+
+        _dropdownMode = mode;
+
+        const searchEl = document.getElementById('trackerDropdownSearch');
+        const listEl   = document.getElementById('trackerDropdownList');
+        searchEl.value = '';
+
+        if (mode === 'alliance') {
+            searchEl.placeholder = t('tasks.search_alliance', 'Buscar alianza...');
+            _renderAllianceList(listEl, '');
+            searchEl.oninput = () => _renderAllianceList(listEl, searchEl.value);
+        } else {
+            _pendingTagIds = [...state.tagIds];
+            searchEl.placeholder = t('tasks.search_tags', 'Buscar etiqueta...');
+            _renderTagList(listEl, '');
+            searchEl.oninput = () => _renderTagList(listEl, searchEl.value);
+        }
+
+        const rect = chip.getBoundingClientRect();
+        dropdown.style.top  = (rect.bottom + 4) + 'px';
+        dropdown.style.left = rect.left + 'px';
+        dropdown.classList.remove('d-none');
+        searchEl.focus();
+    }
+
+    function _renderAllianceList(listEl, query) {
+        const q = query.toLowerCase();
+        const visible = alliances.filter(a => !q || a.name.toLowerCase().includes(q));
+
+        const noneItem = `<div class="tracker-dropdown-item${!state.allianceId ? ' is-selected' : ''}" data-alliance-id="" role="option">
+            <i class="bi bi-dash-circle" aria-hidden="true"></i>
+            <span>${escapeHtml(t('tasks.no_alliance', 'Sin alianza'))}</span>
+        </div>`;
+
+        const items = visible.map(a => {
+            const sel = state.allianceId == a.id;
+            const color = a.color ? ` style="--alliance-color:${escapeHtml(a.color)};"` : '';
+            const colorCls = a.color ? ' has-alliance-color' : '';
+            return `<div class="tracker-dropdown-item${sel ? ' is-selected' : ''}" data-alliance-id="${a.id}" role="option">
+                <span class="cell-alliance-chip${colorCls}"${color}><i class="bi bi-building" aria-hidden="true"></i> ${escapeHtml(a.name)}</span>
+            </div>`;
+        }).join('');
+
+        listEl.innerHTML = noneItem + items;
+
+        listEl.onclick = async (e) => {
+            const item = e.target.closest('[data-alliance-id]');
+            if (!item) return;
+            const id = item.dataset.allianceId;
+            state.allianceId   = id ? parseInt(id, 10) : null;
+            state.allianceName = id ? (alliances.find(a => a.id == id)?.name || null) : null;
+            closeTrackerDropdown();
+            if (state.running) { renderActiveCard(); await saveTrackerMeta(); }
+            else renderPreTimerMeta();
+        };
+    }
+
+    function _renderTagList(listEl, query) {
+        const q = query.toLowerCase();
+        const visible = allTags.filter(tg => !q || tg.name.toLowerCase().includes(q));
+
+        listEl.innerHTML = visible.map(tg => {
+            const checked = _pendingTagIds.includes(tg.id);
+            return `<label class="tracker-dropdown-item">
+                <input type="checkbox" value="${tg.id}"${checked ? ' checked' : ''}>
+                <span>${escapeHtml(tg.name)}</span>
+            </label>`;
+        }).join('') || `<p class="tracker-dropdown-empty">${escapeHtml(t('tasks.no_tags_found', 'Sin resultados'))}</p>`;
+
+        listEl.onchange = (e) => {
+            if (!e.target.matches('input[type=checkbox]')) return;
+            const id = parseInt(e.target.value, 10);
+            if (e.target.checked) {
+                if (!_pendingTagIds.includes(id)) _pendingTagIds.push(id);
+            } else {
+                _pendingTagIds = _pendingTagIds.filter(t => t !== id);
+            }
+        };
+    }
+
+    function closeTrackerDropdown() {
+        const dropdown = _getDropdown();
+        if (!dropdown || dropdown.classList.contains('d-none')) return;
+        dropdown.classList.add('d-none');
+
+        if (_dropdownMode === 'tags') {
+            const changed = JSON.stringify([..._pendingTagIds].sort()) !== JSON.stringify([...state.tagIds].sort());
+            if (changed) {
+                state.tagIds   = _pendingTagIds;
+                state.tagNames = _pendingTagIds
+                    .map(id => allTags.find(tg => tg.id === id)?.name || '')
+                    .filter(Boolean).join(', ');
+                if (state.running) { renderActiveCard(); saveTrackerMeta(); }
+                else renderPreTimerMeta();
+            }
+        }
+
+        _dropdownMode = null;
+    }
+
+    async function saveTrackerMeta() {
+        if (!state.taskId) return;
+        try {
+            await api('update', {
+                task_id:     state.taskId,
+                alliance_id: state.allianceId || '',
+                tag_ids:     state.tagIds.join(','),
+            });
+            if (typeof loadList === 'function') loadList();
+        } catch (e) { /* ignore */ }
     }
 
     function tick() {
@@ -222,10 +385,23 @@
         if (el) el.textContent = formatTime(elapsed);
     }
 
+    const _originalTitle = document.title;
+
+    function setTabRunning() {
+        if (!document.title.startsWith('● ')) {
+            document.title = '● ' + document.title;
+        }
+    }
+
+    function clearTabRunning() {
+        document.title = _originalTitle;
+    }
+
     function startTicking() {
         stopTicking();
         tick();
         state.tickInterval = setInterval(tick, 1000);
+        setTabRunning();
     }
 
     function stopTicking() {
@@ -237,6 +413,7 @@
 
     function resetState() {
         stopTicking();
+        clearTabRunning();
         state.running = false;
         state.taskId = null;
         state.title = '';
@@ -251,16 +428,20 @@
         state.selectedExistingTaskId = null;
     }
 
-    // Poblar el state del tracker a partir de un objeto task (del endpoint 'get')
+    // Poblar el state del tracker a partir de un objeto task (del endpoint 'get').
+    // alliance/tags: si el task no las tiene (null) pero el state sí, se conservan
+    // (el usuario puede haberlas pre-configurado antes de arrancar el timer).
     function hydrateStateFromTask(task) {
         if (!task) return;
         if (task.id) state.taskId = parseInt(task.id, 10);
         if (task.title) state.title = task.title;
         state.description = task.description || '';
-        state.allianceId = task.alliance_id ? parseInt(task.alliance_id, 10) : null;
-        state.allianceName = task.alliance_name || null;
-        state.tagIds = String(task.tag_ids || '').split(',').filter(Boolean).map(id => parseInt(id, 10));
-        state.tagNames = task.tag_names || '';
+        const serverAllianceId = task.alliance_id ? parseInt(task.alliance_id, 10) : null;
+        state.allianceId   = serverAllianceId   ?? state.allianceId;
+        state.allianceName = task.alliance_name || state.allianceName || null;
+        const serverTagIds = String(task.tag_ids || '').split(',').filter(Boolean).map(id => parseInt(id, 10));
+        state.tagIds   = serverTagIds.length ? serverTagIds : state.tagIds;
+        state.tagNames = task.tag_names || state.tagNames || '';
         state.priority = task.priority || 'medium';
         state.dueDate = task.due_date || null;
     }
@@ -416,6 +597,12 @@
         if (btn) btn.disabled = true;
 
         try {
+            // Preservar valores pre-configurados antes de que el servidor los sobreescriba
+            const preAllianceId   = state.allianceId;
+            const preAllianceName = state.allianceName;
+            const preTagIds       = [...state.tagIds];
+            const preTagNames     = state.tagNames;
+
             const payload = { title: title };
             if (state.selectedExistingTaskId) {
                 payload.task_id = state.selectedExistingTaskId;
@@ -426,10 +613,12 @@
                 state.running = true;
                 state.taskId = result.task_id;
                 state.title = result.title;
-                state.allianceId = result.alliance_id || null;
-                state.allianceName = result.alliance_name || null;
-                state.tagIds = (result.tag_ids || '').split(',').filter(Boolean).map(id => parseInt(id, 10));
-                state.tagNames = result.tag_names || '';
+                // Si el servidor no devuelve alliance/tags (tarea nueva), restaurar pre-configurados
+                state.allianceId   = result.alliance_id   ? parseInt(result.alliance_id, 10) : preAllianceId;
+                state.allianceName = result.alliance_name || preAllianceName;
+                state.tagIds       = (result.tag_ids || '').split(',').filter(Boolean).map(id => parseInt(id, 10));
+                if (!state.tagIds.length) { state.tagIds = preTagIds; state.tagNames = preTagNames; }
+                else state.tagNames = result.tag_names || '';
                 state.priority = result.priority || 'medium';
                 state.dueDate = result.due_date || null;
                 state.isRecurring = !!result.is_recurring;
@@ -441,6 +630,9 @@
                 hideAutocomplete();
                 Toast.success(t('tasks.timer_started', 'Cronómetro iniciado.'));
                 if (typeof loadList === 'function') loadList();
+
+                // Si había valores pre-configurados, persistirlos en la tarea recién creada
+                if (state.allianceId || state.tagIds.length) saveTrackerMeta();
 
                 // Hidratar el state con todos los campos (timer_start no devuelve priority/due_date/description)
                 hydrateTimerTask(result.task_id);
@@ -1054,16 +1246,6 @@
             return;
         }
 
-        const confirmed = await ConfirmModal.show({
-            title:   t('tasks.stop_title', 'Completar tarea'),
-            message: t('tasks.stop_message', 'Se guardara el tiempo registrado y la tarea se marcara como completada.'),
-            acceptText: t('tasks.btn_stop', 'Completar'),
-            acceptVariant: 'success',
-            icon: 'bi-check-lg',
-            variant: 'success',
-        });
-        if (!confirmed) return;
-
         const btn = document.getElementById('btnStopTimer');
         if (btn) btn.disabled = true;
 
@@ -1554,6 +1736,44 @@
         return `<span class="text-mono">${item.total_seconds ? formatDuration(parseInt(item.total_seconds, 10)) : '—'}</span>`;
     }
 
+    function cellOrigin(item) {
+        if (item.gmail_message_id) {
+            return `<span class="cell-origin cell-origin-email" data-tooltip="${escapeHtml(t('tasks.origin_email', 'Correo'))}" data-tooltip-position="top"><i class="bi bi-envelope-fill" aria-hidden="true"></i></span>`;
+        }
+        return `<span class="cell-origin cell-origin-manual" data-tooltip="${escapeHtml(t('tasks.origin_manual', 'Manual'))}" data-tooltip-position="top"><i class="bi bi-person-fill" aria-hidden="true"></i></span>`;
+    }
+
+    function cellPriority(item) {
+        const priority = item.priority || 'medium';
+        const labels = {
+            low:    t('tasks.priority_low',    'Baja'),
+            medium: t('tasks.priority_medium', 'Media'),
+            high:   t('tasks.priority_high',   'Alta'),
+            urgent: t('tasks.priority_urgent', 'Urgente'),
+        };
+        return `<span class="lozenge lozenge-priority-${escapeHtml(priority)}">${escapeHtml(labels[priority] || priority)}</span>`;
+    }
+
+    function cellTagsNoEmail(item) {
+        if (!item.tag_names) return `<span class="text-subtle text-sm">—</span>`;
+        const tagList = item.tag_names.split(',').map(n => n.trim()).filter(Boolean)
+            .filter(n => n.toLowerCase() !== 'correo');
+        if (!tagList.length) return `<span class="text-subtle text-sm">—</span>`;
+        const count = tagList.length;
+        const label = count === 1 ? t('tasks.tag_singular', 'etiqueta') : t('tasks.tag_plural', 'etiquetas');
+        return `<span class="tracker-meta-chip" data-tooltip="${escapeHtml(tagList.join(', '))}" data-tooltip-position="top"><i class="bi bi-tag" aria-hidden="true"></i>${count} ${escapeHtml(label)}</span>`;
+    }
+
+    function cellDue(item) {
+        const today = todayStr();
+        const overdue = !parseInt(item.is_recurring || 0) && item.due_date && item.due_date < today;
+        if (!item.due_date) return `<span class="text-subtle">—</span>`;
+        const overdueTag = overdue
+            ? ` <span class="cell-due-overdue-tag">${escapeHtml(t('tasks.is_overdue', 'Vencida'))}</span>`
+            : '';
+        return `<span class="cell-due${overdue ? ' is-overdue' : ''}"><i class="bi bi-calendar${overdue ? '-x-fill' : ''}" aria-hidden="true"></i> ${escapeHtml(formatDateDMY(item.due_date))}${overdueTag}</span>`;
+    }
+
     /* ---- Schema compartido para listados de tareas (Activas, Ayer, Hoy) ---- */
     function taskTableColumns() {
         return [
@@ -1593,6 +1813,25 @@
             },
             { key: 'edit',   icon: 'bi-pencil', label: t('tasks.btn_edit',   'Editar') },
             { key: 'delete', icon: 'bi-trash',  label: t('tasks.btn_delete', 'Eliminar'), variant: 'danger' },
+        ];
+    }
+
+    function scheduledTableColumns() {
+        return [
+            { key: 'origin',   label: t('tasks.col_origin',   'Origen'),    width: '44px',                  render: cellOrigin },
+            { key: 'alliance', label: t('tasks.col_alliance', 'Alianza'),   width: 'minmax(90px, 0.7fr)',   render: cellAlliance },
+            { key: 'task',     label: t('tasks.col_task',     'Tarea'),     width: 'minmax(200px, 3fr)',    render: cellTask },
+            { key: 'priority', label: t('tasks.col_priority', 'Prioridad'), width: '90px',                  render: cellPriority },
+            { key: 'tags',     label: t('tasks.col_tags',     'Etiquetas'), width: '120px',                 render: cellTagsNoEmail },
+            { key: 'due',      label: t('tasks.col_due',      'Vence'),     width: '150px', align: 'right', render: cellDue },
+        ];
+    }
+
+    function scheduledTableActions() {
+        return [
+            { key: 'resume', icon: 'bi-play-fill', label: t('tasks.btn_start',  'Iniciar'),  variant: 'success' },
+            { key: 'edit',   icon: 'bi-pencil',    label: t('tasks.btn_edit',   'Editar') },
+            { key: 'delete', icon: 'bi-trash',     label: t('tasks.btn_delete', 'Eliminar'), variant: 'danger' },
         ];
     }
 
@@ -1757,7 +1996,12 @@
         const now = Math.floor(Date.now() / 1000);
         const activeEvents = calendarEventsToday.filter(e => e.start_ts > now);
 
+        // Sincronizar estado activo del toggle
+        document.getElementById('btnViewCards')?.classList.toggle('is-active', scheduledView === 'cards');
+        document.getElementById('btnViewTable')?.classList.toggle('is-active', scheduledView === 'table');
+
         if (sorted.length === 0 && activeEvents.length === 0) {
+            container.className = 'tasks-panel-content tasks-cards-grid';
             container.innerHTML = emptyState('bi-calendar-check',
                 t('tasks.empty_scheduled_title', 'No hay tareas próximas'),
                 t('tasks.empty_scheduled_desc', 'Aquí aparecerán las tareas pendientes sin tiempo registrado, ordenadas por prioridad y fecha de vencimiento.'));
@@ -1765,9 +2009,7 @@
             return;
         }
 
-        setupScrollMask(container);
-
-        const eventCards = activeEvents.map(ev => {
+        const eventCardsHtml = activeEvents.map(ev => {
             const diffMin  = Math.max(0, Math.floor((ev.start_ts - now) / 60));
             const h        = Math.floor(diffMin / 60);
             const m        = diffMin % 60;
@@ -1786,14 +2028,41 @@
                 </article>`;
         }).join('');
 
-        container.innerHTML = eventCards + sorted.map(task => {
+        if (scheduledView === 'table') {
+            container.className = 'tasks-panel-content';
+            container.innerHTML = (eventCardsHtml
+                ? `<div class="scheduled-events-strip tasks-cards-grid">${eventCardsHtml}</div>`
+                : '')
+                + `<div class="tasks-grid-table" id="scheduledTableInner"></div>`;
+
+            const normalizedItems = sorted.map(task => ({ ...task, task_id: task.id }));
+            renderTaskTable({
+                container: document.getElementById('scheduledTableInner'),
+                columns:   scheduledTableColumns(),
+                items:     normalizedItems,
+                actions:   scheduledTableActions(),
+                expandable: false,
+                emptyState: {
+                    icon:  'bi-calendar-check',
+                    title: t('tasks.empty_scheduled_title', 'No hay tareas próximas'),
+                    desc:  t('tasks.empty_scheduled_desc',  'Aquí aparecerán las tareas pendientes sin tiempo registrado, ordenadas por prioridad y fecha de vencimiento.'),
+                },
+            });
+            return;
+        }
+
+        // --- Vista tarjetas (por defecto) ---
+        container.className = 'tasks-panel-content tasks-cards-grid';
+        setupScrollMask(container);
+
+        container.innerHTML = eventCardsHtml + sorted.map(task => {
             const recurring = !!parseInt(task.is_recurring || 0);
             const overdue = !recurring && task.due_date && task.due_date < today;
             const priority = task.priority || 'medium';
             const priorityLabels = {
-                low:    t('tasks.priority_low', 'Baja'),
+                low:    t('tasks.priority_low',    'Baja'),
                 medium: t('tasks.priority_medium', 'Media'),
-                high:   t('tasks.priority_high', 'Alta'),
+                high:   t('tasks.priority_high',   'Alta'),
                 urgent: t('tasks.priority_urgent', 'Urgente'),
             };
 
@@ -1855,7 +2124,6 @@
             `;
         }).join('');
 
-        // Actualizar mascara de fade despues de inyectar el DOM
         requestAnimationFrame(() => updateScrollMask(container));
     }
 
@@ -2048,6 +2316,15 @@
         });
         setupTagsMultiselect();
         document.getElementById('btnClearFilters')?.addEventListener('click', clearFilters);
+
+        // Toggle vista Proximas (tarjetas / tabla)
+        document.getElementById('scheduledViewToggle')?.addEventListener('click', (e) => {
+            const btn = e.target.closest('[data-view]');
+            if (!btn) return;
+            scheduledView = btn.dataset.view;
+            localStorage.setItem('nexus_scheduled_view', scheduledView);
+            renderScheduledPanel();
+        });
 
         // Delegation para acciones por item
         document.querySelector('.tasks-list-section')?.addEventListener('click', (e) => {
@@ -2578,6 +2855,21 @@
         document.getElementById('btnCompleteData')?.addEventListener('click', () => openEditForm({ forceComplete: true }));
         document.getElementById('btnNewTask')?.addEventListener('click', () => openEditForm({ create: true }));
 
+        // Chips editables del tracker (activo y pre-timer)
+        document.querySelector('.tracker-bar')?.addEventListener('click', (e) => {
+            const chip = e.target.closest('[data-edit]');
+            if (!chip) return;
+            openTrackerDropdown(chip, chip.dataset.edit);
+        });
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('#trackerInlineDropdown') || e.target.closest('[data-edit]')) return;
+            closeTrackerDropdown();
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeTrackerDropdown();
+        });
+
+        renderPreTimerMeta();
         restoreTimer();
 
         // Listado

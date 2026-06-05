@@ -4377,8 +4377,8 @@ a.stat-card:hover {
 /* -------- Fila de entrada (estado vacio) -------- */
 .tracker-input-row {
     display: flex;
-    gap: var(--ds-space-150);
-    align-items: stretch;
+    align-items: center;
+    gap: var(--ds-space-075);
     padding: var(--ds-space-100);
     background: var(--ds-surface-raised);
     border-radius: var(--ds-radius-300);
@@ -4545,6 +4545,14 @@ a.stat-card:hover {
     transform: none;
 }
 
+/* -------- Meta pre-timer (alianza/etiquetas antes de iniciar) -------- */
+.tracker-pretimer-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--ds-space-075);
+    flex-shrink: 0;
+}
+
 /* -------- Estado activo (compacto, una sola fila) -------- */
 .tracker-active {
     display: flex;
@@ -4629,6 +4637,104 @@ a.stat-card:hover {
     border-style: dashed;
     color: var(--ds-text-subtlest);
     background: transparent;
+}
+
+/* Chips editables del tracker */
+.tracker-meta-editable {
+    cursor: pointer;
+    transition: background var(--ds-duration-fast), border-color var(--ds-duration-fast);
+}
+
+.tracker-meta-editable:hover {
+    background: var(--ds-surface-hovered);
+    border-color: var(--ds-border-bold);
+}
+
+.tracker-chip-chevron {
+    font-size: 9px !important;
+    opacity: 0.5;
+    margin-left: 2px;
+}
+
+/* Dropdown inline del tracker */
+.tracker-inline-dropdown {
+    position: fixed;
+    z-index: 1200;
+    background: var(--ds-surface-raised);
+    border: var(--ds-border-width) solid var(--ds-border);
+    border-radius: var(--ds-radius-200);
+    box-shadow: var(--ds-shadow-overlay);
+    min-width: 220px;
+    max-width: 280px;
+    max-height: 260px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.tracker-dropdown-search-wrap {
+    display: flex;
+    align-items: center;
+    gap: var(--ds-space-075);
+    padding: var(--ds-space-075) var(--ds-space-100);
+    border-bottom: var(--ds-border-width) solid var(--ds-border);
+}
+
+.tracker-dropdown-search-icon {
+    font-size: 12px;
+    color: var(--ds-text-subtle);
+    flex-shrink: 0;
+}
+
+.tracker-dropdown-search {
+    border: none;
+    background: transparent;
+    outline: none;
+    font-size: var(--ds-font-size-sm);
+    color: var(--ds-text);
+    width: 100%;
+    padding: 0;
+}
+
+.tracker-dropdown-list {
+    overflow-y: auto;
+    flex: 1;
+    padding: var(--ds-space-050) 0;
+}
+
+.tracker-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: var(--ds-space-075);
+    padding: var(--ds-space-050) var(--ds-space-150);
+    font-size: var(--ds-font-size-sm);
+    color: var(--ds-text);
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    user-select: none;
+}
+
+.tracker-dropdown-item:hover {
+    background: var(--ds-surface-hovered);
+}
+
+.tracker-dropdown-item.is-selected {
+    color: var(--app-brand);
+    font-weight: var(--ds-font-weight-semibold);
+}
+
+.tracker-dropdown-item input[type=checkbox] {
+    flex-shrink: 0;
+    accent-color: var(--app-brand);
+}
+
+.tracker-dropdown-empty {
+    padding: var(--ds-space-100) var(--ds-space-150);
+    font-size: var(--ds-font-size-sm);
+    color: var(--ds-text-subtlest);
+    text-align: center;
 }
 
 /* Prioridad */
@@ -5367,6 +5473,82 @@ a.stat-card:hover {
     background: var(--ds-surface-raised);
     border: var(--ds-border-width) solid var(--ds-border);
     padding: var(--ds-space-100);
+}
+
+/* ---- Toggle de vista (tarjetas / tabla) en Proximas ---- */
+.view-toggle {
+    display: flex;
+    align-items: center;
+    gap: var(--ds-space-025);
+}
+
+.view-toggle-btn {
+    transition: color var(--ds-duration-fast);
+}
+
+.view-toggle-btn.is-active {
+    color: var(--app-brand);
+}
+
+/* ---- Strip de eventos en modo tabla ---- */
+.scheduled-events-strip {
+    margin-bottom: var(--ds-space-150);
+    max-height: 120px;
+}
+
+/* ---- Celda origen (correo / manual) en tabla Proximas ---- */
+.cell-origin {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: var(--ds-radius-full);
+    font-size: 12px;
+}
+
+.cell-origin-email {
+    background: rgba(0, 82, 204, 0.10);
+    color: #0052cc;
+}
+
+.cell-origin-manual {
+    background: var(--ds-surface-sunken);
+    color: var(--ds-text-subtle);
+}
+
+/* ---- Lozenge de prioridad en tabla Proximas ---- */
+.lozenge-priority-low    { background: rgba(151,160,175,0.20); color: var(--ds-text-subtle); }
+.lozenge-priority-medium { background: rgba(0,82,204,0.10);   color: #0052cc; }
+.lozenge-priority-high   { background: rgba(255,171,0,0.20);  color: #b38600; }
+.lozenge-priority-urgent { background: rgba(255,139,0,0.25);  color: var(--ds-orange-700, #974f0c); }
+
+/* ---- Celda fecha vencimiento en tabla Proximas ---- */
+.cell-due {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ds-space-050);
+    font-size: var(--ds-font-size-sm);
+    color: var(--ds-text-subtle);
+    white-space: nowrap;
+}
+
+.cell-due.is-overdue {
+    color: var(--ds-red-700, #ae2a19);
+    font-weight: var(--ds-font-weight-semibold);
+}
+
+.cell-due-overdue-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 1px var(--ds-space-050);
+    background: var(--ds-red-500, #ca3521);
+    color: #fff;
+    border-radius: var(--ds-radius-full);
+    font-size: 10px;
+    font-weight: var(--ds-font-weight-bold);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
 }
 
 /* ---- Tabla con layout grid (activas y ayer) ---- */

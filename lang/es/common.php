@@ -33,6 +33,7 @@ return [
         'system'           => 'Sistema',
         'activity'         => 'Actividad',
         'project_progress' => 'Progreso del proyecto',
+        'errors'  => 'Registro de errores',
         'docs'    => 'Documentación',
         'reports' => 'Reportes',
     ],
@@ -218,6 +219,7 @@ return [
         'system_desc'            => 'Dependencias, base de datos y diagnóstico.',
         'activity_desc'          => 'Historial de acciones con filtros.',
         'project_progress_desc'  => 'Estado de las fases de desarrollo del proyecto.',
+        'errors_desc'            => 'Errores capturados en tiempo de ejecución.',
     ],
 
     // Ajustes

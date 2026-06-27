@@ -81,6 +81,15 @@ if (($currentUser['role'] ?? '') === 'admin') {
         'desc'  => __('settings_overview.project_progress_desc'),
     ];
 }
+
+if (($currentUser['role'] ?? '') === 'admin') {
+    $settingsSections[] = [
+        'url'   => url('errors'),
+        'icon'  => 'bi-bug',
+        'title' => __('menu.errors'),
+        'desc'  => __('settings_overview.errors_desc'),
+    ];
+}
 ?>
 
 <div class="page-header">

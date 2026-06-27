@@ -4,6 +4,7 @@
  * Operaciones: compress, resize, convert (una imagen por llamada)
  */
 define('APP_ACCESS', true);
+@ini_set('memory_limit', '256M');
 ob_start(); // Captura cualquier warning/notice antes del JSON
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/functions.php';

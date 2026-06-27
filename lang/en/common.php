@@ -31,9 +31,11 @@ return [
         'my_integrations' => 'My API Keys',
         'backups' => 'Backups',
         'system' => 'System',
-        'activity' => 'Activity',
-        'docs'    => 'Documentation',
-        'reports' => 'Reports',
+        'activity'         => 'Activity',
+        'project_progress' => 'Project progress',
+        'errors'           => 'Error Log',
+        'docs'             => 'Documentation',
+        'reports'          => 'Reports',
     ],
 
     // Header
@@ -206,7 +208,9 @@ return [
         'my_integrations_desc' => 'Configure your own iLovePDF and iLoveIMG keys.',
         'backups_desc'      => 'Automatic and manual backups.',
         'system_desc'       => 'Dependencies, database and diagnostics.',
-        'activity_desc'     => 'Action history with filters.',
+        'activity_desc'          => 'Action history with filters.',
+        'project_progress_desc'  => 'Development phase status.',
+        'errors_desc'            => 'Runtime errors captured by the application.',
     ],
 
     // Settings

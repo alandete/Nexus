@@ -73,6 +73,10 @@ define('ALLIANCES_UPLOADS_PATH', BASE_PATH . '/assets/uploads/alliances');
 define('ACTIVITY_LOG_FILE', DATA_PATH . '/activity_log.json');
 define('MAX_LOG_ENTRIES',   1000);
 
+// Registro de errores
+define('ERROR_LOG_FILE',   DATA_PATH . '/error_log.json');
+define('MAX_ERROR_ENTRIES', 1000);
+
 // Configuracion de APIs externas
 define('API_SETTINGS_FILE', DATA_PATH . '/api_settings.json');
 

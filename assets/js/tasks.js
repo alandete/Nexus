@@ -391,15 +391,79 @@
     }
 
     const _originalTitle = document.title;
+    let _faviconLink       = null;
+    let _faviconOrigHref   = null;
+    let _faviconRunHref    = null;
+    let _faviconBlinkId    = null;
+
+    function _getFaviconLink() {
+        if (!_faviconLink) {
+            _faviconLink = document.querySelector('link[rel~="icon"]');
+            if (!_faviconLink) {
+                _faviconLink = document.createElement('link');
+                _faviconLink.rel = 'icon';
+                document.head.appendChild(_faviconLink);
+            }
+            _faviconOrigHref = _faviconLink.href;
+        }
+        return _faviconLink;
+    }
+
+    function _buildRunningFavicon(origHref) {
+        return new Promise(resolve => {
+            const size = 32;
+            const canvas = document.createElement('canvas');
+            canvas.width  = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            const draw = () => {
+                ctx.drawImage(img, 0, 0, size, size);
+                const r = 6, x = size - r - 2, y = r + 2;
+                ctx.beginPath();
+                ctx.arc(x, y, r, 0, 2 * Math.PI);
+                ctx.fillStyle   = '#1f845a';
+                ctx.fill();
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth   = 1.5;
+                ctx.stroke();
+                resolve(canvas.toDataURL());
+            };
+            img.onload  = draw;
+            img.onerror = () => { ctx.beginPath(); ctx.arc(16,16,12,0,2*Math.PI); ctx.fillStyle='#1f845a'; ctx.fill(); resolve(canvas.toDataURL()); };
+            img.src = origHref;
+        });
+    }
+
+    async function _startFaviconBlink() {
+        if (_faviconBlinkId) return;
+        const link = _getFaviconLink();
+        if (!_faviconRunHref) _faviconRunHref = await _buildRunningFavicon(_faviconOrigHref);
+        let visible = true;
+        link.href = _faviconRunHref;
+        _faviconBlinkId = setInterval(() => {
+            visible = !visible;
+            link.href = visible ? _faviconRunHref : _faviconOrigHref;
+        }, 1000);
+    }
+
+    function _stopFaviconBlink() {
+        if (_faviconBlinkId) { clearInterval(_faviconBlinkId); _faviconBlinkId = null; }
+        const link = _getFaviconLink();
+        if (_faviconOrigHref) link.href = _faviconOrigHref;
+    }
 
     function setTabRunning() {
         if (!document.title.startsWith('● ')) {
             document.title = '● ' + document.title;
         }
+        _startFaviconBlink();
     }
 
     function clearTabRunning() {
         document.title = _originalTitle;
+        _stopFaviconBlink();
     }
 
     function startTicking() {

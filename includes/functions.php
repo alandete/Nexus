@@ -284,6 +284,24 @@ function getMigrations(): array
             ALTER TABLE users DROP INDEX email",
         '018_tasks_add_gmail_message_id' => "
             ALTER TABLE tasks ADD COLUMN gmail_message_id VARCHAR(255) DEFAULT NULL AFTER is_recurring",
+
+        '019_create_error_log' => "
+            CREATE TABLE IF NOT EXISTS error_log (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                timestamp DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                level VARCHAR(20) NOT NULL,
+                type VARCHAR(80) NOT NULL DEFAULT '',
+                message TEXT NOT NULL,
+                file VARCHAR(500) DEFAULT NULL,
+                line INT DEFAULT NULL,
+                url VARCHAR(500) DEFAULT NULL,
+                method VARCHAR(10) DEFAULT NULL,
+                user VARCHAR(50) DEFAULT NULL,
+                ip VARCHAR(45) DEFAULT NULL,
+                trace MEDIUMTEXT DEFAULT NULL,
+                INDEX idx_timestamp (timestamp),
+                INDEX idx_level (level)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
     ];
 }
 
@@ -923,6 +941,241 @@ function getActivityLog(array $filters = [], int $page = 1, int $perPage = 25): 
 
     return ['entries' => $entries, 'total' => $total, 'page' => $page, 'pages' => $pages];
 }
+
+// ── Registro de errores ─────────────────────────────────────────────────────
+
+function errorSeverityName(int $severity): string
+{
+    $map = [
+        E_ERROR             => 'E_ERROR',
+        E_WARNING           => 'E_WARNING',
+        E_PARSE             => 'E_PARSE',
+        E_NOTICE            => 'E_NOTICE',
+        E_CORE_ERROR        => 'E_CORE_ERROR',
+        E_CORE_WARNING      => 'E_CORE_WARNING',
+        E_COMPILE_ERROR     => 'E_COMPILE_ERROR',
+        E_COMPILE_WARNING   => 'E_COMPILE_WARNING',
+        E_USER_ERROR        => 'E_USER_ERROR',
+        E_USER_WARNING      => 'E_USER_WARNING',
+        E_USER_NOTICE       => 'E_USER_NOTICE',
+        E_STRICT            => 'E_STRICT',
+        E_RECOVERABLE_ERROR => 'E_RECOVERABLE_ERROR',
+        E_DEPRECATED        => 'E_DEPRECATED',
+        E_USER_DEPRECATED   => 'E_USER_DEPRECATED',
+    ];
+    return $map[$severity] ?? "E_UNKNOWN({$severity})";
+}
+
+function logError(string $level, string $message, array $ctx = []): void
+{
+    $user    = function_exists('getCurrentUser') ? (getCurrentUser()['username'] ?? '') : '';
+    $ts      = date('Y-m-d H:i:s');
+    $message = mb_substr($message, 0, 5000);
+    $file    = mb_substr($ctx['file'] ?? '', 0, 500);
+    $trace   = mb_substr($ctx['trace'] ?? '', 0, 20000);
+    $url     = mb_substr($_SERVER['REQUEST_URI'] ?? '', 0, 500);
+    $method  = mb_substr($_SERVER['REQUEST_METHOD'] ?? '', 0, 10);
+    $ip      = $_SERVER['REMOTE_ADDR'] ?? '';
+
+    $db = getDB();
+    if ($db) {
+        try {
+            $stmt = $db->prepare(
+                "INSERT INTO error_log (timestamp, level, type, message, file, line, url, method, user, ip, trace)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            );
+            $stmt->execute([
+                $ts, $level,
+                mb_substr($ctx['type'] ?? '', 0, 80),
+                $message, $file,
+                isset($ctx['line']) ? (int) $ctx['line'] : null,
+                $url, $method, $user, $ip, $trace,
+            ]);
+            return;
+        } catch (PDOException $e) {}
+    }
+
+    // Fallback JSON
+    $entry = [
+        'id'        => bin2hex(random_bytes(4)),
+        'timestamp' => $ts,
+        'level'     => $level,
+        'type'      => mb_substr($ctx['type'] ?? '', 0, 80),
+        'message'   => $message,
+        'file'      => $file,
+        'line'      => $ctx['line'] ?? null,
+        'url'       => $url,
+        'method'    => $method,
+        'user'      => $user,
+        'ip'        => $ip,
+        'trace'     => $trace,
+    ];
+
+    $log = [];
+    if (file_exists(ERROR_LOG_FILE)) {
+        $log = json_decode(file_get_contents(ERROR_LOG_FILE), true) ?? [];
+    }
+    array_unshift($log, $entry);
+    if (count($log) > MAX_ERROR_ENTRIES) {
+        $log = array_slice($log, 0, MAX_ERROR_ENTRIES);
+    }
+    if (!is_dir(DATA_PATH)) mkdir(DATA_PATH, 0755, true);
+    file_put_contents(ERROR_LOG_FILE, json_encode($log, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
+}
+
+function getErrorLog(array $filters = [], int $page = 1, int $perPage = 25): array
+{
+    $db = getDB();
+    if ($db) {
+        try {
+            $where  = [];
+            $params = [];
+
+            if (!empty($filters['date_from'])) {
+                $where[]  = "timestamp >= ?";
+                $params[] = $filters['date_from'] . ' 00:00:00';
+            }
+            if (!empty($filters['date_to'])) {
+                $where[]  = "timestamp <= ?";
+                $params[] = $filters['date_to'] . ' 23:59:59';
+            }
+            if (!empty($filters['level'])) {
+                $where[]  = "level = ?";
+                $params[] = $filters['level'];
+            }
+
+            $whereSQL = !empty($where) ? 'WHERE ' . implode(' AND ', $where) : '';
+
+            $countStmt = $db->prepare("SELECT COUNT(*) FROM error_log {$whereSQL}");
+            $countStmt->execute($params);
+            $total = (int) $countStmt->fetchColumn();
+
+            $pages  = $total > 0 ? (int) ceil($total / $perPage) : 0;
+            $page   = max(1, min($page, max(1, $pages)));
+            $offset = ($page - 1) * $perPage;
+
+            $stmt = $db->prepare("SELECT * FROM error_log {$whereSQL} ORDER BY timestamp DESC LIMIT {$perPage} OFFSET {$offset}");
+            $stmt->execute($params);
+            $entries = $stmt->fetchAll();
+
+            return ['entries' => $entries, 'total' => $total, 'page' => $page, 'pages' => $pages];
+        } catch (PDOException $e) {}
+    }
+
+    // Fallback JSON
+    if (!file_exists(ERROR_LOG_FILE)) {
+        return ['entries' => [], 'total' => 0, 'page' => 1, 'pages' => 0];
+    }
+
+    $log = json_decode(file_get_contents(ERROR_LOG_FILE), true) ?? [];
+
+    if (!empty($filters['date_from'])) {
+        $from = $filters['date_from'] . ' 00:00:00';
+        $log  = array_filter($log, fn($e) => $e['timestamp'] >= $from);
+    }
+    if (!empty($filters['date_to'])) {
+        $to  = $filters['date_to'] . ' 23:59:59';
+        $log = array_filter($log, fn($e) => $e['timestamp'] <= $to);
+    }
+    if (!empty($filters['level'])) {
+        $log = array_filter($log, fn($e) => $e['level'] === $filters['level']);
+    }
+
+    $log     = array_values($log);
+    $total   = count($log);
+    $pages   = $total > 0 ? (int) ceil($total / $perPage) : 0;
+    $page    = max(1, min($page, max(1, $pages)));
+    $entries = array_slice($log, ($page - 1) * $perPage, $perPage);
+
+    return ['entries' => $entries, 'total' => $total, 'page' => $page, 'pages' => $pages];
+}
+
+function clearErrorLog(): void
+{
+    $db = getDB();
+    if ($db) {
+        try {
+            $db->exec("TRUNCATE TABLE error_log");
+        } catch (PDOException $e) {}
+    }
+    if (file_exists(ERROR_LOG_FILE)) {
+        file_put_contents(ERROR_LOG_FILE, '[]', LOCK_EX);
+    }
+}
+
+function renderFatalResponse(string $msg): void
+{
+    if (PHP_SAPI === 'cli') return;
+
+    $isJson = false;
+    foreach (headers_list() as $h) {
+        if (stripos($h, 'Content-Type: application/json') !== false) {
+            $isJson = true;
+            break;
+        }
+    }
+
+    while (ob_get_level() > 0) {
+        ob_end_clean();
+    }
+
+    if ($isJson) {
+        header('Content-Type: application/json; charset=utf-8');
+        http_response_code(500);
+        echo json_encode(['success' => false, 'message' => $msg], JSON_UNESCAPED_UNICODE);
+    } else {
+        http_response_code(500);
+        echo '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Error</title></head><body>'
+           . '<h2>Error del servidor</h2><p>' . htmlspecialchars($msg) . '</p></body></html>';
+    }
+    exit;
+}
+
+function registerErrorLogging(): void
+{
+    static $registered = false;
+    if ($registered) return;
+    $registered = true;
+
+    set_error_handler(function (int $severity, string $msg, string $file, int $line): bool {
+        $loggable = E_WARNING | E_USER_WARNING | E_USER_ERROR | E_RECOVERABLE_ERROR | E_CORE_WARNING | E_COMPILE_WARNING;
+        if (!($severity & $loggable)) return false;
+        if (!(error_reporting() & $severity)) return false;
+
+        logError('warning', $msg, [
+            'type' => errorSeverityName($severity),
+            'file' => $file,
+            'line' => $line,
+        ]);
+        return false;
+    });
+
+    set_exception_handler(function (Throwable $e): void {
+        logError('exception', $e->getMessage(), [
+            'type'  => get_class($e),
+            'file'  => $e->getFile(),
+            'line'  => $e->getLine(),
+            'trace' => $e->getTraceAsString(),
+        ]);
+        renderFatalResponse($e->getMessage());
+    });
+
+    register_shutdown_function(function (): void {
+        $err = error_get_last();
+        if (!$err) return;
+        $fatal = E_ERROR | E_PARSE | E_CORE_ERROR | E_COMPILE_ERROR | E_USER_ERROR;
+        if (!($err['type'] & $fatal)) return;
+
+        logError('fatal', $err['message'], [
+            'type' => errorSeverityName($err['type']),
+            'file' => $err['file'],
+            'line' => $err['line'],
+        ]);
+        renderFatalResponse($err['message']);
+    });
+}
+
+registerErrorLogging();
 
 // Restaurar sesión desde cookie "recuérdame" si la sesión está vacía.
 // Se ejecuta en todos los endpoints que cargan este archivo.

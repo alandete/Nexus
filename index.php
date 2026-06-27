@@ -61,7 +61,7 @@ $validPages = [
     'utilities-images', 'utilities-pdf', 'utilities-gift', 'utilities-rise',
     'reports',
     'settings', 'users', 'manage-alliances', 'manage-tasks', 'application', 'integrations', 'my-integrations',
-    'snapshots', 'system', 'activity', 'project-progress',
+    'snapshots', 'system', 'activity', 'project-progress', 'errors',
     'login', 'logout',
     'forgot-password', 'reset-password',
     '403', '404', '500',
@@ -329,6 +329,10 @@ $quickLinksMeta = [
 
     <?php if ($page === 'activity'): ?>
     <script src="assets/js/activity.js?v=<?= filemtime('assets/js/activity.js') ?>"></script>
+    <?php endif; ?>
+
+    <?php if ($page === 'errors'): ?>
+    <script src="assets/js/error-log.js?v=<?= filemtime('assets/js/error-log.js') ?>"></script>
     <?php endif; ?>
 
     <?php if ($page === 'snapshots'): ?>

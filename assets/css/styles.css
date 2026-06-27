@@ -7082,6 +7082,54 @@ a.stat-card:hover {
     font-size: var(--ds-font-size-body-sm);
 }
 
+/* ── Error log ── */
+.error-message-cell {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--ds-space-050);
+}
+
+.error-detail-toggle {
+    background: none;
+    border: none;
+    padding: 0 var(--ds-space-050);
+    cursor: pointer;
+    color: var(--ds-text-subtlest);
+    flex-shrink: 0;
+    line-height: 1;
+}
+
+.error-detail-toggle:hover {
+    color: var(--ds-text);
+}
+
+.error-detail-panel {
+    margin-top: var(--ds-space-100);
+    padding: var(--ds-space-100);
+    background: var(--ds-background-neutral);
+    border-radius: var(--ds-border-radius);
+    border: 1px solid var(--ds-border);
+}
+
+.error-detail-meta {
+    font-size: var(--ds-font-size-body-sm);
+    margin-bottom: var(--ds-space-075);
+}
+
+.error-trace {
+    font-family: var(--ds-font-family-code, monospace);
+    font-size: var(--ds-font-size-body-sm);
+    color: var(--ds-text-subtlest);
+    white-space: pre-wrap;
+    word-break: break-all;
+    margin: 0;
+    max-height: 200px;
+    overflow-y: auto;
+    padding: var(--ds-space-075);
+    background: var(--ds-background-input);
+    border-radius: var(--ds-border-radius);
+}
+
 .activity-loading {
     display: flex;
     align-items: center;
